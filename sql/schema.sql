@@ -16,15 +16,17 @@ CREATE TABLE events (
     time_to_choose_ms UInt32,
     route             LowCardinality(String),
     attributes        Map(String, String)
-) ENGINE = MergeTree ORDER BY (session_id, seq);
+) ENGINE = Memory;
 
 -- Metrics: pre-aggregated at write time. choice_text/dialogue_text never reach him.
+-- Tables use the Memory engine: the event log in IndexedDB is the durable copy, and Memory is
+-- the one table engine the single-threaded build (Firefox, phones) can run.
 CREATE TABLE metrics_agg (
     character LowCardinality(String),
     scene     LowCardinality(String),
     events    UInt64,
     affection Int64
-) ENGINE = SummingMergeTree ORDER BY (character, scene);
+) ENGINE = Memory;
 
 CREATE MATERIALIZED VIEW metrics_mv TO metrics_agg AS
 SELECT character, scene, count() AS events, sum(affection_delta) AS affection

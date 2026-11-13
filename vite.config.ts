@@ -1,8 +1,8 @@
 import { defineConfig, type Plugin } from 'vite';
-import { statSync } from 'node:fs';
 import { loadContent } from './scripts/content.ts';
 
-// Cross-origin isolation: required by the multi-threaded (mt) chdb bundle.
+// Cross-origin isolation isn't required by the single-threaded engine, but keeps the door open
+// for SharedArrayBuffer features; every asset is same-origin, so it costs nothing.
 const coi = {
   'Cross-Origin-Opener-Policy': 'same-origin',
   'Cross-Origin-Embedder-Policy': 'require-corp',
@@ -27,7 +27,6 @@ function content(): Plugin {
 
 export default defineConfig({
   plugins: [content()],
-  define: { __CHDB_WASM_BYTES__: statSync('node_modules/chdb-wasm/dist/chdb.wasm').size },
   server: { headers: coi },
   preview: { headers: coi },
 });

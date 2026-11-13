@@ -5,7 +5,8 @@ import { createHash } from 'node:crypto';
 
 const src = new URL('../node_modules/chdb-wasm/dist/', import.meta.url);
 const pub = new URL('../public/', import.meta.url);
-const files = ['index.js', 'worker.js', 'async.js', 'bindings.js', 'protocol.js', 'status.js', 'platform.js', 'chdb.mjs', 'chdb.wasm'];
+// Only the single-threaded build ships (see src/db.ts); selectBundle looks for it under st/.
+const files = ['index.js', 'worker.js', 'async.js', 'bindings.js', 'protocol.js', 'status.js', 'platform.js', 'st/chdb.mjs', 'st/chdb.wasm'];
 const h = createHash('md5');
 for (const f of files) h.update(readFileSync(new URL(f, src)));
 const dir = `chdb-${h.digest('hex').slice(0, 12)}`;
@@ -13,4 +14,4 @@ const dir = `chdb-${h.digest('hex').slice(0, 12)}`;
 for (const d of readdirSync(pub)) if (d === 'chdb' || d.startsWith('chdb-')) rmSync(new URL(d, pub), { recursive: true, force: true });
 for (const f of files) cpSync(new URL(f, src), new URL(`${dir}/${f}`, pub));
 writeFileSync(new URL('../src/engine-path.json', import.meta.url), JSON.stringify({ base: `/${dir}` }) + '\n');
-console.log(`copied chdb-wasm (mt bundle) -> public/${dir}`);
+console.log(`copied chdb-wasm (single-threaded bundle) -> public/${dir}`);

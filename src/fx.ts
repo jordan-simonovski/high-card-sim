@@ -83,11 +83,14 @@ export function vein(color = '#e5484d') {
 
 // ---------- the vocabulary ----------
 const GOOD = ['DOKI!', 'DOKI DOKI', 'KYUN!'];
+const buzz = (pattern: number | number[]) => { try { navigator.vibrate?.(pattern); } catch { /* unsupported */ } };
 export function goodChoice(color: string) {
+  buzz(12);
   sfxText(GOOD[Math.floor(Math.random() * GOOD.length)], { color, size: 58 });
   particles('heart', 9, color);
 }
 export function badChoice() {
+  buzz([30, 40, 30]);
   sfxText('GAAN…', { color: '#5b6b9a', size: 52, className: 'heavy' });
   particles('drop', 7, '#7fb2ff');
 }

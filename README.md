@@ -12,12 +12,18 @@ events. **Stop sampling yourself.**
 npm install          # also copies the chdb engine into public/chdb-<hash>/
 npm run dev          # http://localhost:5173 (cross-origin isolated)
 npm test             # unit tests (node:test): scene engine, pronouns, validator, resume, saves
-npm run e2e          # Playwright: smoke + two full playthroughs in Chromium with real chDB
+npm run e2e          # Playwright: smoke, polish, PWA and two full playthroughs, Chromium + Firefox
 npm run lint:content # content lint (also runs in the build)
 ```
 
-Chromium-based browsers only for now: Safari and iOS lack WebAssembly Memory64, and Firefox hangs
-on about a third of engine boots (see `docs/m0-report.md`). Both get an in-world unsupported screen.
+Runs in Chrome, Edge and Firefox, on desktop and Android, and installs as a PWA that plays
+offline after the first visit. Safari and iOS lack WebAssembly Memory64 and get an in-world
+unsupported screen.
+
+The engine is chdb's single-threaded build, compiled while it streams. The threaded build hangs
+Firefox on about a third of boots (see `docs/m0-report.md`), and dropping its worker pool plus
+JS-side buffering roughly halves memory, which matters on phones. Tables use the Memory engine,
+the one engine the single-threaded build can run; the IndexedDB event log is the durable copy.
 
 ## How it works
 
@@ -54,5 +60,6 @@ art lives in `public/art/` as WebP.
 
 ## Deploy
 
-Vercel, static. `vercel.json` sets COOP/COEP (required for the threaded engine) and caching:
-the engine directory is content-hashed and immutable.
+Vercel, static. `vercel.json` sets caching (the engine directory is content-hashed and immutable)
+and COOP/COEP. Music, sound effects and babble come from ElevenLabs via `tools/audio/generate.mjs`;
+icons and the social card from `tools/brand/render.mjs`.

@@ -2,10 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="High Cardinality, or: I Acked a Page at 3 A.M. and Woke Up in an Observability Stack Where the Three Pillars Want to Date Me (but One of Them Only Shows Up to 1% of Our Dates). A queer-friendly isekai dating sim. Stop sampling yourself." />
     <meta name="theme-color" content="#ff7eb6" />
     <title>High Cardinality</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="High Cardinality" />
+    <meta property="og:title" content="High Cardinality" />
+    <meta property="og:description" content="I Acked a Page at 3 A.M. and Woke Up in an Observability Stack Where the Three Pillars Want to Date Me. A dating sim where ClickHouse decides who loves you." />
+    <meta property="og:url" content="https://high-card-sim.vercel.app/" />
+    <meta property="og:image" content="https://high-card-sim.vercel.app/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The High Cardinality logo beside Logs, Traces and Metrics, three anime characters, against a sunset sky." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="High Cardinality" />
+    <meta name="twitter:description" content="A queer-friendly isekai dating sim where ClickHouse decides who loves you. Stop sampling yourself." />
+    <meta name="twitter:image" content="https://high-card-sim.vercel.app/og.jpg" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23d63384' d='M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.1 0 3.6 1.2 5.2 3 1.6-1.8 3.1-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z'/></svg>" />
   </head>
   <body>
@@ -16,7 +31,7 @@
     </div>
 
     <p id="sr-line" class="sr-only" aria-live="polite"></p>
-    <div id="loader" role="status" aria-live="polite">spinning up the collector…</div>
+    <div id="loader" role="status" aria-live="polite">spinning up the collector</div>
 
     <nav id="toolbar" aria-label="Game controls" hidden>
       <button id="btn-shell" hidden title="Open the Query Shell (Q)">shell</button>

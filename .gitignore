@@ -10,3 +10,4 @@ tools/art/out
 public/chdb-*
 src/engine-path.json
 .env*.local
+test-results-boot

@@ -30,18 +30,11 @@ export interface Db {
   insert(table: string, rows: object[]): Promise<void>;
 }
 
-export interface BootProgress {
-  loaded: number;
-  total: number;
-}
-
 /** Same check selectBundle() does, without importing the engine (runs before anything loads). */
-export type Unsupported = 'memory64' | 'isolation' | 'firefox';
+export type Unsupported = 'memory64';
 
 export function clientSupport(): { ok: true } | { ok: false; reason: Unsupported } {
-  // ponytail: Firefox boots hang 35-50% of the time (docs/m0-report.md); v1 is Chromium-only.
-  // A retrying watchdog that mostly works is in commit b574245 if Firefox comes back.
-  if (/Firefox\//.test(navigator.userAgent)) return { ok: false, reason: 'firefox' };
+
   let mem64 = false;
   try {
     mem64 = WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 5, 3, 1, 4, 1]));
@@ -49,21 +42,20 @@ export function clientSupport(): { ok: true } | { ok: false; reason: Unsupported
     /* no wasm at all */
   }
   if (!mem64) return { ok: false, reason: 'memory64' };
-  if (!self.crossOriginIsolated) return { ok: false, reason: 'isolation' };
   return { ok: true };
 }
 
-export async function openDb(onProgress: (p: BootProgress) => void = () => {}): Promise<Db> {
+// One engine everywhere: the single-threaded build, compiled while it streams.
+// - The threaded build's worker pool hangs Firefox on ~35% of boots; this one boots 20/20.
+// - Streaming compile (no wasmUrl, so the package doesn't buffer the bytes in JS first) plus no
+//   thread pool roughly halves memory: ~0.8 GB over a blank tab vs ~1.5 GB, which matters on phones.
+// - It costs download progress (the browser fetches internally) and query cancel(); the Query
+//   Shell's timeout uses max_execution_time, which works here.
+export async function openDb(): Promise<Db> {
   const m: ChdbModule = await import(/* @vite-ignore */ `${ENGINE_BASE}/index.js`);
-  const bundle = m.selectBundle({ baseUrl: ENGINE_BASE, threads: 'mt' });
+  const bundle = m.selectBundle({ baseUrl: ENGINE_BASE, threads: 'st' });
   if (!bundle.supported) throw new Error(`unsupported client: ${bundle.reasons.join('; ')}`);
-  const chdb = await m.AsyncChdb.create({
-    moduleUrl: bundle.moduleUrl,
-    wasmUrl: bundle.wasmUrl,
-    // Vercel serves the wasm brotli-encoded without content-length: fall back to the
-    // uncompressed size baked in at build time.
-    onProgress: (loaded, total) => onProgress({ loaded, total: total || __CHDB_WASM_BYTES__ }),
-  });
+  const chdb = await m.AsyncChdb.create({ moduleUrl: bundle.moduleUrl });
 
   // Params are session state, so a SET + query pair must not interleave with another
   // caller's: every engine call goes through one FIFO chain.

@@ -1,7 +1,7 @@
 // Boot: support check -> title screen (engine downloads behind it) -> story. The prologue
 // needs no queries, so the engine keeps loading while it plays. The event log is the save.
 import './style.css';
-import { clientSupport, openDb, truthy, type BootProgress, type Db, type Row, type Unsupported } from './db.ts';
+import { clientSupport, openDb, truthy, type Db, type Row, type Unsupported } from './db.ts';
 import { openLog, type EventLog, type GameEvent } from './eventlog.ts';
 import { needsQueries, nextNode, node, sceneTarget, visibleChoices, type Conditions, type Scene, type SceneNode } from './engine/scene.ts';
 import { PRESETS, render, type Player, type Preset } from './engine/pronouns.ts';
@@ -42,11 +42,7 @@ const applyScale = () => document.documentElement.style.setProperty('--scale', S
 // ---------- unsupported ----------
 const WHY: Record<Unsupported, string> = {
   memory64:
-    "Your browser can't speak WebAssembly Memory64 yet (Safari and iOS, we're looking at you). The pillars live in Chrome and Edge for now.",
-  firefox:
-    "Firefox keeps dropping the collector mid-handshake, so the pillars can't meet you here yet. Try Chrome or Edge while we fix it.",
-  isolation:
-    'This page lost its cross-origin isolation, so the collector cannot spin up. Try opening the game directly instead of embedded.',
+    "Your browser can't speak WebAssembly Memory64 yet (Safari and iOS, we're looking at you). The pillars live in Chrome, Edge and Firefox for now.",
 };
 
 function unsupported(reason: Unsupported) {
@@ -56,10 +52,6 @@ function unsupported(reason: Unsupported) {
   $('#unsupported .why').textContent = WHY[reason];
 }
 
-function showLoader(p: BootProgress) {
-  const pct = Math.min(99, Math.floor((p.loaded / p.total) * 100));
-  $('#loader').textContent = `spinning up the collector… ${pct}%`;
-}
 
 /** A pillar noticing you, in its own data language: Metrics ticks a counter, Traces keeps a span. */
 function react(c: { character?: string; affection_delta?: number; attributes?: Record<string, string> }, speaker?: string) {
@@ -697,7 +689,7 @@ async function main() {
 
   log = await openLog();
   hooks.log = log;
-  ready = openDb(showLoader).then(async (db) => {
+  ready = openDb().then(async (db) => {
     boot.replayed = await log.attach(db);
     boot.state = 'ready';
     $('#loader').textContent = boot.replayed ? `collector online · ${boot.replayed} events replayed` : 'collector online';
@@ -734,6 +726,10 @@ async function main() {
   $('#btn-new').onclick = () => (events.length ? newSession() : start([]));
   (resumable ? $('#btn-continue') : $('#btn-new')).focus();
 }
+
+// Offline play and install (production only: a dev server shouldn't be cached).
+if (import.meta.env.PROD && 'serviceWorker' in navigator)
+  addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
 
 main().catch((e) => {
   boot.state = 'failed';
