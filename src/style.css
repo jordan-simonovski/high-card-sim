@@ -180,6 +180,11 @@ dialog h2 { margin: 0; font-size: 20px; }
 dialog h2 small { font: 12px ui-monospace, monospace; color: var(--ink-soft); font-weight: 400; }
 dialog .close { border: 0; background: none; font-size: 22px; line-height: 1; padding: 4px 8px; border-radius: 10px; }
 #menu { width: min(420px, calc(100vw - 32px)); }
+#about { width: min(640px, calc(100vw - 32px)); }
+.about-body p { margin: 0 0 12px; line-height: 1.55; }
+.about-body a { color: var(--lilac-deep); font-weight: 700; }
+.about-live { white-space: pre-wrap; margin-top: 16px !important; padding: 10px 14px; border-radius: 14px; background: #1e1228; color: var(--mint); font: calc(13px * var(--scale)) ui-monospace, monospace; }
+.about-live:empty { display: none; }
 #menu .note { margin-top: 14px; }
 #console textarea {
   width: 100%; font: calc(15px * var(--scale)) / 1.5 ui-monospace, monospace; padding: 12px 14px; border-radius: 16px;

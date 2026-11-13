@@ -375,6 +375,19 @@ async function start(events: GameEvent[]) {
   else await play('prologue');
 }
 
+/** The title screen's explainer, with a live line from the engine running in this tab. */
+async function showAbout() {
+  const live = $('#about-live');
+  $<HTMLDialogElement>('#about').showModal();
+  if (boot.state !== 'ready') {
+    live.textContent = `> the engine is still downloading. ${$('#loader').textContent ?? ''}`;
+    return;
+  }
+  const db = await ready;
+  const [r] = await db.query<{ v: string; n: string }>('SELECT version() AS v, (SELECT count() FROM events) AS n');
+  live.textContent = `> SELECT version(), count() FROM events\n  ClickHouse ${r.v} · ${Number(r.n).toLocaleString()} events in your save`;
+}
+
 function wireChrome() {
   $('#import-title').onchange = (e) => importSave((e.target as HTMLInputElement).files?.[0], $('#title-note'));
   $('#import-menu').onchange = (e) => importSave((e.target as HTMLInputElement).files?.[0], $('#menu .note'));
@@ -384,6 +397,8 @@ function wireChrome() {
   $('#btn-reset').onclick = () => ($('#reset-confirm').hidden = false);
   $('#btn-reset-yes').onclick = newSession;
   $('#btn-title').onclick = () => location.reload();
+  $('#btn-about-title').onclick = () => void showAbout();
+  $('#btn-about-menu').onclick = () => void showAbout();
   $('#btn-menu').onclick = () => $<HTMLDialogElement>('#menu').showModal();
   for (const d of document.querySelectorAll<HTMLDialogElement>('dialog'))
     d.querySelector('.close')?.addEventListener('click', () => d.close());
