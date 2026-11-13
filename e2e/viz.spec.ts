@@ -179,16 +179,31 @@ test('the incident: clues in every view, the kept trace, and the same incident a
   await page.waitForFunction(() => (window as any).__hc?.boot.state === 'ready', null, { timeout: 120_000 });
   await page.evaluate(() => (window as any).__hc.incident('incident_start', 'incident', 'alarm'));
 
-  // Logs: the WARN she kept writing, found by reading (filtering) her.
+  // The case file: Sev-1 open, Logs is the current lead, and its tab is marked.
   await page.evaluate(() => (window as any).__hc.openShell('logs'));
+  await expect(page.locator('#casefile')).toBeVisible();
+  await expect(page.locator('#casefile li.current')).toContainText('Logs: read everything');
+  await expect(page.locator('#tab-logs')).toHaveClass(/lead/);
   await expect(page.locator('#tab-logs')).toHaveAttribute('aria-selected', 'true');
-  await page.locator('#logs-search').fill('cardinality limit');
-  await expect(page.locator('#panel-logs')).toContainText('WARN cardinality limit exceeded, dropping series');
 
-  // Metrics: an incident opens on errors by tier, and onlyspans is the tall bar.
+  // Logs: the WARN she kept writing, found by filtering to WARN and grouping into patterns.
+  await page.locator('#logs-levels .viz-seg', { hasText: 'WARN' }).click();
+  await page.locator('#logs-patterns').click();
+  const top = page.locator('#logs-list.patterns li').first();
+  await expect(top).toContainText('WARN metrics: cardinality limit exceeded, dropping series {attribute=subscriber_id}');
+  await expect(top.locator('.n')).toHaveText(/^×\d{2,}$/);
+  await page.locator('#logs-search').fill('cardinality limit');
+  await expect(page.locator('#logs-count')).toContainText('1 of 4 patterns');
+
+  // Metrics: an incident opens on errors per minute, one series until tier is back…
   await page.locator('#tab-metrics').click();
-  await expect(page.locator('#panel-metrics .viz-seg[aria-pressed=true]')).toHaveText('errors by tier');
-  await expect(page.locator('#metrics-chart svg .mark').first()).toHaveAttribute('aria-label', /^onlyspans: \d+ errors$/);
+  await expect(page.locator('#panel-metrics .viz-seg[aria-pressed=true]')).toHaveText('errors');
+  await expect(page.locator('#metrics-chart svg')).toHaveAttribute('aria-label', /^Errors per minute, from events.*Totals: all errors \d+\.$/);
+  // …then Metrics adds it back, and the same chart splits with onlyspans carrying it.
+  await page.locator('#console .close').click();
+  await page.evaluate(() => (window as any).__hc.log.append({ scene: 'phase_metrics', node: 'add', event_type: 'line' }));
+  await page.evaluate(() => (window as any).__hc.openShell('metrics'));
+  await expect(page.locator('#metrics-chart svg')).toHaveAttribute('aria-label', /^Errors per minute by tier.*Totals: onlyspans \d{2,}, /);
 
   // Traces: nothing kept yet; keep it, and the whole path shows, dying in the batch processor.
   await page.locator('#tab-trace').click();

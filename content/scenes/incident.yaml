@@ -76,7 +76,7 @@ nodes:
   dba_3:
     speaker: dba
     mood: neutral
-    text: "You've got the Query Shell. They've each got a piece. I've got the pencils. I'll be scribe."
+    text: "You've got the Query Shell. They've each got a piece. I've got the pencils. I'll be scribe: everything we find goes in the case file, top of your shell."
     next: start
   start:
     speaker: logs

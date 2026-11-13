@@ -1,4 +1,4 @@
-# Phase 2: add the dimension back. The error spike can't be broken down until Metrics adds one
+# Phase 2: add the dimension back. The first look shows errors per minute, unsplit; Metrics adds one
 # label back: tier (free, pro, onlyspans). onlyspans carries almost every error.
 # No affection_delta here on purpose: the finale gates read affection from the dates.
 # Turning point lands harder with metrics_affection_high.
@@ -19,6 +19,10 @@ nodes:
     speaker: metrics
     mood: annoyed
     text: "Errors have gone vertical. Before you ask: no, I can't tell you whose. I don't keep whose."
+    next: look
+  look:
+    action: open_console:metrics
+    text: "The Query Shell opens on Metrics' charts. One red column a minute, each taller than the last, and nothing to say what any of it is made of."
     next: m3
   m3:
     speaker: metrics

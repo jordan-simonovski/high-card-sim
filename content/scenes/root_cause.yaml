@@ -23,7 +23,7 @@ nodes:
   recap3:
     speaker: dba
     mood: happy
-    text: "events. The wide one. Nobody's sampled it, summed it or cut it short. Go on. GROUP BY tier, and count the distinct subscriber_ids."
+    text: "events. The wide one. Nobody's sampled it, summed it or cut it short. Go on. GROUP BY tier, and count the distinct subscriber_ids. It's on a hint button, if you'd rather not type. I won't judge. I'll judge a little."
     next: open
   open:
     action: open_console

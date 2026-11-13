@@ -3,6 +3,7 @@
 // them as hand-built HTML and SVG. Player input only filters rows client-side; it never reaches SQL.
 import './viz.css';
 import type { Row } from './db.ts';
+import type { CaseFile } from './casefile.ts';
 
 export type View = 'logs' | 'trace' | 'metrics';
 export interface Views {
@@ -14,6 +15,8 @@ interface Opts {
   table(rows: Row[], max?: number): HTMLElement;
   characters: Record<string, { name: string; color?: string }>;
   select(v: View): void;
+  /** The Sev-1 case file, as of now. */
+  caseFile(): CaseFile;
 }
 
 export function mountViews(o: Opts): Views {
@@ -152,22 +155,42 @@ const seg = (labels: [value: string, label: string][], aria: string, onPick: (v:
 };
 
 // ---------- Logs: every word, no idea what any of it meant ----------
-const LOGS_SQL = "SELECT ts, character, dialogue_text FROM logs WHERE dialogue_text != '' ORDER BY ts DESC LIMIT 1000";
+// Level and patterns are fixed choices, so they can go into the SQL and reach every line, not
+// just the 500 the shell returns. Free text (search) still only filters client-side.
+const LEVELS = ['ERROR', 'WARN', 'INFO'] as const;
+type Level = (typeof LEVELS)[number] | '';
+const levelOf = (text: string) => LEVELS.find((l) => text.startsWith(`${l} `)) ?? '';
+const LOGS_SQL = (level: Level, patterns: boolean) => {
+  const where = `dialogue_text != ''${level ? ` AND startsWith(dialogue_text, '${level} ')` : ''}`;
+  return patterns
+    ? // Any run with a digit in it (ids, durations, counts) becomes #, so repeats collapse into one pattern.
+      `SELECT replaceRegexpAll(dialogue_text, '[0-9a-f]*[0-9][0-9a-f]*', '#') AS pattern, count() AS n, any(character) AS character, max(ts) AS ts FROM logs WHERE ${where} GROUP BY pattern ORDER BY n DESC, ts DESC LIMIT 200`
+    : `SELECT ts, character, dialogue_text FROM logs WHERE ${where} ORDER BY ts DESC LIMIT 1000`;
+};
 
 function logsView(o: Opts, panel: HTMLElement) {
-  type Line = { t: number; character: string; text: string };
+  type Line = { t: number; character: string; text: string; n?: number };
   let lines: Line[] = [];
   const picked = new Set<string>();
   let newest = true;
+  let level: Level = '';
+  let patterns = false;
 
   const search = h('input', { type: 'search', id: 'logs-search', placeholder: 'search what Logs heard', autocomplete: 'off', spellcheck: 'false' });
   const order = h('button', { type: 'button', class: 'viz-btn', id: 'logs-order' });
+  const group = h('button', { type: 'button', class: 'viz-btn', id: 'logs-patterns', 'aria-pressed': 'false' }, 'patterns');
+  const levels = seg([['', 'all'], ...LEVELS.map((l): [string, string] => [l, l])], 'Filter by level', (v) => {
+    level = v as Level;
+    void refresh();
+  });
+  levels.el.id = 'logs-levels';
   const chips = h('div', { class: 'viz-chips', role: 'group', 'aria-label': 'Filter by character' });
   const count = h('p', { class: 'viz-count', role: 'status', id: 'logs-count' });
   const list = h('ol', { class: 'log-list', id: 'logs-list', 'aria-label': 'Log lines' });
   const status = statusLine();
   panel.append(
     h('div', { class: 'viz-controls' }, h('label', { class: 'viz-search' }, icon(ICON.search), h('span', { class: 'sr-only' }, 'Search lines'), search), order),
+    h('div', { class: 'viz-controls' }, levels.el, group),
     chips,
     status.el,
     count,
@@ -177,6 +200,10 @@ function logsView(o: Opts, panel: HTMLElement) {
   order.onclick = () => {
     newest = !newest;
     draw();
+  };
+  group.onclick = () => {
+    patterns = !patterns;
+    void refresh();
   };
 
   function highlight(text: string, q: string): (string | Node)[] {
@@ -189,7 +216,7 @@ function logsView(o: Opts, panel: HTMLElement) {
 
   function drawChips() {
     const counts = new Map<string, number>();
-    for (const l of lines) counts.set(l.character, (counts.get(l.character) ?? 0) + 1);
+    for (const l of lines) counts.set(l.character, (counts.get(l.character) ?? 0) + (l.n ?? 1));
     for (const p of [...picked]) if (!counts.has(p)) picked.delete(p);
     chips.replaceChildren(
       ...[...counts]
@@ -213,10 +240,11 @@ function logsView(o: Opts, panel: HTMLElement) {
     const q = search.value.trim();
     const re = q ? new RegExp(esc(q), 'i') : undefined;
     const shown = lines.filter((l) => (!picked.size || picked.has(l.character)) && (!re || re.test(l.text)));
-    if (!newest) shown.reverse();
-    count.textContent = lines.length ? `${shown.length} of ${lines.length} lines` : '';
+    if (!newest && !patterns) shown.reverse();
+    const total = lines.reduce((a, l) => a + (l.n ?? 1), 0);
+    count.textContent = !lines.length ? '' : patterns ? `${shown.length} of ${lines.length} patterns, from ${total.toLocaleString()} lines` : `${shown.length} of ${lines.length} lines`;
     if (!lines.length) {
-      list.replaceChildren(h('li', { class: 'viz-empty' }, "Logs hasn't heard a word yet. Play a little, then look again."));
+      list.replaceChildren(h('li', { class: 'viz-empty' }, level ? `No ${level} lines.` : "Logs hasn't heard a word yet. Play a little, then look again."));
       return;
     }
     if (!shown.length) {
@@ -231,22 +259,36 @@ function logsView(o: Opts, panel: HTMLElement) {
       list.replaceChildren(h('li', { class: 'viz-empty' }, q ? `Nothing Logs heard matches “${q}”. ` : 'No lines from that character. ', clear));
       return;
     }
+    list.classList.toggle('patterns', patterns);
     list.replaceChildren(
       ...shown.map((l) =>
-        h('li', {}, h('time', { class: 'ts' }, clock(l.t)), h('span', { class: 'who' }, dot(o, l.character), who(o, l.character).name), h('span', { class: 'line' }, ...highlight(l.text, q))),
+        h('li', { class: levelOf(l.text) ? `lvl-${levelOf(l.text).toLowerCase()}` : undefined },
+          patterns ? h('span', { class: 'ts n', 'aria-label': `${l.n} lines` }, `×${l.n}`) : h('time', { class: 'ts' }, clock(l.t)),
+          h('span', { class: 'who' }, dot(o, l.character), who(o, l.character).name),
+          h('span', { class: 'line' }, ...highlight(l.text, q))),
       ),
     );
   }
 
-  return {
-    async refresh() {
-      const rows = await load(o, list, status, LOGS_SQL);
-      if (!rows) return;
-      lines = rows.map((r) => ({ t: parseTs(r.ts), character: str(r.character), text: str(r.dialogue_text) }));
-      drawChips();
-      draw();
-    },
-  };
+  async function refresh() {
+    // Levels only mean something once the Realm is writing lines (the incident); before that, it's just you.
+    const cf = o.caseFile();
+    levels.el.hidden = group.hidden = !(cf.active || cf.resolved);
+    if (levels.el.hidden) {
+      level = '';
+      patterns = false;
+    }
+    levels.set(level);
+    group.setAttribute('aria-pressed', String(patterns));
+    order.hidden = patterns;
+    const rows = await load(o, list, status, LOGS_SQL(level, patterns));
+    if (!rows) return;
+    lines = rows.map((r) => ({ t: parseTs(r.ts), character: str(r.character), text: str(r.pattern ?? r.dialogue_text), n: patterns ? num(r.n) : undefined }));
+    drawChips();
+    draw();
+  }
+
+  return { refresh };
 }
 
 // ---------- Trace: a waterfall of the session, sampled or whole ----------
@@ -288,18 +330,27 @@ function traceView(o: Opts, panel: HTMLElement) {
   const legend = h('p', { class: 'wf-legend', hidden: '' });
   const details = h('section', { class: 'wf-details', id: 'trace-details', 'aria-label': 'Span details', hidden: '' });
   const realm = h('section', { class: 'wf-realm', id: 'trace-realm', 'aria-label': 'Realm requests', hidden: '' });
-  panel.append(h('div', { class: 'viz-controls' }, sources.el), summary, status.el, legend, scroll, details, realm);
+  const you = h('h3', { class: 'wf-you', hidden: '' }, 'Your session');
+  // The Realm's requests come first: during the incident they're what you're here for.
+  panel.append(h('div', { class: 'viz-controls' }, sources.el), realm, you, summary, status.el, legend, scroll, details);
 
   /** One mini waterfall per Realm request; a span whose parent wasn't sampled says so. */
   function drawRealm(rows: Row[]) {
-    realm.hidden = !rows.length;
+    realm.hidden = you.hidden = !rows.length;
     if (!rows.length) return;
     const traces = new Map<string, Row[]>();
     for (const r of rows) traces.set(str(r.trace_id), [...(traces.get(str(r.trace_id)) ?? []), r]);
     const max = Math.max(1, ...rows.map((r) => num(r.ms)));
     const score = (spans: Row[]) => (spans.some((sp) => str(sp.kept) === '1') ? 2 : 0) + (spans.some((sp) => str(sp.status) === 'error') ? 1 : 0);
+    const anyKept = rows.some((r) => str(r.kept) === '1');
     realm.replaceChildren(
       h('h3', {}, 'Realm requests'),
+      h('p', { class: 'realm-note' },
+        source === 'events'
+          ? 'Every span, unsampled: the latest failing requests, start to end.'
+          : anyKept
+          ? 'Kept requests first: tail-sampled, so every span is here, start to end. Follow it down to the red one.'
+          : 'Head-sampled: about 1 span in 100, picked at the start, before anyone knew how the request would end. Where a span’s parent wasn’t picked, the rest of the path is missing.'),
       ...[...traces].sort(([, a], [, b]) => score(b) - score(a)).map(([id, spans]) => {
         const byId = new Map(spans.map((sp) => [str(sp.span_id), sp]));
         const depth = (sp: Row) => {
@@ -309,7 +360,7 @@ function traceView(o: Opts, panel: HTMLElement) {
         };
         const kept = spans.some((sp) => str(sp.kept) === '1');
         const head = `${str(spans[0].request)} · trace ${id.slice(0, 8)} · ${kept ? 'kept (sampling.priority = 1)' : `${spans.length} span${spans.length === 1 ? '' : 's'}`}`;
-        return h('div', { class: 'realm-trace' },
+        return h('div', { class: `realm-trace${kept ? ' kept' : ''}` },
           h('p', { class: 'realm-head' }, head),
           h('ol', {}, ...spans.map((sp) => {
             const err = str(sp.status) === 'error';
@@ -511,29 +562,31 @@ function traceView(o: Opts, panel: HTMLElement) {
 }
 
 // ---------- Metrics: totals, and the moments only the full table remembers ----------
-type Kind = 'bar' | 'stacked' | 'stat' | 'time' | 'tier';
+type Kind = 'bar' | 'stacked' | 'stat' | 'time' | 'errors';
 const METRICS_SQL = {
   bar: "SELECT character, sum(affection) AS affection FROM metrics_agg WHERE character NOT IN ('', 'realm') GROUP BY character ORDER BY affection DESC, character",
   stacked: "SELECT scene, character, sum(events) AS events FROM metrics_agg WHERE character != 'realm' GROUP BY scene, character ORDER BY scene, character",
   stat: "SELECT character, sum(events) AS events, sum(affection) AS affection FROM metrics_agg WHERE character != 'realm' GROUP BY character",
   statChoices: "SELECT count() AS choices FROM events WHERE event_type = 'choice'",
   time: "SELECT seq, ts, scene, node, character, choice_text, affection_delta, time_to_choose_ms FROM events WHERE event_type = 'choice' ORDER BY seq",
-  tier: "SELECT attributes['tier'] AS tier, countIf(attributes['status'] = 'error') AS errors, count() AS spans FROM events WHERE event_type = 'realm_span' GROUP BY tier ORDER BY errors DESC",
-  /** Has the incident written anything? (metrics_agg, so peeking isn't a base-table query.) */
-  incident: "SELECT count() > 0 AS active FROM metrics_agg WHERE scene = 'incident'",
+  /** The incident, as Metrics sees it: one number per minute, going up. */
+  errors: "SELECT toStartOfMinute(ts) AS minute, countIf(attributes['status'] = 'error') AS errors FROM events WHERE event_type = 'realm_span' GROUP BY minute ORDER BY minute",
+  /** …and once he adds tier back, the same number split by it. */
+  errorsByTier: "SELECT toStartOfMinute(ts) AS minute, attributes['tier'] AS tier, countIf(attributes['status'] = 'error') AS errors FROM events WHERE event_type = 'realm_span' GROUP BY minute, tier ORDER BY minute, tier",
 };
+const TIERS = ['onlyspans', 'pro', 'free']; // stacked bottom to top: the one that matters sits on the axis
 const CHART_IDLE_CAP = 5 * 60_000;
 const PILLARS = ['logs', 'metrics', 'traces'];
 
 function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => void) {
   let kind: Kind = 'bar';
-  let picked = false; // until the player picks a chart, an incident opens on errors by tier
+  let picked = false; // until the player picks a chart, an incident opens on errors
   let rows: Row[] = [];
   let extra: Row[] = [];
   let drawnWidth = 0;
 
   const kinds = seg(
-    [['bar', 'bar'], ['stacked', 'stacked'], ['stat', 'stat'], ['time', 'over time'], ['tier', 'errors by tier']],
+    [['bar', 'bar'], ['stacked', 'stacked'], ['stat', 'stat'], ['time', 'over time'], ['errors', 'errors']],
     'Chart type',
     (v) => {
       kind = v as Kind;
@@ -638,13 +691,11 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
   }
   const empty = (text: string) => host.replaceChildren(h('p', { class: 'viz-empty' }, text));
 
-  function barChart(W: number, tier = false) {
-    const data = tier
-      ? rows.map((r) => ({ id: str(r.tier), v: num(r.errors), name: str(r.tier), color: str(r.tier) === 'onlyspans' ? who(o, 'collector').color : 'var(--lilac-deep)' }))
-      : rows.map((r) => ({ id: str(r.character), v: num(r.affection), ...who(o, str(r.character)) }));
-    const unit = tier ? 'errors' : 'affection';
-    const fmtv = tier ? String : signed;
-    if (!data.length) return empty(tier ? 'No incident. Metrics would like it to stay that way.' : "Metrics hasn't counted anyone yet.");
+  function barChart(W: number) {
+    const data = rows.map((r) => ({ id: str(r.character), v: num(r.affection), ...who(o, str(r.character)) }));
+    const unit = 'affection';
+    const fmtv = signed;
+    if (!data.length) return empty("Metrics hasn't counted anyone yet.");
     const labelW = Math.min(130, W * 0.3);
     const valW = 44;
     const rowH = 40;
@@ -655,7 +706,7 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
     const px0 = labelW + (lo < 0 ? valW : 0);
     const px1 = W - valW;
     const x = (v: number) => px0 + ((v - lo) / (hi - lo || 1)) * (px1 - px0);
-    const svg = s('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': tier ? `Errors by tier, from events: ${data.map((d) => `${d.name} ${d.v}`).join(', ')}.` : `Affection by character, sum(affection) from metrics_agg: ${data.map((d) => `${d.name} ${signed(d.v)}`).join(', ')}.` });
+    const svg = s('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `Affection by character, sum(affection) from metrics_agg: ${data.map((d) => `${d.name} ${signed(d.v)}`).join(', ')}.` });
     const tip = tooltip(host);
     svg.append(s('line', { class: 'zero', x1: x(0), x2: x(0), y1: 2, y2: H - 4 }));
     data.forEach((d, i) => {
@@ -670,7 +721,7 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
           s('text', { class: 'value', x: x(d.v) + (d.v < 0 ? -6 : 6), y: y + rowH / 2, 'dominant-baseline': 'central', 'text-anchor': d.v < 0 ? 'end' : 'start' }, fmtv(d.v)),
         ].filter((k): k is SVGElement => !!k),
       );
-      wire(g, tip, () => [x(d.v), y + 6], () => [h('strong', { class: 'tip-value' }, `${fmtv(d.v)} ${unit}`), h('span', {}, tier ? `tier = ${name} · countIf(status = 'error')` : `${name} · sum(affection)`)]);
+      wire(g, tip, () => [x(d.v), y + 6], () => [h('strong', { class: 'tip-value' }, `${fmtv(d.v)} ${unit}`), h('span', {}, `${name} · sum(affection)`)]);
       svg.append(g);
     });
     host.replaceChildren(svg, tip.el);
@@ -821,6 +872,58 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
     host.replaceChildren(legend, svg, tip.el);
   }
 
+  /** Errors per minute: one red column each until tier is back, then stacked by tier. */
+  function errorsChart(W: number) {
+    const split = rows.some((r) => r.tier !== undefined);
+    const minutes = [...new Set(rows.map((r) => str(r.minute)))].sort();
+    if (!minutes.length) return empty('No incident. Metrics would like it to stay that way.');
+    const tiers = split ? [...new Set(rows.map((r) => str(r.tier)))].sort((a, b) => (TIERS.indexOf(a) + 1 || 9) - (TIERS.indexOf(b) + 1 || 9)) : ['all errors'];
+    const at = new Map(rows.map((r) => [`${str(r.minute)}|${split ? str(r.tier) : 'all errors'}`, num(r.errors)]));
+    const val = (mi: string, t: string) => at.get(`${mi}|${t}`) ?? 0;
+    const color = (t: string) => (t === 'onlyspans' ? who(o, 'collector').color : t === 'pro' ? 'var(--lilac-deep)' : t === 'free' ? '#b8aecb' : '#e8566b');
+    const totals = tiers.map((t) => ({ t, n: minutes.reduce((a, mi) => a + val(mi, t), 0) }));
+    const hm = (mi: string) => clock(parseTs(mi)).slice(0, 5);
+
+    const m = { l: 36, r: 8, t: 12, b: 28 };
+    const H = W < 460 ? 200 : 240;
+    const max = Math.max(1, ...minutes.map((mi) => tiers.reduce((a, t) => a + val(mi, t), 0)));
+    const step = Math.max(1, niceStep(max, 4));
+    const hi = Math.ceil(max / step) * step;
+    const bw = (W - m.l - m.r) / minutes.length;
+    const y = (v: number) => m.t + (1 - v / hi) * (H - m.t - m.b);
+    const svg = s('svg', {
+      width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'group',
+      'aria-label': `Errors per minute${split ? ' by tier' : ''}, from events, ${hm(minutes[0])} to ${hm(minutes.at(-1)!)}. Totals: ${totals.map((x) => `${x.t} ${x.n}`).join(', ')}.`,
+    });
+    for (let v = 0; v <= hi; v += step)
+      svg.append(s('line', { class: v ? 'grid' : 'zero', x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), s('text', { class: 'tick', x: m.l - 8, y: y(v), 'text-anchor': 'end', 'dominant-baseline': 'central' }, String(v)));
+    const every = Math.ceil(minutes.length / (W < 460 ? 4 : 7));
+    const tip = tooltip(host);
+    minutes.forEach((mi, i) => {
+      const x0 = m.l + i * bw + 1.5;
+      const w = Math.max(1, bw - 3);
+      const total = tiers.reduce((a, t) => a + val(mi, t), 0);
+      const parts = tiers.filter((t) => val(mi, t));
+      const g = s('g', { class: 'mark', tabindex: 0, 'aria-label': `${hm(mi)}: ${total} errors${split ? `, ${parts.map((t) => `${t} ${val(mi, t)}`).join(', ')}` : ''}` });
+      g.append(s('rect', { class: 'hit', x: m.l + i * bw, y: m.t, width: bw, height: H - m.t - m.b }));
+      let acc = 0;
+      for (const t of parts) {
+        const v = val(mi, t);
+        g.append(s('rect', { class: 'fill', x: x0, y: y(acc + v), width: w, height: y(acc) - y(acc + v), rx: Math.min(3, w / 2), style: `--c: ${color(t)}` }));
+        acc += v;
+      }
+      wire(g, tip, () => [x0 + w / 2, y(total)], () => [
+        h('strong', { class: 'tip-value' }, `${total} error${total === 1 ? '' : 's'}`),
+        h('span', {}, `${hm(mi)} · countIf(status = 'error')`),
+        ...(split ? parts.map((t) => h('span', { class: 'tip-who' }, h('i', { class: 'key', style: `--c: ${color(t)}`, 'aria-hidden': 'true' }), `${t}: ${val(mi, t)}`)) : []),
+      ]);
+      svg.append(g);
+      if (i % every === 0) svg.append(s('text', { class: 'tick', x: x0 + w / 2, y: H - 8, 'text-anchor': i ? 'middle' : 'start' }, hm(mi)));
+    });
+    const legend = h('div', { class: 'viz-legend', 'aria-hidden': 'true' }, ...totals.map(({ t, n }) => h('span', {}, h('i', { class: 'key', style: `--c: ${color(t)}` }), `${t} `, h('strong', {}, String(n)))));
+    host.replaceChildren(legend, svg, tip.el);
+  }
+
   function draw() {
     const W = host.clientWidth;
     if (!W) return;
@@ -828,21 +931,24 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
     if (kind === 'bar') barChart(W);
     else if (kind === 'stacked') stackedChart(W);
     else if (kind === 'stat') statTiles();
-    else if (kind === 'tier') barChart(W, true);
+    else if (kind === 'errors') errorsChart(W);
     else timeChart(W);
   }
 
   async function refresh() {
-    if (!picked) kind = num((await o.run(METRICS_SQL.incident)).rows?.[0]?.active) ? 'tier' : 'bar';
+    const cf = o.caseFile();
+    if (!picked) kind = cf.active ? 'errors' : 'bar';
     kinds.set(kind);
     note.hidden = kind === 'bar' || kind === 'stacked';
     note.textContent =
-      kind === 'tier'
-        ? 'Errors by tier reads events: tier is the label Metrics dropped to save memory, and the only place it survived.'
+      kind === 'errors'
+        ? cf.labelBack
+          ? 'Errors per minute, split by tier: the label Metrics dropped to save memory, and just added back. It reads events, the only place tier survived.'
+          : 'Errors per minute, from events. Metrics dropped tier with the rest of his labels, so this is all he’s got: one number, going up.'
         : kind === 'time'
         ? 'Over time and its exemplars read events, the whole table: metrics_agg only keeps totals, so Metrics can’t remember when anything happened.'
         : 'Choices are counted from events: metrics_agg keeps totals per character and scene, not what kind of moment each one was.';
-    const r = await load(o, host, status, METRICS_SQL[kind]);
+    const r = await load(o, host, status, kind === 'errors' && cf.labelBack ? METRICS_SQL.errorsByTier : METRICS_SQL[kind]);
     if (!r) return;
     rows = r;
     extra = kind === 'stat' ? ((await o.run(METRICS_SQL.statChoices)).rows ?? []) : [];

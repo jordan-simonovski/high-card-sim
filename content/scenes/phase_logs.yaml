@@ -57,7 +57,7 @@ nodes:
   ask2:
     speaker: logs
     mood: neutral
-    text: "It's a WARN. One I've been writing over and over lately, same words every time. Nobody filters for WARN."
+    text: "It's a WARN. One I've been writing over and over lately, same words every time. Nobody filters for WARN. Nobody looks at what repeats."
     choices:
       - { id: cardinality, text: "\"Cardinality limit exceeded. Dropping series.\"", target: found }
       - { id: again, text: "Look again.", target: open }
@@ -108,7 +108,7 @@ nodes:
     music: incident
     speaker: logs
     mood: neutral
-    text: "Look who wrote it, though. service = metrics. I only keep it. It's been Metrics, all week, dropping things and telling nobody but me."
+    text: "Look who wrote it, though. Right after the WARN: metrics. I only keep it. It's been Metrics, all week, dropping things and telling nobody but me."
     next: source2
   source2:
     speaker: logs

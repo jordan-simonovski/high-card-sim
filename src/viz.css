@@ -76,9 +76,9 @@ button.wf-row:hover .wf-label { background: var(--lilac-tint); }
 .wf-row.axis { position: sticky; top: 0; z-index: 3; min-height: 32px; background: var(--lilac-tint); }
 .wf-row.axis .wf-label { background: var(--lilac-tint); font: 12px var(--font-code); color: var(--ink-soft); }
 .wf-row.axis .wf-track { min-height: 32px; }
-.tick { position: absolute; top: 50%; transform: translate(-50%, -50%); font: 12px var(--font-code); color: var(--ink-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.tick:first-child { transform: translate(0, -50%); }
-.tick.end { transform: translate(-100%, -50%); }
+.wf .tick { position: absolute; top: 50%; transform: translate(-50%, -50%); font: 12px var(--font-code); color: var(--ink-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.wf .tick:first-child { transform: translate(0, -50%); }
+.wf .tick.end { transform: translate(-100%, -50%); }
 .squash { position: absolute; bottom: 1px; transform: translateX(-50%); font-size: 12px; color: var(--ink-soft); }
 .wf-gaps { position: absolute; top: 32px; bottom: 0; left: var(--label); right: 14px; pointer-events: none; }
 .gap { position: absolute; top: 0; bottom: 0; min-width: 2px; }
@@ -146,6 +146,7 @@ button.wf-row:hover .wf-label { background: var(--lilac-tint); }
   #console .tabs { width: 100%; }
   #console [role='tab'] { flex: 1; padding: 6px 4px; font-size: 15px; }
   .viz-controls { flex-direction: column; align-items: stretch; }
+  .viz-search { flex-basis: auto; } /* in a column, a 240px basis would be its height */
   .viz-segs { display: grid; grid-template-columns: repeat(2, 1fr); }
   .log-list li { grid-template-columns: auto 1fr; }
   .log-list .line { grid-column: 1 / -1; }
@@ -180,4 +181,40 @@ button.wf-row:hover .wf-label { background: var(--lilac-tint); }
   .realm-svc { grid-column: 1 / -1; }
   .realm-bar { margin-left: calc(var(--depth, 0) * 10px); }
   .realm-ms { white-space: normal; text-align: right; }
+}
+
+/* ---------- the Sev-1 case file (src/console.ts) and incident cues ---------- */
+.casefile { margin: 0 0 12px; padding: 10px 14px; border: 2px solid #f0a3ae; border-radius: 16px; background: #fff4f5; }
+.casefile summary { cursor: pointer; font: 600 15px var(--font-display); color: var(--ink); }
+.casefile .sev { display: inline-block; margin-right: 4px; padding: 1px 8px; border-radius: 999px; background: #e8566b; color: white; font: 700 12px var(--font-body); letter-spacing: 0.04em; }
+.cf-progress { font: 600 13px var(--font-body); color: var(--ink-soft); }
+.cf-leads { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.cf-leads li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 2px 8px; font-size: 14px; }
+.cf-leads .cf-text { grid-column: 2 / 3; color: var(--ink-soft); line-height: 1.4; }
+.cf-leads li.found strong::after { content: ' ✓'; color: #2e8b57; }
+.cf-leads li.found .cf-text { font: 12.5px/1.5 var(--font-code); color: var(--ink); }
+.cf-leads li.current { padding: 8px 10px; border-radius: 12px; background: white; box-shadow: inset 0 0 0 2px #f0a3ae; }
+.cf-leads li.current .viz-btn { grid-column: 3; grid-row: 1 / span 2; min-height: 36px; padding: 4px 12px; font-size: 14px; }
+.cf-leads li.locked { opacity: 0.55; }
+#console [role='tab'].lead { position: relative; }
+#console [role='tab'].lead::after { content: ''; position: absolute; top: 6px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: #e8566b; box-shadow: 0 0 0 2px white; }
+#btn-shell.sev { border-color: #e8566b !important; }
+#btn-shell.sev::after { content: ' · SEV-1'; color: #b3263b; font-weight: 700; }
+@media (prefers-reduced-motion: no-preference) {
+  #btn-shell.sev, #console [role='tab'].lead::after { animation: sev-pulse 1.6s ease-in-out infinite; }
+}
+@keyframes sev-pulse { 50% { box-shadow: 0 0 0 4px rgba(232, 86, 107, 0.28); } }
+
+/* Logs: levels you can see at a glance, and patterns with their counts */
+.log-list li.lvl-error { background: #fff1f3; box-shadow: inset 4px 0 #e8566b; }
+.log-list li.lvl-warn { background: #fff8e8; box-shadow: inset 4px 0 #f2a93b; }
+.log-list .ts.n { min-width: 3.5em; font-weight: 700; color: var(--ink); text-align: right; }
+
+/* Trace: the Realm's requests sit first; the kept one stands out */
+.realm-note { margin: 0; font-size: 14px; color: var(--ink-soft); max-width: 70ch; }
+.realm-trace.kept { border-color: var(--lilac-deep); box-shadow: var(--gloss), var(--lift); }
+.wf-you { margin: 16px 0 4px; font: 600 16px var(--font-display); }
+@media (max-width: 520px) {
+  .cf-leads li.current .viz-btn { grid-column: 2; grid-row: auto; justify-self: start; margin-top: 4px; }
+  .cf-leads li.locked { display: none; } /* the summary already says lead n of 4 */
 }

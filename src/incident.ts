@@ -86,29 +86,34 @@ export function incidentRows(sessionId: string, startedTs: string): GameEvent[] 
     const last = spans[spans.length - 1];
     if (fails) {
       rows.push(row(sessionId, r, Math.min(parse(last.ts) + 30_000, end), 'realm_log', 'collector.batch_processor',
-        `ERROR export failed: deadline exceeded (trace ${last.attributes.trace_id.slice(0, 8)})`,
+        `ERROR collector.batch_processor: export failed: deadline exceeded (trace ${last.attributes.trace_id.slice(0, 8)})`,
         { level: 'ERROR', service: 'collector.batch_processor', trace_id: last.attributes.trace_id }));
     }
     if (tier === 'onlyspans' && r() < 0.35) {
-      rows.push(row(sessionId, r, t0 + 2, 'realm_log', 'metrics', `WARN ${CARDINALITY_WARN}`,
+      rows.push(row(sessionId, r, t0 + 2, 'realm_log', 'metrics', `WARN metrics: ${CARDINALITY_WARN} {attribute=subscriber_id}`,
         { level: 'WARN', service: 'metrics', attribute: 'subscriber_id' }));
     }
   }
 
+  // Every line reads `LEVEL service: message`, so the Logs view shows who wrote what.
   const info = [
-    (s: string) => `INFO ${s} handled request in ${Math.round(4 + r() * 60)}ms`,
-    () => `INFO batch exported ${64 * (1 + Math.floor(r() * 8))} spans`,
-    () => `INFO citizen ${hex(r, 6)} checked in at the Registry`,
-    () => `INFO cache hit ratio ${(0.8 + r() * 0.19).toFixed(2)}`,
-    () => 'INFO heartbeat ok',
+    () => `handled request in ${Math.round(4 + r() * 60)}ms`,
+    () => `batch exported ${64 * (1 + Math.floor(r() * 8))} spans`,
+    () => `citizen ${hex(r, 6)} checked in at the Registry`,
+    () => `cache hit ratio ${(0.8 + r() * 0.19).toFixed(2)}`,
+    () => 'heartbeat ok',
   ];
-  const warn = ['WARN slow query on registry.citizens (812ms)', 'WARN retrying upstream payments (attempt 2)', 'WARN baggage header exceeds 8KB, truncating'];
+  const warn = [
+    ['registry', 'slow query on registry.citizens (812ms)'],
+    ['payments', 'retrying upstream payments (attempt 2)'],
+    ['gateway', 'baggage header exceeds 8KB, truncating'],
+  ] as const;
   const services = ['gateway', 'checkout', 'cart', 'payments', 'registry'];
   for (let i = 0; i < NOISE_LOGS; i++) {
-    const service = pickOf(r, services);
     const isWarn = r() < 0.02;
+    const [service, text] = isWarn ? pickOf(r, warn) : [pickOf(r, services), pickOf(r, info)()];
     rows.push(row(sessionId, r, begin + r() * WINDOW_MS, 'realm_log', service,
-      isWarn ? pickOf(r, warn) : pickOf(r, info)(service), { level: isWarn ? 'WARN' : 'INFO', service }));
+      `${isWarn ? 'WARN' : 'INFO'} ${service}: ${text}`, { level: isWarn ? 'WARN' : 'INFO', service }));
   }
   return rows.sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0));
 }

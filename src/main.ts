@@ -11,6 +11,7 @@ import { parseSave } from './saves.ts';
 import { openConsole } from './console.ts';
 import type { View } from './viz.ts';
 import { incidentRows, keptTraceRows, restoreIncident } from './incident.ts';
+import { caseFile, type CaseFile } from './casefile.ts';
 import { babble, getVolume, isMuted, playMusic, setMuted, setVolume, sfx, unlock } from './audio.ts';
 import * as fx from './fx.ts';
 const { badChoice, goodChoice, keptMoment, moodChange, resetMood } = fx;
@@ -564,8 +565,19 @@ async function shell(view?: View) {
   if (!found) await log.append({ scene: current.scene, node: current.node, event_type: 'item_found', attributes: { item: 'query_shell' } });
   $('#btn-shell').hidden = false;
   await ready;
+  const cf = await refreshCase();
+  // The wide-event lead: the DBA asks for a query you may never have typed, so offer it.
+  const hints: [string, string][] = cf.current?.id === 'wide' ? [['errors by tier, distinct subscriber_ids', queries.root_cause.replace(/^--.*\n/gm, '')], ...SHELL_HINTS] : SHELL_HINTS;
   sfx('shell_open');
-  await openConsole({ hints: SHELL_HINTS, table, run: shellQuery, characters: content.characters, view });
+  await openConsole({ hints, table, run: shellQuery, characters: content.characters, view, caseFile: () => caseNow });
+}
+
+let caseNow: CaseFile = caseFile([]);
+/** Re-read the case file from the log; the shell button wears SEV-1 while the incident is open. */
+async function refreshCase() {
+  caseNow = caseFile(await log.all());
+  $('#btn-shell').classList.toggle('sev', caseNow.active);
+  return caseNow;
 }
 hooks.openShell = (view?: View) => void shell(view); // for e2e
 
@@ -580,6 +592,7 @@ async function incident(action: keyof typeof MARKER, scene: string, node: string
   const started = events.find((e) => e.event_type === 'incident_started');
   if (action === 'incident_start') await db.insert('events', incidentRows(log.sessionId, ev.ts));
   if (action === 'keep_trace' && started) await db.insert('events', keptTraceRows(log.sessionId, started.ts));
+  await refreshCase();
 }
 hooks.incident = incident; // for e2e
 
@@ -617,6 +630,7 @@ async function start(events: GameEvent[]) {
   $('#game').hidden = false;
   $('#toolbar').hidden = false;
   if (events.some((e) => e.event_type === 'item_found')) $('#btn-shell').hidden = false;
+  await refreshCase();
   const resume = resumePoint(events, scenes);
   if (resume) await play(resume.scene, resume.node, resume.shown);
   else await play('prologue');
