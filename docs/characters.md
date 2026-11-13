@@ -25,8 +25,8 @@ ever a punchline.
   talk too. Her good ending: you read her, start to finish, on purpose.
 - **Mechanic:** affection = how much conversation with her is in the `logs` view. Letting her talk
   ("tell me more") raises it; asking for the TL;DR lowers it (she understands, but it stings).
-- **Visual:** tall, long flowing hair in cream/parchment colour whose ends fade into ink-black
-  stripes like lines of scrolling text; warm amber eyes; freckles; oversized cream cardigan covered
+- **Visual:** tall, very long wavy ink-black hair that fades to pink at the ends, like ink
+  bleeding into paper; warm amber eyes; freckles; oversized cream cardigan covered
   in tiny printed timestamps; long pleated skirt; a paper-scroll scarf that trails behind her; ink
   smudge on one cheek; carries a notebook that never runs out of pages. Palette: cream, sepia,
   warm pink.

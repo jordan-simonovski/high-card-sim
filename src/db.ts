@@ -7,9 +7,10 @@ import type { AsyncChdbConnection } from 'chdb-wasm';
 
 type ChdbModule = typeof import('chdb-wasm');
 
-// Loaded at runtime from /chdb (copied from node_modules by scripts/copy-chdb.mjs) so the
+// Loaded at runtime from /chdb-<hash> (copied from node_modules by scripts/copy-chdb.mjs) so the
 // package's worker and wasm resolve same-origin without the bundler rewriting them.
-const ENGINE_BASE = '/chdb';
+import enginePath from './engine-path.json';
+const ENGINE_BASE = enginePath.base;
 
 export type Row = Record<string, unknown>;
 

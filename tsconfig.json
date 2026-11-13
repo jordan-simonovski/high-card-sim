@@ -11,7 +11,8 @@
     "isolatedModules": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "erasableSyntaxOnly": true
+    "erasableSyntaxOnly": true,
+    "resolveJsonModule": true
   },
   "include": ["src", "e2e", "scripts", "vite.config.ts", "playwright.config.ts"]
 }

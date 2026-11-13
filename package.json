@@ -5,7 +5,7 @@
   "scripts": {
     "postinstall": "node scripts/copy-chdb.mjs",
     "dev": "vite",
-    "build": "npm run lint:content && tsc --noEmit && vite build",
+    "build": "node scripts/copy-chdb.mjs && npm run lint:content && tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "node --test 'src/**/*.test.ts'",
     "e2e": "playwright test",

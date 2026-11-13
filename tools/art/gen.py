@@ -28,7 +28,7 @@ SPRITE = "solo, cowboy shot, standing, looking at viewer, simple background, whi
 SPRITE_NEG = ", 2girls, 2boys, gradient background, outdoors, scenery"
 
 CHARS = {
-    "logs": "1girl, mature female, adult, tall, very long hair, cream hair, gradient hair, black hair tips, wavy hair, amber eyes, freckles, ink on cheek, oversized cardigan, cream cardigan, patterned cardigan, white blouse, long pleated skirt, brown skirt, long scarf, paper scarf, holding notebook, pink hair ribbon",
+    "logs": "1girl, mature female, adult, tall, very long hair, black hair, gradient hair, pink hair tips, wavy hair, amber eyes, freckles, ink on cheek, oversized cardigan, cream cardigan, patterned cardigan, white blouse, long pleated skirt, brown skirt, long scarf, paper scarf, holding notebook, pink hair ribbon",
     "metrics": "1boy, mature male, adult, short hair, silver hair, blue hair, undercut, rectangular glasses, blue eyes, athletic, navy track jacket, striped sleeves, teal accents, smartwatch, wristwatch, lanyard, black pants",
     "traces": "1other, androgynous, adult, short hair, wavy hair, bob cut, lilac hair, purple hair, gradient hair, glowing hair, grey eyes, long coat, white coat, layered coat, glowing embroidery, gold thread, fingerless gloves, string on finger, badges, ethereal",
     "monitoring": "1other, androgynous, adult, short hair, messy hair, dark grey hair, tired eyes, eye bags, headset, lanyard, id card, grey cardigan, polo shirt, holding clipboard, red and green accents, khaki pants",
@@ -101,7 +101,13 @@ def emb(prompt, negative):
     pipe()
     c, pooled = _compel(prompt)
     n, npooled = _compel(negative)
-    c, n = _compel.pad_conditioning_tensors_to_same_length([c, n])
+    # compel's pad helper is broken for SDXL's dual encoders: pad with empty-prompt chunks by hand.
+    import torch
+    empty = _compel("")[0]
+    while c.shape[1] < n.shape[1]:
+        c = torch.cat([c, empty], dim=1)
+    while n.shape[1] < c.shape[1]:
+        n = torch.cat([n, empty], dim=1)
     return dict(prompt_embeds=c, pooled_prompt_embeds=pooled, negative_prompt_embeds=n, negative_pooled_prompt_embeds=npooled)
 
 

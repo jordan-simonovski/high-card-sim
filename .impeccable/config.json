@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-11-13T04:49:16.879Z",
+        "reason": "assistant: img#sprite and img#cg are hidden runtime slots whose src is set by src/main.ts per scene"
+      }
+    ]
+  }
+}

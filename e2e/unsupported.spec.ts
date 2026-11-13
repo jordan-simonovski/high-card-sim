@@ -7,7 +7,7 @@ test('unsupported client screen', async ({ page }) => {
     WebAssembly.validate = () => false;
   });
   const engine: string[] = [];
-  page.on('request', (r) => r.url().includes('/chdb/') && engine.push(r.url()));
+  page.on('request', (r) => r.url().includes('/chdb-') && engine.push(r.url()));
   await page.goto('/');
   await expect(page.locator('#unsupported')).toBeVisible();
   await expect(page.locator('#unsupported .why')).toContainText('Memory64');

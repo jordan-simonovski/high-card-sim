@@ -22,6 +22,7 @@ const GENDER = 'nonbinary 🌈';
 
 test('prologue, character creation, SQL branch, reload replays the event log', async ({ page }) => {
   await page.goto('/');
+  await page.locator('#btn-new').click();
 
   // Prologue renders before the engine is up.
   await say(page, /03:12/);
@@ -87,9 +88,8 @@ test('prologue, character creation, SQL branch, reload replays the event log', a
   expect(after.replayed).toBeGreaterThanOrEqual(counts.idb);
   expect(after.kept).toBe(counts.idb);
 
-  for (const line of [/03:12/, /CRITICAL/, /dashboard/]) await next(page, line);
-  await page.locator('[data-choice="ack"]').click();
-  for (const line of [/through the glass/, /ingested/, /high cardinality/, /span attributes/]) await next(page, line);
-  await say(page, /player\.name = "Ada/);
+  // Continue resumes from the event log: no prologue replay, no second character creation.
+  await page.locator('#btn-continue').click();
   await expect(page.locator('#create')).toBeHidden();
+  await expect(page.locator('#text')).not.toHaveText(/03:12/);
 });

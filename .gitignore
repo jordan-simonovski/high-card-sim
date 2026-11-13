@@ -7,3 +7,5 @@ playwright-report
 .DS_Store
 spike-results
 tools/art/out
+public/chdb-*
+src/engine-path.json

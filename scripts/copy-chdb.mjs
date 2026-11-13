@@ -1,7 +1,16 @@
-// Serve the chdb engine same-origin from a stable path (/chdb/...). Not committed.
-import { cpSync, rmSync } from 'node:fs';
+// Serve the chdb engine same-origin from a content-hashed path (/chdb-<hash>/...) so it can be
+// cached immutably: a new engine build means a new URL. Generated, not committed.
+import { cpSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+
 const src = new URL('../node_modules/chdb-wasm/dist/', import.meta.url);
-const dst = new URL('../public/chdb/', import.meta.url);
-rmSync(dst, { recursive: true, force: true });
-cpSync(src, dst, { recursive: true, filter: (p) => !p.endsWith('.map') && !p.endsWith('.d.ts') });
-console.log('copied chdb-wasm dist -> public/chdb');
+const pub = new URL('../public/', import.meta.url);
+const files = ['index.js', 'worker.js', 'async.js', 'bindings.js', 'protocol.js', 'status.js', 'platform.js', 'chdb.mjs', 'chdb.wasm'];
+const h = createHash('md5');
+for (const f of files) h.update(readFileSync(new URL(f, src)));
+const dir = `chdb-${h.digest('hex').slice(0, 12)}`;
+
+for (const d of readdirSync(pub)) if (d === 'chdb' || d.startsWith('chdb-')) rmSync(new URL(d, pub), { recursive: true, force: true });
+for (const f of files) cpSync(new URL(f, src), new URL(`${dir}/${f}`, pub));
+writeFileSync(new URL('../src/engine-path.json', import.meta.url), JSON.stringify({ base: `/${dir}` }) + '\n');
+console.log(`copied chdb-wasm (mt bundle) -> public/${dir}`);
