@@ -34,8 +34,13 @@ the one engine the single-threaded build can run; the IndexedDB event log is the
   path and runs on a `readonly = 1` connection with time and row limits.
 - **The three pillars are views** over one `events` table (`sql/schema.sql`): Metrics is a summing
   materialized view keyed by `(character, scene)`, Traces keeps 1% plus anything marked
-  `sampling.priority = 1`, Logs keeps only `ts, character, dialogue_text`. The true ending unlocks
-  when you query the base table (`EXPLAIN QUERY TREE` tells us which tables a query read).
+  `sampling.priority = 1`, Logs keeps only `ts, character, dialogue_text`. The shell's Logs, Trace
+  and Metrics views (`src/viz.ts`) draw them; every view query is logged like a typed one, and
+  `EXPLAIN QUERY TREE` tells us which tables a query read.
+- **The incident is generated, not saved.** `src/incident.ts` writes the Realm's spans and log lines
+  into chDB from a seed (the session ID) when Act 3 starts. The event log keeps only the markers
+  (`incident_started`, `trace_kept`), and a replay regenerates the same incident from them. The
+  true ending needs all three turning points to land (`content/queries/all_turned.sql`).
 - **The scene engine is deterministic TypeScript** (`src/engine/`), free of DOM and chDB, tested
   with a fake query layer.
 

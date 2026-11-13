@@ -9,6 +9,8 @@ export interface ConsoleOptions {
   run(sql: string): Promise<{ rows?: Row[]; note?: string; error?: string }>;
   table(rows: Row[], max?: number): HTMLElement;
   characters: Record<string, { name: string; color?: string }>;
+  /** Open on this view instead of SQL. */
+  view?: View;
 }
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
@@ -81,9 +83,9 @@ export function openConsole(o: ConsoleOptions): Promise<void> {
       select(tabs[(to + tabs.length) % tabs.length].id.slice(4), true);
     };
   }
-  select('sql');
+  select(o.view ?? 'sql');
 
   dialog.showModal();
-  sql.focus();
+  if (!o.view) sql.focus();
   return new Promise((resolve) => dialog.addEventListener('close', () => resolve(), { once: true }));
 }

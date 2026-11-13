@@ -59,7 +59,7 @@ function trace(sessionId: string, r: Rand, t0: number, tier: string, request: st
     const last = i === path.length - 1;
     const status = fails && last ? 'error' : 'ok';
     const duration = status === 'error' ? 30_000 : Math.round(4 + r() * 60);
-    spans.push(row(sessionId, r, t, 'realm_span', service, `${service} ${request}`, {
+    spans.push(row(sessionId, r, t, 'realm_span', service, '', {
       service, status, tier, subscriber_id, trace_id, span_id, parent_span_id: parent,
       duration_ms: String(duration), request, ...extra,
     }));

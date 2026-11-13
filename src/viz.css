@@ -161,3 +161,23 @@ button.wf-row:hover .wf-label { background: var(--lilac-tint); }
 :root.reduce-motion .viz *, :root.reduce-motion #console [role='tab'] { transition: none !important; }
 :root.reduce-motion .viz-btn:hover, :root.reduce-motion .viz-seg:hover, :root.reduce-motion .viz-chip:hover,
 :root.reduce-motion .viz-btn:active, :root.reduce-motion .viz-seg:active, :root.reduce-motion .viz-chip:active { transform: none; }
+
+/* Trace: the Realm's requests during the incident */
+.wf-realm { margin-top: 12px; display: grid; gap: 10px; }
+.wf-realm h3 { margin: 0; font: 600 16px var(--font-display); }
+.realm-trace { padding: 10px 12px; border: 2px solid var(--lilac); border-radius: 16px; background: white; }
+.realm-head { margin: 0 0 6px; font: 13px var(--font-code); color: var(--ink-soft); overflow-wrap: anywhere; }
+.realm-trace ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.realm-trace li { display: grid; grid-template-columns: 17.5em 1fr auto; align-items: center; gap: 8px; font-size: 14px; }
+.realm-svc { padding-left: calc(var(--depth, 0) * 10px); font: 13px var(--font-code); overflow-wrap: anywhere; }
+.realm-bar { height: 12px; border-radius: 6px; background: var(--viz-gap); overflow: hidden; }
+.realm-bar i { display: block; height: 100%; border-radius: 6px; background: var(--lilac-deep); }
+.realm-trace li.error .realm-bar i { background: #e8566b; }
+.realm-trace li.error .realm-ms { color: #b3263b; font-weight: 600; }
+.realm-ms { font: 12px var(--font-code); color: var(--ink-soft); white-space: nowrap; }
+@media (max-width: 520px) {
+  .realm-trace li { grid-template-columns: 1fr auto; gap: 2px 8px; }
+  .realm-svc { grid-column: 1 / -1; }
+  .realm-bar { margin-left: calc(var(--depth, 0) * 10px); }
+  .realm-ms { white-space: normal; text-align: right; }
+}

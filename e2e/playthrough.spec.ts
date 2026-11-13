@@ -20,6 +20,7 @@ async function playToEnding(page: Page, opts: { queryBaseTable: boolean; prefer:
       continue;
     }
     if (await page.locator('#console').isVisible()) {
+      await page.locator('#tab-sql').click(); // the incident opens the shell on a view
       await page.fill('#sql', opts.queryBaseTable ? 'SELECT event_type, count() AS n FROM events GROUP BY event_type' : 'SELECT count() FROM logs');
       await page.locator('#run').click();
       await expect(page.locator('#console-status')).toContainText('rows');
@@ -57,7 +58,7 @@ async function playToEnding(page: Page, opts: { queryBaseTable: boolean; prefer:
   throw new Error('no ending after 800 steps');
 }
 
-test('true ending: query the base table in the Query Shell, stop sampling yourself', async ({ page }) => {
+test('true ending: every turning point lands, stop sampling yourself', async ({ page }) => {
   test.setTimeout(300_000);
   await page.goto('/');
   await page.locator('#btn-new').click();
@@ -81,7 +82,7 @@ test('true ending: query the base table in the Query Shell, stop sampling yourse
   expect(facts.write).toMatch(/read-only/);
 });
 
-test('without the base table there is no polycule; a careless player gets a bad ending', async ({ page }) => {
+test('a careless player never reaches the polycule', async ({ page }) => {
   test.setTimeout(300_000);
   await page.goto('/');
   await page.locator('#btn-new').click();

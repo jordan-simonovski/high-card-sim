@@ -173,3 +173,38 @@ test('shell views fit a 390px phone: no sideways dialog scroll, tooltips stay on
   expect(inner).toBe(true);
   expect(await noSidewaysScroll(page)).toBe(true);
 });
+
+test('the incident: clues in every view, the kept trace, and the same incident after a reload', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForFunction(() => (window as any).__hc?.boot.state === 'ready', null, { timeout: 120_000 });
+  await page.evaluate(() => (window as any).__hc.incident('incident_start', 'incident', 'alarm'));
+
+  // Logs: the WARN she kept writing, found by reading (filtering) her.
+  await page.evaluate(() => (window as any).__hc.openShell('logs'));
+  await expect(page.locator('#tab-logs')).toHaveAttribute('aria-selected', 'true');
+  await page.locator('#logs-search').fill('cardinality limit');
+  await expect(page.locator('#panel-logs')).toContainText('WARN cardinality limit exceeded, dropping series');
+
+  // Metrics: an incident opens on errors by tier, and onlyspans is the tall bar.
+  await page.locator('#tab-metrics').click();
+  await expect(page.locator('#panel-metrics .viz-seg[aria-pressed=true]')).toHaveText('errors by tier');
+  await expect(page.locator('#metrics-chart svg .mark').first()).toHaveAttribute('aria-label', /^onlyspans: \d+ errors$/);
+
+  // Traces: nothing kept yet; keep it, and the whole path shows, dying in the batch processor.
+  await page.locator('#tab-trace').click();
+  await expect(page.locator('#trace-realm')).not.toContainText('kept');
+  await page.evaluate(() => (window as any).__hc.incident('keep_trace', 'phase_traces', 'keep'));
+  await page.locator('#tab-metrics').click();
+  await page.locator('#tab-trace').click();
+  const kept = page.locator('#trace-realm .realm-trace').first();
+  await expect(kept).toContainText('the-one-that-never-finishes');
+  await expect(kept).toContainText('kept (sampling.priority = 1)');
+  await expect(kept.locator('li.error')).toContainText('collector.batch_processor');
+  const before = await page.evaluate(() => (window as any).__hc.query("SELECT count() AS n, sum(cityHash64(event_id)) AS h FROM events WHERE scene = 'incident'"));
+
+  // Reload: the log replays and the markers regenerate the same Realm telemetry.
+  await page.reload();
+  await page.waitForFunction(() => (window as any).__hc?.boot.state === 'ready', null, { timeout: 120_000 });
+  const after = await page.evaluate(() => (window as any).__hc.query("SELECT count() AS n, sum(cityHash64(event_id)) AS h FROM events WHERE scene = 'incident'"));
+  expect(after).toEqual(before);
+});

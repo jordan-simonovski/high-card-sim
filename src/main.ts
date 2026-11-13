@@ -9,6 +9,8 @@ import { resumePoint } from './engine/resume.ts';
 import { createCharacter, playerAttributes, playerFromEvents } from './create.ts';
 import { parseSave } from './saves.ts';
 import { openConsole } from './console.ts';
+import type { View } from './viz.ts';
+import { incidentRows, keptTraceRows, restoreIncident } from './incident.ts';
 import { babble, getVolume, isMuted, playMusic, setMuted, setVolume, sfx, unlock } from './audio.ts';
 import * as fx from './fx.ts';
 const { badChoice, goodChoice, keptMoment, moodChange, resetMood } = fx;
@@ -381,7 +383,8 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
       player = await createCharacter(characters);
       await log.append({ scene: scene.id, node: n.id, event_type: 'character_created', attributes: playerAttributes(player) });
     }
-    if (n.action === 'open_console') await shell();
+    if (n.action?.startsWith('open_console')) await shell(n.action.split(':')[1] as View | undefined);
+    if (n.action === 'incident_start' || n.action === 'keep_trace' || n.action === 'resolve_incident') await incident(n.action, scene.id, n.id);
 
     let logged: Promise<unknown> = Promise.resolve();
     let typed: Promise<void> = Promise.resolve();
@@ -556,15 +559,29 @@ async function shellQuery(sql: string): Promise<{ rows?: Row[]; note?: string; e
   }
 }
 
-async function shell() {
+async function shell(view?: View) {
   const found = (await log.all()).some((e) => e.event_type === 'item_found' && e.attributes.item === 'query_shell');
   if (!found) await log.append({ scene: current.scene, node: current.node, event_type: 'item_found', attributes: { item: 'query_shell' } });
   $('#btn-shell').hidden = false;
   await ready;
   sfx('shell_open');
-  await openConsole({ hints: SHELL_HINTS, table, run: shellQuery, characters: content.characters });
+  await openConsole({ hints: SHELL_HINTS, table, run: shellQuery, characters: content.characters, view });
 }
-hooks.openShell = () => void shell(); // for e2e
+hooks.openShell = (view?: View) => void shell(view); // for e2e
+
+// ---------- the incident ----------
+// The log holds only the markers; the Realm's telemetry is regenerated from them (restoreIncident on replay).
+const MARKER = { incident_start: 'incident_started', keep_trace: 'trace_kept', resolve_incident: 'incident_resolved' } as const;
+async function incident(action: keyof typeof MARKER, scene: string, node: string) {
+  const events = await log.all();
+  if (events.some((e) => e.event_type === MARKER[action])) return; // revisited: it already happened
+  const db = await ready;
+  const ev = await log.append({ scene, node, event_type: MARKER[action] });
+  const started = events.find((e) => e.event_type === 'incident_started');
+  if (action === 'incident_start') await db.insert('events', incidentRows(log.sessionId, ev.ts));
+  if (action === 'keep_trace' && started) await db.insert('events', keptTraceRows(log.sessionId, started.ts));
+}
+hooks.incident = incident; // for e2e
 
 // ---------- saves ----------
 async function exportSave() {
@@ -720,6 +737,7 @@ async function main() {
   hooks.log = log;
   ready = openDb().then(async (db) => {
     boot.replayed = await log.attach(db);
+    await restoreIncident(db, await log.all());
     boot.state = 'ready';
     $('#loader').textContent = boot.replayed ? `collector online · ${boot.replayed} events replayed` : 'collector online';
     $('#loader').classList.add('ok');

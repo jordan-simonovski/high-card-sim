@@ -130,6 +130,7 @@ async function load(o: Opts, busy: HTMLElement, status: ReturnType<typeof status
 
 function who(o: Opts, id: string) {
   if (!id) return { name: 'narration', color: '' };
+  if (id === 'realm') return { name: 'the Realm', color: 'var(--ink-soft)' };
   const c = o.characters[id];
   return { name: c?.name ?? id, color: c?.color ?? 'var(--lilac-deep)' };
 }
@@ -255,7 +256,15 @@ const TRACE_SQL = {
   traces: `SELECT ${TRACE_COLS} FROM traces WHERE ${TRACE_TYPES} ORDER BY seq`,
   events: `SELECT ${TRACE_COLS} FROM events WHERE ${TRACE_TYPES} ORDER BY seq`,
 };
-const MOMENTS_SQL = "SELECT count() AS n FROM logs WHERE dialogue_text != ''";
+const MOMENTS_SQL = "SELECT count() AS n FROM logs WHERE dialogue_text != '' AND character != 'realm'";
+/** The Realm's requests during the incident: kept traces first, then failing ones, six at most. */
+const REALM_SQL = (src: Source) =>
+  `SELECT attributes['trace_id'] AS trace_id, attributes['span_id'] AS span_id, attributes['parent_span_id'] AS parent, ` +
+  `attributes['service'] AS service, attributes['status'] AS status, attributes['duration_ms'] AS ms, ` +
+  `attributes['request'] AS request, attributes['sampling.priority'] AS kept FROM ${src} ` +
+  `WHERE event_type = 'realm_span' AND attributes['trace_id'] IN (SELECT attributes['trace_id'] FROM ${src} ` +
+  `WHERE event_type = 'realm_span' GROUP BY attributes['trace_id'] ORDER BY max(attributes['sampling.priority'] = '1') DESC, ` +
+  `max(attributes['status'] = 'error') DESC, max(ts) DESC LIMIT 6) ORDER BY ts`;
 const IDLE_CAP = 60_000;
 type Source = keyof typeof TRACE_SQL;
 
@@ -278,7 +287,41 @@ function traceView(o: Opts, panel: HTMLElement) {
   const scroll = h('div', { class: 'wf-scroll' });
   const legend = h('p', { class: 'wf-legend', hidden: '' });
   const details = h('section', { class: 'wf-details', id: 'trace-details', 'aria-label': 'Span details', hidden: '' });
-  panel.append(h('div', { class: 'viz-controls' }, sources.el), summary, status.el, legend, scroll, details);
+  const realm = h('section', { class: 'wf-realm', id: 'trace-realm', 'aria-label': 'Realm requests', hidden: '' });
+  panel.append(h('div', { class: 'viz-controls' }, sources.el), summary, status.el, legend, scroll, details, realm);
+
+  /** One mini waterfall per Realm request; a span whose parent wasn't sampled says so. */
+  function drawRealm(rows: Row[]) {
+    realm.hidden = !rows.length;
+    if (!rows.length) return;
+    const traces = new Map<string, Row[]>();
+    for (const r of rows) traces.set(str(r.trace_id), [...(traces.get(str(r.trace_id)) ?? []), r]);
+    const max = Math.max(1, ...rows.map((r) => num(r.ms)));
+    const score = (spans: Row[]) => (spans.some((sp) => str(sp.kept) === '1') ? 2 : 0) + (spans.some((sp) => str(sp.status) === 'error') ? 1 : 0);
+    realm.replaceChildren(
+      h('h3', {}, 'Realm requests'),
+      ...[...traces].sort(([, a], [, b]) => score(b) - score(a)).map(([id, spans]) => {
+        const byId = new Map(spans.map((sp) => [str(sp.span_id), sp]));
+        const depth = (sp: Row) => {
+          let d = 0;
+          for (let p = byId.get(str(sp.parent)); p; p = byId.get(str(p.parent))) d++;
+          return d;
+        };
+        const kept = spans.some((sp) => str(sp.kept) === '1');
+        const head = `${str(spans[0].request)} · trace ${id.slice(0, 8)} · ${kept ? 'kept (sampling.priority = 1)' : `${spans.length} span${spans.length === 1 ? '' : 's'}`}`;
+        return h('div', { class: 'realm-trace' },
+          h('p', { class: 'realm-head' }, head),
+          h('ol', {}, ...spans.map((sp) => {
+            const err = str(sp.status) === 'error';
+            const orphan = str(sp.parent) && !byId.has(str(sp.parent));
+            return h('li', { class: err ? 'error' : undefined, style: `--depth: ${depth(sp)}` },
+              h('span', { class: 'realm-svc' }, str(sp.service)),
+              h('span', { class: 'realm-bar' }, h('i', { style: `width: ${Math.max(1.5, (num(sp.ms) / max) * 100)}%` })),
+              h('span', { class: 'realm-ms' }, `${dur(num(sp.ms))}${err ? ' · error' : ''}${orphan ? ' · parent not sampled' : ''}`));
+          })));
+      }),
+    );
+  }
 
   type Ev = { seq: number; t: number; off: number; scene: string; type: string; character: string; text: string; ttc: number; row: Row };
 
@@ -453,6 +496,8 @@ function traceView(o: Opts, panel: HTMLElement) {
       moments = m.rows ? num(m.rows[0]?.n) : undefined;
     }
     build(rows, moments);
+    const realmRows = await o.run(REALM_SQL(source));
+    drawRealm(realmRows.rows ?? []);
   }
 
   return {
@@ -466,28 +511,33 @@ function traceView(o: Opts, panel: HTMLElement) {
 }
 
 // ---------- Metrics: totals, and the moments only the full table remembers ----------
-type Kind = 'bar' | 'stacked' | 'stat' | 'time';
+type Kind = 'bar' | 'stacked' | 'stat' | 'time' | 'tier';
 const METRICS_SQL = {
-  bar: "SELECT character, sum(affection) AS affection FROM metrics_agg WHERE character != '' GROUP BY character ORDER BY affection DESC, character",
-  stacked: 'SELECT scene, character, sum(events) AS events FROM metrics_agg GROUP BY scene, character ORDER BY scene, character',
-  stat: 'SELECT character, sum(events) AS events, sum(affection) AS affection FROM metrics_agg GROUP BY character',
+  bar: "SELECT character, sum(affection) AS affection FROM metrics_agg WHERE character NOT IN ('', 'realm') GROUP BY character ORDER BY affection DESC, character",
+  stacked: "SELECT scene, character, sum(events) AS events FROM metrics_agg WHERE character != 'realm' GROUP BY scene, character ORDER BY scene, character",
+  stat: "SELECT character, sum(events) AS events, sum(affection) AS affection FROM metrics_agg WHERE character != 'realm' GROUP BY character",
   statChoices: "SELECT count() AS choices FROM events WHERE event_type = 'choice'",
   time: "SELECT seq, ts, scene, node, character, choice_text, affection_delta, time_to_choose_ms FROM events WHERE event_type = 'choice' ORDER BY seq",
+  tier: "SELECT attributes['tier'] AS tier, countIf(attributes['status'] = 'error') AS errors, count() AS spans FROM events WHERE event_type = 'realm_span' GROUP BY tier ORDER BY errors DESC",
+  /** Has the incident written anything? (metrics_agg, so peeking isn't a base-table query.) */
+  incident: "SELECT count() > 0 AS active FROM metrics_agg WHERE scene = 'incident'",
 };
 const CHART_IDLE_CAP = 5 * 60_000;
 const PILLARS = ['logs', 'metrics', 'traces'];
 
 function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => void) {
   let kind: Kind = 'bar';
+  let picked = false; // until the player picks a chart, an incident opens on errors by tier
   let rows: Row[] = [];
   let extra: Row[] = [];
   let drawnWidth = 0;
 
   const kinds = seg(
-    [['bar', 'bar'], ['stacked', 'stacked'], ['stat', 'stat'], ['time', 'over time']],
+    [['bar', 'bar'], ['stacked', 'stacked'], ['stat', 'stat'], ['time', 'over time'], ['tier', 'errors by tier']],
     'Chart type',
     (v) => {
       kind = v as Kind;
+      picked = true;
       void refresh();
     },
   );
@@ -588,9 +638,13 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
   }
   const empty = (text: string) => host.replaceChildren(h('p', { class: 'viz-empty' }, text));
 
-  function barChart(W: number) {
-    const data = rows.map((r) => ({ id: str(r.character), v: num(r.affection) }));
-    if (!data.length) return empty("Metrics hasn't counted anyone yet.");
+  function barChart(W: number, tier = false) {
+    const data = tier
+      ? rows.map((r) => ({ id: str(r.tier), v: num(r.errors), name: str(r.tier), color: str(r.tier) === 'onlyspans' ? who(o, 'collector').color : 'var(--lilac-deep)' }))
+      : rows.map((r) => ({ id: str(r.character), v: num(r.affection), ...who(o, str(r.character)) }));
+    const unit = tier ? 'errors' : 'affection';
+    const fmtv = tier ? String : signed;
+    if (!data.length) return empty(tier ? 'No incident. Metrics would like it to stay that way.' : "Metrics hasn't counted anyone yet.");
     const labelW = Math.min(130, W * 0.3);
     const valW = 44;
     const rowH = 40;
@@ -601,22 +655,22 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
     const px0 = labelW + (lo < 0 ? valW : 0);
     const px1 = W - valW;
     const x = (v: number) => px0 + ((v - lo) / (hi - lo || 1)) * (px1 - px0);
-    const svg = s('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `Affection by character, sum(affection) from metrics_agg: ${data.map((d) => `${who(o, d.id).name} ${signed(d.v)}`).join(', ')}.` });
+    const svg = s('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': tier ? `Errors by tier, from events: ${data.map((d) => `${d.name} ${d.v}`).join(', ')}.` : `Affection by character, sum(affection) from metrics_agg: ${data.map((d) => `${d.name} ${signed(d.v)}`).join(', ')}.` });
     const tip = tooltip(host);
     svg.append(s('line', { class: 'zero', x1: x(0), x2: x(0), y1: 2, y2: H - 4 }));
     data.forEach((d, i) => {
       const y = i * rowH + 4;
-      const { name, color } = who(o, d.id);
-      const g = s('g', { class: 'mark', tabindex: 0, 'aria-label': `${name}: ${signed(d.v)} affection` });
+      const { name, color } = d;
+      const g = s('g', { class: 'mark', tabindex: 0, 'aria-label': `${name}: ${fmtv(d.v)} ${unit}` });
       g.append(
         ...[
           s('rect', { class: 'hit', x: 0, y, width: W, height: rowH }),
         s('text', { class: 'label', x: 0, y: y + rowH / 2, 'dominant-baseline': 'central' }, name),
         d.v ? s('path', { class: 'fill', d: hbar(x(0), x(d.v), y + (rowH - barH) / 2, barH), style: `--c: ${color}` }) : null,
-          s('text', { class: 'value', x: x(d.v) + (d.v < 0 ? -6 : 6), y: y + rowH / 2, 'dominant-baseline': 'central', 'text-anchor': d.v < 0 ? 'end' : 'start' }, signed(d.v)),
+          s('text', { class: 'value', x: x(d.v) + (d.v < 0 ? -6 : 6), y: y + rowH / 2, 'dominant-baseline': 'central', 'text-anchor': d.v < 0 ? 'end' : 'start' }, fmtv(d.v)),
         ].filter((k): k is SVGElement => !!k),
       );
-      wire(g, tip, () => [x(d.v), y + 6], () => [h('strong', { class: 'tip-value' }, `${signed(d.v)} affection`), h('span', {}, `${name} · sum(affection)`)]);
+      wire(g, tip, () => [x(d.v), y + 6], () => [h('strong', { class: 'tip-value' }, `${fmtv(d.v)} ${unit}`), h('span', {}, tier ? `tier = ${name} · countIf(status = 'error')` : `${name} · sum(affection)`)]);
       svg.append(g);
     });
     host.replaceChildren(svg, tip.el);
@@ -774,14 +828,18 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
     if (kind === 'bar') barChart(W);
     else if (kind === 'stacked') stackedChart(W);
     else if (kind === 'stat') statTiles();
+    else if (kind === 'tier') barChart(W, true);
     else timeChart(W);
   }
 
   async function refresh() {
+    if (!picked) kind = num((await o.run(METRICS_SQL.incident)).rows?.[0]?.active) ? 'tier' : 'bar';
     kinds.set(kind);
-    note.hidden = kind !== 'time' && kind !== 'stat';
+    note.hidden = kind === 'bar' || kind === 'stacked';
     note.textContent =
-      kind === 'time'
+      kind === 'tier'
+        ? 'Errors by tier reads events: tier is the label Metrics dropped to save memory, and the only place it survived.'
+        : kind === 'time'
         ? 'Over time and its exemplars read events, the whole table: metrics_agg only keeps totals, so Metrics can’t remember when anything happened.'
         : 'Choices are counted from events: metrics_agg keeps totals per character and scene, not what kind of moment each one was.';
     const r = await load(o, host, status, METRICS_SQL[kind]);
