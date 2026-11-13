@@ -100,13 +100,24 @@
         <h2 id="console-title">Query Shell <small>read-only · your events · 3 s limit</small></h2>
         <button class="close" value="close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </header>
-      <div class="hints" id="hints"></div>
-      <textarea id="sql" spellcheck="false" rows="4" aria-label="SQL query">SHOW TABLES</textarea>
-      <div class="row">
-        <button id="run">run ▸ <small>(Ctrl+Enter)</small></button>
-        <span id="console-status" role="status"></span>
+      <div class="tabs" role="tablist" aria-label="Shell views">
+        <button role="tab" id="tab-sql" aria-controls="panel-sql" aria-selected="true">SQL</button>
+        <button role="tab" id="tab-logs" aria-controls="panel-logs" aria-selected="false" tabindex="-1">Logs</button>
+        <button role="tab" id="tab-trace" aria-controls="panel-trace" aria-selected="false" tabindex="-1">Trace</button>
+        <button role="tab" id="tab-metrics" aria-controls="panel-metrics" aria-selected="false" tabindex="-1">Metrics</button>
       </div>
-      <div id="console-result"></div>
+      <section role="tabpanel" id="panel-sql" aria-labelledby="tab-sql">
+        <div class="hints" id="hints"></div>
+        <textarea id="sql" spellcheck="false" rows="4" aria-label="SQL query">SHOW TABLES</textarea>
+        <div class="row">
+          <button id="run">run ▸ <small>(Ctrl+Enter)</small></button>
+          <span id="console-status" role="status"></span>
+        </div>
+        <div id="console-result"></div>
+      </section>
+      <section role="tabpanel" id="panel-logs" aria-labelledby="tab-logs" class="viz" hidden></section>
+      <section role="tabpanel" id="panel-trace" aria-labelledby="tab-trace" class="viz" hidden></section>
+      <section role="tabpanel" id="panel-metrics" aria-labelledby="tab-metrics" class="viz" hidden></section>
     </dialog>
 
     <dialog id="menu" aria-labelledby="menu-title">

@@ -536,35 +536,35 @@ const SHELL_HINTS: [string, string][] = [
   ['who do I talk to most?', "SELECT character, count() AS lines FROM logs WHERE character != '' GROUP BY character ORDER BY lines DESC"],
 ];
 
+/** Every Query Shell query, typed or drawn by a view: the read-only connection, then logged as query_run. */
+async function shellQuery(sql: string): Promise<{ rows?: Row[]; note?: string; error?: string }> {
+  try {
+    sfx('query');
+    const r = await (await ready).console(sql);
+    const base = r.tables.includes('default.events');
+    trace('query shell', sql, `${r.rows.length} rows · ${r.tables.join(', ') || 'no tables'}`);
+    await log.append({
+      scene: current.scene, node: current.node, event_type: 'query_run',
+      attributes: { 'query.text': sql.slice(0, 2000), 'query.tables': r.tables.join(','), 'query.base_table': String(base), 'query.rows': String(r.rows.length) },
+    });
+    return { rows: r.rows, note: `${r.rows.length} rows · ${Math.round(r.ms)} ms${base ? ' · that’s the whole of you ♥' : ''}` };
+  } catch (e) {
+    sfx('error');
+    const message = String((e as Error).message ?? e).replace(/^Code: \d+\. DB::Exception: /, '').slice(0, 400);
+    await log.append({ scene: current.scene, node: current.node, event_type: 'query_run', attributes: { 'query.text': sql.slice(0, 2000), 'query.error': message } });
+    return { error: message };
+  }
+}
+
 async function shell() {
   const found = (await log.all()).some((e) => e.event_type === 'item_found' && e.attributes.item === 'query_shell');
   if (!found) await log.append({ scene: current.scene, node: current.node, event_type: 'item_found', attributes: { item: 'query_shell' } });
   $('#btn-shell').hidden = false;
-  const db = await ready;
+  await ready;
   sfx('shell_open');
-  await openConsole({
-    hints: SHELL_HINTS,
-    table,
-    run: async (sql) => {
-      try {
-        sfx('query');
-        const r = await db.console(sql);
-        const base = r.tables.includes('default.events');
-        trace('query shell', sql, `${r.rows.length} rows · ${r.tables.join(', ') || 'no tables'}`);
-        await log.append({
-          scene: current.scene, node: current.node, event_type: 'query_run',
-          attributes: { 'query.text': sql.slice(0, 2000), 'query.tables': r.tables.join(','), 'query.base_table': String(base), 'query.rows': String(r.rows.length) },
-        });
-        return { rows: r.rows, note: `${r.rows.length} rows · ${Math.round(r.ms)} ms${base ? ' · that’s the whole of you ♥' : ''}` };
-      } catch (e) {
-        sfx('error');
-        const message = String((e as Error).message ?? e).replace(/^Code: \d+\. DB::Exception: /, '').slice(0, 400);
-        await log.append({ scene: current.scene, node: current.node, event_type: 'query_run', attributes: { 'query.text': sql.slice(0, 2000), 'query.error': message } });
-        return { error: message };
-      }
-    },
-  });
+  await openConsole({ hints: SHELL_HINTS, table, run: shellQuery, characters: content.characters });
 }
+hooks.openShell = () => void shell(); // for e2e
 
 // ---------- saves ----------
 async function exportSave() {
