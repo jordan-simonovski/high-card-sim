@@ -1,6 +1,6 @@
 // Boot: support check -> prologue immediately -> engine loads in the background ->
 // replay the event log -> query-gated nodes unblock.
-import { clientSupport, openDb, truthy, type BootProgress, type Db } from './db.ts';
+import { clientSupport, openDb, truthy, type BootProgress, type Db, type Unsupported } from './db.ts';
 import { openLog, type EventLog } from './eventlog.ts';
 import { needsQueries, nextNode, node, visibleChoices, type Conditions, type Scene } from './engine/scene.ts';
 import { prologue } from './prologue.ts';
@@ -12,26 +12,30 @@ const queries = Object.fromEntries(
 );
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
-const boot = { state: 'starting' as string, attempt: 1, replayed: 0, error: '' };
+const boot = { state: 'starting' as string, replayed: 0, error: '' };
 const hooks = { boot } as Record<string, unknown>;
 (window as unknown as { __hc: typeof hooks }).__hc = hooks;
 
-function unsupported(reason: 'memory64' | 'isolation') {
+const WHY: Record<Unsupported, string> = {
+  memory64:
+    "Your browser can't speak WebAssembly Memory64 yet (Safari and iOS, we're looking at you). The pillars live in Chrome and Edge for now.",
+  firefox:
+    "Firefox keeps dropping the collector mid-handshake, so the pillars can't meet you here yet. Try Chrome or Edge while we fix it.",
+  isolation:
+    'This page lost its cross-origin isolation, so the collector cannot spin up. Try opening the game directly instead of embedded.',
+};
+
+function unsupported(reason: Unsupported) {
   boot.state = 'unsupported';
   $('#game').hidden = true;
   const el = $('#unsupported');
   el.hidden = false;
-  el.querySelector('.why')!.textContent =
-    reason === 'memory64'
-      ? "Your browser can't speak WebAssembly Memory64 yet (Safari and iOS, we're looking at you). The pillars live in Chrome, Edge and Firefox for now."
-      : 'This page lost its cross-origin isolation, so the collector cannot spin up. Try opening the game directly instead of embedded.';
+  el.querySelector('.why')!.textContent = WHY[reason];
 }
 
 function showLoader(p: BootProgress) {
-  boot.attempt = p.attempt;
   const pct = Math.min(99, Math.floor((p.loaded / p.total) * 100));
-  $('#loader').textContent =
-    p.attempt > 1 ? `collector restarted (attempt ${p.attempt})… ${pct}%` : `spinning up the collector… ${pct}%`;
+  $('#loader').textContent = `spinning up the collector… ${pct}%`;
 }
 
 async function main() {

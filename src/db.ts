@@ -1,6 +1,5 @@
 // The only module that touches chDB. AsyncChdb already runs the wasm in its own
 // Web Worker, so this is a thin wrapper, not another worker.
-import type { AsyncChdb } from 'chdb-wasm';
 import { paramStatements, type ParamValue } from './sql.ts';
 import schemaSql from '../sql/schema.sql?raw';
 
@@ -22,11 +21,15 @@ export interface Db {
 export interface BootProgress {
   loaded: number;
   total: number;
-  attempt: number;
 }
 
 /** Same check selectBundle() does, without importing the engine (runs before anything loads). */
-export function clientSupport(): { ok: true } | { ok: false; reason: 'memory64' | 'isolation' } {
+export type Unsupported = 'memory64' | 'isolation' | 'firefox';
+
+export function clientSupport(): { ok: true } | { ok: false; reason: Unsupported } {
+  // ponytail: Firefox boots hang 35-50% of the time (docs/m0-report.md); v1 is Chromium-only.
+  // A retrying watchdog that mostly works is in commit b574245 if Firefox comes back.
+  if (/Firefox\//.test(navigator.userAgent)) return { ok: false, reason: 'firefox' };
   let mem64 = false;
   try {
     mem64 = WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 5, 3, 1, 4, 1]));
@@ -38,66 +41,17 @@ export function clientSupport(): { ok: true } | { ok: false; reason: 'memory64' 
   return { ok: true };
 }
 
-// Firefox hangs on 35-50% of boots while the engine starts its pthread pool inside the
-// package's worker (docs/m0-report.md). Watchdog: if no download progress arrives and
-// create() hasn't resolved for the fuse, kill the worker and retry. Fuses grow so a slow
-// device that is genuinely still compiling eventually gets enough time.
-// ponytail: P(all 6 hang) is about 1% at a 47% hang rate; main-thread fallback if that's too high.
-const STALL_MS = [8_000, 8_000, 12_000, 12_000, 20_000, 30_000];
-
-async function createWithWatchdog(m: ChdbModule, onProgress: (p: BootProgress) => void): Promise<AsyncChdb> {
-  const bundle = m.selectBundle({ baseUrl: ENGINE_BASE, threads: 'mt' });
-  if (!bundle.supported) throw new Error(`unsupported client: ${bundle.reasons.join('; ')}`);
-
-  for (let attempt = 1; attempt <= STALL_MS.length; attempt++) {
-    // ponytail: AsyncChdb doesn't expose its worker until create() resolves, and a hung
-    // create() never resolves. create() constructs the Worker synchronously before its
-    // first await, so capture it by wrapping the constructor for exactly that call.
-    // Remove once the upstream boot hang is fixed.
-    const Orig = globalThis.Worker;
-    let spawned: Worker | undefined;
-    globalThis.Worker = class extends Orig {
-      constructor(url: string | URL, opts?: WorkerOptions) {
-        super(url, opts);
-        spawned = this;
-      }
-    };
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let stalled!: () => void;
-    const stall = new Promise<'stall'>((resolve) => (stalled = () => resolve('stall')));
-    const arm = () => {
-      clearTimeout(timer);
-      timer = setTimeout(stalled, STALL_MS[attempt - 1]);
-    };
-    let created: Promise<AsyncChdb>;
-    try {
-      created = m.AsyncChdb.create({
-        moduleUrl: bundle.moduleUrl,
-        wasmUrl: bundle.wasmUrl,
-        onProgress: (loaded, total) => {
-          arm();
-          // Vercel serves the wasm brotli-encoded without content-length: fall back to the
-          // uncompressed size baked in at build time.
-          onProgress({ loaded, total: total || __CHDB_WASM_BYTES__, attempt });
-        },
-      });
-    } finally {
-      globalThis.Worker = Orig;
-    }
-    arm();
-    const winner = await Promise.race([created, stall]);
-    clearTimeout(timer);
-    if (winner !== 'stall') return winner;
-    spawned?.terminate();
-    created.catch(() => {}); // the abandoned attempt rejects or never settles
-    console.warn(`[collector] engine boot stalled, retrying (attempt ${attempt + 1})`);
-  }
-  throw new Error('collector failed to start');
-}
-
 export async function openDb(onProgress: (p: BootProgress) => void = () => {}): Promise<Db> {
   const m: ChdbModule = await import(/* @vite-ignore */ `${ENGINE_BASE}/index.js`);
-  const chdb = await createWithWatchdog(m, onProgress);
+  const bundle = m.selectBundle({ baseUrl: ENGINE_BASE, threads: 'mt' });
+  if (!bundle.supported) throw new Error(`unsupported client: ${bundle.reasons.join('; ')}`);
+  const chdb = await m.AsyncChdb.create({
+    moduleUrl: bundle.moduleUrl,
+    wasmUrl: bundle.wasmUrl,
+    // Vercel serves the wasm brotli-encoded without content-length: fall back to the
+    // uncompressed size baked in at build time.
+    onProgress: (loaded, total) => onProgress({ loaded, total: total || __CHDB_WASM_BYTES__ }),
+  });
 
   // Params are session state, so a SET + query pair must not interleave with another
   // caller's: every engine call goes through one FIFO chain.

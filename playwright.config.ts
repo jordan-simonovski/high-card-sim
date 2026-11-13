@@ -10,7 +10,5 @@ export default defineConfig({
     : { command: 'npm run build && npx vite preview --port 4173 --strictPort', port: 4173, timeout: 180_000, reuseExistingServer: true },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'], channel: 'chromium' } },
-    { name: 'firefox', testIgnore: /unsupported/, use: { ...devices['Desktop Firefox'] } },
   ],
-  grepInvert: process.env.BOOTS ? undefined : /boot loop/,
 });

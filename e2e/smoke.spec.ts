@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 
-type Hc = { boot: { state: string; replayed: number; attempt: number }; query: (sql: string, p?: object) => Promise<any[]>; log: { all(): Promise<unknown[]> } };
+type Hc = { boot: { state: string; replayed: number }; query: (sql: string, p?: object) => Promise<any[]>; log: { all(): Promise<unknown[]> } };
 const hc = (page: Page) => page.evaluate.bind(page);
 const waitReady = (page: Page) =>
   page.waitForFunction(() => ['ready', 'failed'].includes((window as any).__hc?.boot.state), null, { timeout: 120_000 });
@@ -61,6 +61,5 @@ test('boots, plays the prologue on SQL, survives reload via the event log', asyn
 
   test.info().annotations.push(
     { type: 'state at first line', description: stateAtFirstLine },
-    { type: 'boot attempts', description: String(boot.attempt) },
   );
 });
