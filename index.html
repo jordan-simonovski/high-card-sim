@@ -62,9 +62,11 @@
       <div id="box" tabindex="0" aria-describedby="box-hint">
         <span id="box-hint" class="sr-only">Press Enter or Space to continue.</span>
         <span id="speaker" hidden></span>
-        <p id="text" aria-hidden="true"></p>
-        <div id="result" hidden></div>
-        <div id="choices"></div>
+        <div class="box-scroll">
+          <p id="text" aria-hidden="true"></p>
+          <div id="result" hidden></div>
+          <div id="choices"></div>
+        </div>
       </div>
       <form id="create" hidden novalidate>
         <h2>span attributes</h2>

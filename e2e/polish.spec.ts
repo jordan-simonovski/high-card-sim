@@ -31,3 +31,28 @@ test('Escape opens the menu during play', async ({ page }) => {
   await expect(page.locator('#menu')).toBeVisible();
   await expect(page.locator('#text-size')).toBeVisible();
 });
+
+test('the speaker name tag is never clipped by the dialogue box', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('hc.textSpeed', 'instant'));
+  await page.goto('/');
+  await page.locator('#btn-new').click();
+  await expect(page.locator('#box.waiting')).toBeVisible();
+  await page.keyboard.press('Enter'); // line one is narration; the pager speaks on line two
+  await expect(page.locator('#speaker')).toBeVisible();
+  const clipped = await page.evaluate(() => {
+    const tag = document.querySelector('#speaker')!.getBoundingClientRect();
+    const box = document.querySelector('#box')!;
+    const style = getComputedStyle(box);
+    return { overflow: style.overflowY, aboveBox: tag.top < box.getBoundingClientRect().top };
+  });
+  expect(clipped).toEqual({ overflow: 'visible', aboveBox: true });
+});
+
+test('tapping through the story does not select text', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('hc.textSpeed', 'instant'));
+  await page.goto('/');
+  await page.locator('#btn-new').click();
+  await expect(page.locator('#box.waiting')).toBeVisible();
+  await page.locator('#text').dblclick();
+  expect(await page.evaluate(() => getSelection()?.toString() ?? '')).toBe('');
+});
