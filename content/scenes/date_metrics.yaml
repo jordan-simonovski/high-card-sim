@@ -1,6 +1,7 @@
 # Date with Metrics. Affection is sum(affection_delta) at his nodes: honesty and consistency
 # count, flattery doesn't. One possible argument (-2) that he can only remember as a number.
-# Range on this date: -2 (careless) to +5 (sincere).
+# Range on this date: -2 (careless) to +5 (sincere). The gate (metrics_affection_high) is 7 over the
+# whole week, so one date alone rarely gets there.
 id: date_metrics
 start: arrive
 music: metrics

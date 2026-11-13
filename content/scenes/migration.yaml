@@ -1,0 +1,166 @@
+# Late on Day 2, after the party. The DBA runs a migration (citizens.last_seen) so that at least
+# someone writes down when people drop out. While it runs: the card from the party, the drawer of
+# constraints the DBA has written and never enforced, and practising saying no with you playing
+# the Collector. Pays off in root_cause ("I'm telling you now... no") and resolution ("Enforced.
+# Not a comment."). Ends with the Query Shell (shell). No pillar affection here.
+id: migration
+start: stairs
+music: registry
+bg: mesh_night
+nodes:
+  stairs:
+    speaker: dba
+    mood: sad
+    text: "Oh. You didn't have to leave. It's a good party. It's a very good party, and somebody just stopped existing in the middle of it, and the music came back on."
+    next: card
+  card:
+    speaker: dba
+    mood: neutral
+    text: "I'm running a migration tonight. I'd like company, if you're not busy. You can say you're busy. It's free text."
+    choices:
+      - { id: come, text: "\"I'm not busy.\"", target: walk }
+      - { id: card_q, text: "\"What's on the card?\"", target: card_shown }
+  card_shown:
+    text: "The DBA hesitates, then hands it over. In tiny, very neat pencil: -- please don't stamp a new number on every span? (comment only. not enforced.)"
+    next: card_shown2
+  card_shown2:
+    speaker: dba
+    mood: blush
+    text: "I wrote it during the speech. It just looked like a lot of numbers. I don't know if it's a problem. It's not my table. I was going to give it to the Collector and then everyone cheered."
+    next: walk
+  walk:
+    bg: registry
+    text: "The Registry at night. The lamp at forty percent, a fresh stack of forms, and on the front desk a terminal with a progress bar at nought."
+    next: plan
+  plan:
+    speaker: dba
+    mood: neutral
+    text: "ALTER TABLE citizens ADD COLUMN last_seen. If I can't stop people dropping out, I can at least write down when. Somebody should know when."
+    next: run
+  run:
+    sfx: hotfix
+    text: "The DBA presses enter as if it might bite. The progress bar moves to one percent and thinks about it."
+    next: wait
+  wait:
+    speaker: dba
+    mood: neutral
+    text: "It'll be a while. Four hundred thousand citizens. Fewer than yesterday. I'd like to stop knowing that."
+    choices:
+      - { id: drawer, text: "\"What's in the drawer you keep looking at?\"", target: drawer }
+      - { id: ok, text: "\"Are you okay?\"", target: ok }
+  ok:
+    speaker: dba
+    mood: sad
+    text: "No. Yes. I'm a database administrator during an incident nobody's declared. I'm exactly as okay as that. Do you want to see the drawer? I keep looking at the drawer."
+    next: drawer
+  drawer:
+    text: "The DBA pulls out a long, deep drawer full of index cards. Every card is a constraint, beautifully written. Every one of them starts with two dashes."
+    next: drawer2
+  drawer2:
+    speaker: dba
+    mood: blush
+    text: "-- CHECK (stove = 'off') WHEN stall_empty. -- CHECK (length(reply) > 0) for 'sorry for what I said'. -- UNIQUE (person) in OnlySpans recap thumbnails, please."
+    next: drawer3
+  drawer3:
+    speaker: dba
+    mood: sad
+    text: "Comments. All of them. I've never enforced a constraint in my life. If you enforce one, somebody gets an error. And the error's from me. I'd be the one saying no."
+    choices:
+      - { id: someone, text: "\"Someone has to say no sometimes. It may as well be someone kind.\"", target: practise }
+      - { id: why, text: "\"What happens if nobody ever says no?\"", target: why }
+      - { id: fine, text: "\"Comments are fine. People read comments.\"", target: comments }
+  why:
+    speaker: dba
+    mood: neutral
+    text: "Everything gets in. Every column, every value, every bright idea at a launch party. And then one day there's too much of something and nobody knows who should have stopped it."
+    next: practise
+  comments:
+    speaker: dba
+    mood: sad
+    text: "Logs reads comments. That's it. That's the whole readership. I've been writing to an audience of one, and {logs.she} [logs:has|have] eleven people's last lines to get through tonight."
+    next: practise
+  practise:
+    speaker: dba
+    mood: neutral
+    text: "Will you help me practise? You be the Collector. Ask me for something. I'll try to say no. I'll probably say yes. I say yes to vending machines."
+    next: r1
+  r1:
+    text: "You put on your best Collector voice."
+    choices:
+      - { id: col, text: "\"Hiii! Can I have a new column? It's for my subscribers~\"", target: r1_yes }
+  r1_yes:
+    speaker: dba
+    mood: blush
+    text: "Yes. Of course. What type? Oh no. That was a yes. That was a yes with a follow-up question. I offered to help you with the yes."
+    next: r2
+  r2:
+    speaker: dba
+    mood: neutral
+    text: "Again. I'm ready. I'm ready this time."
+    choices:
+      - { id: everything, text: "\"Can I put my number on every single row? It's a loyalty programme!\"", target: r2_try }
+      - { id: please, text: "\"Pleeease? Everyone else said yes!\"", target: r2_try }
+  r2_try:
+    speaker: dba
+    mood: annoyed
+    text: "Every single— no, hang on, that's a lot of— I'm sure you've thought about the— maybe a smaller— I'll put it on a card."
+    next: coach
+  coach:
+    speaker: dba
+    mood: sad
+    text: "I put it on a card. Again. Everything goes on a card. That's where I keep all the no's I don't say."
+    choices:
+      - { id: short, text: "\"Say it short. One word. You don't owe anyone the follow-up question.\"", target: coach_short }
+      - { id: reason, text: "\"Tell them why. A no with a reason is just a schema.\"", target: coach_reason }
+      - { id: maybe, text: "\"Maybe start with 'maybe'.\"", target: coach_maybe }
+  coach_short:
+    speaker: dba
+    mood: neutral
+    text: "One word. No follow-up. Okay. Okay. Once more."
+    next: r3
+  coach_reason:
+    speaker: dba
+    mood: surprised
+    text: "A no with a reason is a schema. I'm going to put that on a card. An enforced one. Once more."
+    next: r3
+  coach_maybe:
+    speaker: dba
+    mood: sad
+    text: "I've been starting with maybe for eleven years. Maybe is where I live. Once more, anyway."
+    next: r3
+  r3:
+    text: "You lean on the desk and give it everything."
+    choices:
+      - { id: last, text: "\"Hiii! I've stamped a new number on every span in the Realm! Can I keep doing it forever?\"", target: said_no }
+  said_no:
+    speaker: dba
+    mood: annoyed
+    text: "No."
+    next: no2
+  no2:
+    text: "It's very small. It sits on the desk between you like something that might run off if either of you moves."
+    next: no3
+  no3:
+    speaker: dba
+    mood: surprised
+    text: "I said it. I said no. To a fake Collector, in an empty building, at midnight. I'm going to need to lie down. I'm going to need to lie down on the floor."
+    next: no4
+  no4:
+    speaker: dba
+    mood: blush
+    text: "I won't be able to do it to the real one. You know that. But I know what it sounds like now. It sounds like me."
+    next: done
+  done:
+    sfx: hotfix
+    text: "The terminal chimes. Migration complete. The DBA sits up off the floor and runs one query, and doesn't say anything while the result comes back."
+    next: done2
+  done2:
+    speaker: dba
+    mood: sad
+    text: "last_seen IS NOT NULL. Imre, 02:13. Wen, 10:41. A dancer, twenty minutes ago. Fourteen people. Fourteen since yesterday morning, and every dashboard says green."
+    next: done3
+  done3:
+    speaker: dba
+    mood: neutral
+    text: "Well. Now it's written down. Somebody knows when. That's the least a schema can do, and tonight it's the most I can."
+    next: "@shell"

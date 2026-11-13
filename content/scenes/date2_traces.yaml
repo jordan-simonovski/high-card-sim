@@ -1,0 +1,191 @@
+# Second date with Traces: a walk to the edge of the lights. Three times they drop out of the sample
+# mid-sentence. You find them by following the cause to its effect: where would the rest of that
+# sentence happen? The right guess (choice id `follow`, never in the same place twice) catches them
+# coming back in, and that reunion is a kept moment (sampling.priority = 1, character traces).
+# A wrong guess and they find you instead: nothing kept. No budget this time; it's reasoning, not
+# scarcity. Their wound grows: the sampler is greedier this week, and they can feel it.
+id: date2_traces
+start: arrive
+music: traces
+bg: mesh_night
+nodes:
+  arrive:
+    text: "Traces asked to meet at the fountain after dark. You get there early. So, for once, do they."
+    next: hi
+  hi:
+    speaker: traces
+    mood: happy
+    text: "You came! And I'm— I'm here, look. I've been here twenty minutes. I wanted to see what it's like to be early. It's mostly waiting. I see why you don't recommend it."
+    next: hi2
+  hi2:
+    speaker: traces
+    mood: neutral
+    text: "I want to show you the edge. Where the lights stop. It's a bit of a walk. I'll probably— I should warn you, I'll probably drop out on the way. The sampler's been greedy this week."
+    next: hi3
+  hi3:
+    speaker: traces
+    mood: blush
+    text: "If I go, I'll come back somewhere. I always come back where the next thing happens. That's how a trace works. One thing causes the next."
+    choices:
+      - { id: find, text: "\"Then I'll find you.\"", target: walk1, character: traces, attributes: { sampling.priority: "1" } }
+      - { id: wait, text: "\"Should I wait for you, if you go?\"", target: wait_q }
+  wait_q:
+    speaker: traces
+    mood: sad
+    text: "You could. People do. They wait where I was, and I come back where I was going, and we just miss each other. That's most of my life, really."
+    next: walk1
+  walk1:
+    text: "You set off along a glowing path. The packets on it bump gently round your ankles. Traces walks close enough that your sleeves touch."
+    next: d1
+  d1:
+    speaker: traces
+    mood: neutral
+    text: "You look cold. There's a kiosk by the bridge that does hot chocolate, and I was thinking I'd go and get us two, because you look—"
+    next: d1_gone
+  d1_gone:
+    sfx: sampled
+    text: "And they're gone. The space beside you is just space. A packet rolls through where their feet were."
+    choices:
+      - { id: back, text: "Go back to the fountain. That's where you met.", target: d1_miss }
+      - { id: follow, text: "Head for the hot chocolate kiosk by the bridge.", target: d1_found, character: traces, attributes: { sampling.priority: "1" } }
+      - { id: stay, text: "Stay where you are. They'll come back here.", target: d1_miss }
+  d1_found:
+    text: "You get to the kiosk as Traces flickers back in at the counter, mid-order, holding one hot chocolate. The other one is nowhere."
+    next: d1_found2
+  d1_found2:
+    speaker: traces
+    mood: surprised
+    text: "—cold. You're here! You came here! I was going to bring it back and you'd have been gone, and— you followed the because. Nobody follows the because."
+    next: d1_found3
+  d1_found3:
+    speaker: traces
+    mood: blush
+    text: "I dropped yours. Have mine. I'll have the next one. I'll be here for the next one."
+    next: walk2
+  d1_miss:
+    text: "You wait. A few minutes later Traces comes jogging up the path from the bridge, carrying one hot chocolate and looking frantic."
+    next: d1_miss2
+  d1_miss2:
+    speaker: traces
+    mood: sad
+    text: "There you are! I went to get these. I dropped one. I came back and you weren't where I— it's fine. It's fine. Have it. It's a bit cold now."
+    next: walk2
+  walk2:
+    text: "The path climbs. Lanterns hang over it on wires, every few metres, a long dotted line of them going off into the dark."
+    next: d2
+  d2:
+    speaker: traces
+    mood: sad
+    text: "This is the north side. Last night it went like this: the lanterns went first, then the paths under them, then the kiosks. Always in that order. So the next bit to go would be—"
+    next: d2_gone
+  d2_gone:
+    sfx: sampled
+    text: "Gone again, mid-word. Ahead of you the line of lanterns stops, and past the last one there's nothing at all."
+    choices:
+      - { id: follow, text: "Walk to the last lantern, where the dark starts.", target: d2_found, character: traces, attributes: { sampling.priority: "1" } }
+      - { id: kiosk, text: "Go back to the hot chocolate kiosk.", target: d2_miss }
+      - { id: call, text: "Call their name and wait.", target: d2_miss }
+  d2_found:
+    text: "Under the last lantern, the air shimmers, and Traces is standing there, looking out into the dark, a hand already reaching back for yours."
+    next: d2_found2
+  d2_found2:
+    speaker: traces
+    mood: surprised
+    text: "—the path, after the lanterns. I knew you'd— no, I didn't know. I hoped. I've never had anyone to hope would follow."
+    next: d2_found3
+  d2_found3:
+    speaker: traces
+    mood: sad
+    text: "This is the edge. Past here it's not dark, exactly. It's just not sampled. Nobody's keeping any of it. There were stalls out there yesterday."
+    next: edge
+  d2_miss:
+    text: "Nothing answers. After a while you walk on, and find Traces standing under the last lantern, looking out into the dark."
+    next: d2_miss2
+  d2_miss2:
+    speaker: traces
+    mood: sad
+    text: "Oh, there you are. I came back here. It's where the next bit was going to be. Sorry. I should've said where I'd be, but I didn't know I'd be going."
+    next: edge
+  edge:
+    speaker: traces
+    mood: neutral
+    text: "I come here a lot. It's the one place where everything's as missing as I am. I find it restful. Is that strange?"
+    choices:
+      - { id: not, text: "\"Not strange. But I'd rather you weren't missing.\"", target: edge_not, character: traces, attributes: { sampling.priority: "1" } }
+      - { id: bit, text: "\"A bit strange.\"", target: edge_bit }
+  edge_not:
+    speaker: traces
+    mood: blush
+    text: "I'd rather I wasn't either. I didn't know that until just now. I've always just thought of it as the weather."
+    next: d3
+  edge_bit:
+    speaker: traces
+    mood: happy
+    text: "A bit's fair. I'm a bit strange. Ninety-nine percent of the time I'm not even here to be strange."
+    next: d3
+  d3:
+    speaker: traces
+    mood: neutral
+    text: "Can I show you one more thing? It's where I started. My root span. Every trace starts at the gate, where things first come in, and so did—"
+    next: d3_gone
+  d3_gone:
+    sfx: sampled
+    text: "This time you're almost expecting it. Your hand closes on air."
+    choices:
+      - { id: edge, text: "Stay at the edge. It's their favourite place.", target: d3_miss }
+      - { id: cafe, text: "The Sampling Café. That's where you first met them.", target: d3_miss }
+      - { id: follow, text: "The gate, where the Mesh begins.", target: d3_found, character: traces, attributes: { sampling.priority: "1" } }
+  d3_found:
+    bg: mesh_plaza
+    text: "The gate at the bottom of the Mesh is an arch of glowing wire, with every packet in the Realm coming through it. Traces is under it, flickering in."
+    next: d3_found2
+  d3_found2:
+    speaker: traces
+    mood: blush
+    text: "—I. You found the start. Nobody looks for the start. Everyone wants to know where it ends."
+    next: d3_found3
+  d3_found3:
+    speaker: traces
+    mood: neutral
+    text: "I came in here, the same as a request. And the sampler looked at me, right here, before I'd done anything, and decided. One percent. That's all I was ever going to be."
+    next: hold
+  d3_miss:
+    text: "You wait a long time. Eventually a gold thread drifts past at head height, and you follow it all the way down to the gate at the bottom of the Mesh. Traces is sitting under the arch."
+    next: d3_miss2
+  d3_miss2:
+    bg: mesh_plaza
+    speaker: traces
+    mood: sad
+    text: "I sent you a thread. I didn't know if it'd reach. This is the start. It's where the sampler decided about me. Before I'd done anything at all."
+    next: hold
+  hold:
+    speaker: traces
+    mood: sad
+    text: "Everything that comes in gets decided here. It's quicker that way. It's just that you only find out later what you dropped."
+    choices:
+      - { id: decide, text: "\"If I'd been the sampler, I'd have kept you.\"", target: decide, character: traces, attributes: { sampling.priority: "1" } }
+      - { id: unfair, text: "\"That isn't fair to you.\"", target: unfair }
+      - { id: works, text: "\"I suppose it has to work somehow.\"", target: works }
+  decide:
+    speaker: traces
+    mood: blush
+    text: "You can't know that. You'd have to decide at the start, before you'd met me. …You'd still have kept me? Without knowing?"
+    next: decide2
+  decide2:
+    speaker: traces
+    mood: blush
+    text: "I'm going to think about that until I drop out. And then whenever I'm back."
+    next: out
+  unfair:
+    speaker: traces
+    mood: neutral
+    text: "It isn't, is it. I've never said that out loud. It feels like something I'm going to keep saying."
+    next: out
+  works:
+    speaker: traces
+    mood: sad
+    text: "It does have to. I know. I'd just like it to work some other way for one night."
+    next: out
+  out:
+    text: "Traces walks you back as far as the fountain and drops out somewhere between one step and the next. When you look down, one gold thread has come loose from {traces.their} glove and caught on your sleeve. It's still warm."
+    next: "@mesh"

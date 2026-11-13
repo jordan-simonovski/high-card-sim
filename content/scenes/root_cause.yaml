@@ -142,4 +142,17 @@ nodes:
     speaker: dba
     mood: sad
     text: "No. Nobody did. I run the schema, so that one's mine. I'm telling you now, and I'm sorry it's this late: no."
+    next: card
+  card:
+    text: "The DBA takes an index card out of a cardigan pocket, the one from the party, and puts it on the table in front of the Collector. -- please don't stamp a new number on every span? (comment only. not enforced.)"
+    next: card2
+  card2:
+    speaker: dba
+    mood: sad
+    text: "I wrote that during your speech. I practised saying it out loud, the same night. I said it to {name}, doing your voice. I just never said it to you."
+    next: card3
+  card3:
+    speaker: collector
+    mood: sad
+    text: "…You could have. I'd have listened. I read everything. I'd have read that."
     next: "@resolution"

@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
  * script can change without breaking it. Returns the ending title.
  */
 async function playToEnding(page: Page, opts: { queryBaseTable: boolean; prefer: (ids: string[]) => string }) {
-  for (let step = 0; step < 800; step++) {
+  for (let step = 0; step < 2000; step++) {
     if (await page.locator('#ending').isVisible()) return (await page.locator('#ending-title').textContent()) ?? '';
     if (await page.locator('#create').isVisible()) {
       await page.fill('[name=name]', 'Kit');
@@ -55,14 +55,14 @@ async function playToEnding(page: Page, opts: { queryBaseTable: boolean; prefer:
     }
     await page.waitForTimeout(100); // waiting on the engine or a query
   }
-  throw new Error('no ending after 800 steps');
+  throw new Error('no ending after 2000 steps');
 }
 
 test('true ending: every turning point lands, stop sampling yourself', async ({ page }) => {
-  test.setTimeout(300_000);
+  test.setTimeout(900_000);
   await page.goto('/');
   await page.locator('#btn-new').click();
-  const ending = await playToEnding(page, { queryBaseTable: true, prefer: (ids) => ids.find((i) => i !== 'relapse') ?? ids[0] });
+  const ending = await playToEnding(page, { queryBaseTable: true, prefer: (ids) => ids.find((i) => i === 'follow') ?? ids.find((i) => i !== 'relapse') ?? ids[0] });
   expect(ending).toBe('Stop Sampling Yourself');
   // The share card: painted from the ending's art and one stats row.
   const card = page.locator('#share-card');
@@ -75,7 +75,8 @@ test('true ending: every turning point lands, stop sampling yourself', async ({ 
     const h = (window as any).__hc;
     const q = async (sql: string) => Object.values((await h.query(sql))[0] ?? {})[0];
     return {
-      dates: await q("SELECT uniqExact(scene) FROM events WHERE event_type = 'scene_enter' AND scene LIKE 'date_%'"),
+      // Three first dates and three second dates.
+      dates: await q("SELECT uniqExact(scene) FROM events WHERE event_type = 'scene_enter' AND match(scene, '^date2?_')"),
       base: await q("SELECT count() FROM events WHERE event_type = 'query_run' AND attributes['query.base_table'] = 'true'"),
       ending: await q("SELECT attributes['ending.title'] FROM events WHERE event_type = 'ending'"),
       // Traces' date has a budget of two kept moments.
@@ -85,7 +86,7 @@ test('true ending: every turning point lands, stop sampling yourself', async ({ 
       write: await h.console('SELECT 1').then(() => h.console("INSERT INTO events (scene) VALUES ('x')")).then(() => 'wrote', (e: Error) => e.message),
     };
   });
-  expect(Number(facts.dates)).toBe(3);
+  expect(Number(facts.dates)).toBe(6);
   expect(Number(facts.keeps)).toBe(2);
   expect(Number(facts.quiet)).toBe(1);
   expect(Number(facts.base)).toBeGreaterThan(0);
@@ -94,7 +95,7 @@ test('true ending: every turning point lands, stop sampling yourself', async ({ 
 });
 
 test('a careless player never reaches the polycule', async ({ page }) => {
-  test.setTimeout(300_000);
+  test.setTimeout(900_000);
   await page.goto('/');
   await page.locator('#btn-new').click();
   // Always the last option: TL;DR, flattery, plain moments.

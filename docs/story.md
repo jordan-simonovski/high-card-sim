@@ -6,22 +6,28 @@ Read with `docs/characters.md`. The script lives in `content/scenes/*.yaml`; gam
 ## Flow
 
 ```
-prologue ─► registry ─► mesh (hub) ─┬─► date_logs ────┐
-                         ▲          ├─► date_metrics ─┤ each returns to @mesh
-                         └──────────┴─► date_traces ──┘
-                mesh, once all_dated ─► shell ─► monitoring ─► incident ─► phase_logs ─► phase_metrics
-                ─► phase_traces ─► root_cause ─► resolution ─► finale (the portal) ─► one of 9 endings
+prologue ─► registry ─► mesh (Day 1 hub) ─► date_logs / date_metrics / date_traces (any order, each back to @mesh)
+         ─► overnight (night 1, morning 2) ─► mesh (Day 2 hub) ─► date2_logs / date2_metrics / date2_traces / lost_tag
+         ─► party (evening 2) ─► migration (late night) ─► shell ─► monitoring ─► incident
+         ─► phase_logs ─► phase_metrics ─► phase_traces ─► root_cause ─► resolution ─► quiet ─► finale ─► one of 9 endings
 ```
 
 | scene | bg | what happens |
 |---|---|---|
 | `prologue` | bedroom_night → ingest_void | 3am page, the isekai, character creation ("span attributes"), the `hesitated` branch. Already written; ends by jumping to `@registry`. |
 | `registry` | registry | The DBA greets you with a default value (`NULL`), hotfixes it. Panics that `player.name` is free text, not an enum. Grows. The stranger is revealed as the Collector. Seed: the lights flicker and a clerk blinks out; the deal is set (resolve the incident, the page closes, the portal home opens). |
-| `mesh` | mesh_plaza | Hub. First visit (`first_mesh_visit`): Baggage cameo (and the flickers: "half my tags point at people who aren't there anymore"). Branch `all_dated` → `@shell`. Otherwise choices to each date not yet taken (`not_dated_logs` etc.). |
+| `mesh` | mesh_plaza | Hub. First visit (`first_mesh_visit`): Baggage cameo (and the flickers). Day 1: the three first dates (`not_dated_logs` etc.); `all_dated` → `@overnight`. Day 2 (`day_two`): second dates and the lost tag (`not_dated2_*`, `not_lost_tag`); `all_day_two` → `@party`. |
 | `date_logs` | archive_cafe | Logs overshares. "Tell me more" vs "TL;DR?" choices. Affection is conversation volume. Seed (Tell-me-more path only): a WARN she keeps writing, buried in a tangent. |
 | `date_metrics` | dashboard_gym | Metrics, terse. `affection_delta` choices, one possible argument. A `show: metrics_view_of_you` moment. Seed: dropped labels, and an error counter he can't break down. |
 | `date_traces` | sampling_cafe | Traces doesn't show up (`traces_saw_you` false) until you choose to mark the moment important (`sampling.priority: "1"`). Seed: a request they've never once seen finish. |
-| `shell` | registry | The DBA gives you the Query Shell (`action: open_console`): read-only SQL over your own events. Hints that each pillar sees only part of you, and that the table they all come from has all of you. |
+| `overnight` | mesh_night → registry → mesh_plaza | A sector of the Mesh goes dark. The DBA's cot; Monitoring's "Status: OK?" every five minutes. Falling asleep you think of one pillar (a row, a +1, or a kept moment). Morning: Imre the clerk didn't come back. |
+| `date2_logs` | mesh_plaza | A picnic. She left the notebook at home: you talk, she practises listening, and every "mm" is still a row. Brush-offs ("fine") give her less and she collects them (the quiet hour). Your fridge at 4am (B flat) pays off going home. Warmth: `logs_date2_warm`. |
+| `date2_metrics` | running_track | Four laps at his split: match (+1), overshoot (0), drift (−1). His watches show 40,312 dropped series overnight; why he dropped his labels (OOM-killed twice). Last lap you set the pace. `show: metrics_laps`. A watch that counts up. |
+| `date2_traces` | mesh_night → mesh_plaza | A walk to the edge of the lights. They drop out three times mid-sentence; you find them by following cause to effect (choice id `follow`, a kept moment). No budget: reasoning, not scarcity. |
+| `lost_tag` | mesh_plaza → archive_cafe | Baggage's tag for Wen (dumplings) has gone light. Follow it hop by hop to an empty stall, then to Logs, who has Wen's last line. Plant: none of the missing are premium. |
+| `party` | onlyspans_studio | One million subscribers. `show: collector_wrapped`. The Collector shows off a subscriber number on every span (the root cause in plain sight); the DBA writes a card. Spend it with one pillar, all three at the snack table, the photo (who you stand by scores). A dancer drops out mid-spin. |
+| `migration` | mesh_night → registry | `ALTER TABLE citizens ADD COLUMN last_seen`. The DBA's drawer of unenforced constraints; practising "no" with you as the Collector. Fourteen names in last_seen. Pays off in root_cause (the card) and resolution (enforced). |
+| `shell` | registry | After the migration, the DBA gives you the Query Shell (`action: open_console`): read-only SQL over your own events. Hints that each pillar sees only part of you, and that the table they all come from has all of you. |
 | `monitoring` | noc_room | The ex. `show: monitoring_dashboard`. Can't answer new questions. Choice `relapse` (get back together) or let them go kindly. Both go to `@incident`. |
 | `incident` | noc_room | Sev-1. `action: incident_start` (generates the Realm's telemetry into `events`), sfx `alarm`, music `incident`. Everyone gathers. |
 | `phase_logs` | archive_cafe | `open_console:logs`, then "what did you find?". Answer: `WARN cardinality limit exceeded, dropping series`. Turning point by `logs_affection_high`. |
@@ -53,9 +59,10 @@ carries `affection_delta` or `sampling.priority`, so the finale gates still read
 
 | pillar | query | what counts |
 |---|---|---|
-| Logs | `logs_affection_high`: `count() >= 18 FROM logs WHERE character='logs'` | every Logs line shown, plus every reply the player picks at a Logs node (choice text is logged as dialogue) |
-| Metrics | `metrics_affection_high`: `sum(affection) >= 3 FROM metrics_agg WHERE character='metrics'` | `affection_delta` on choices at Metrics nodes |
-| Traces | `traces_affection_high`: `count() >= 3 FROM traces WHERE character='traces'` | choices at Traces nodes with `sampling.priority: "1"` (plus the rare 1% random sample) |
+| Logs | `logs_affection_high`: `count() >= 52 FROM logs WHERE character='logs'`, before the incident | every Logs line shown, plus every reply the player picks at a Logs node (choice text is logged as dialogue). Careful week: ~67. Careless: ~36. |
+| Metrics | `metrics_affection_high`: `sum(affection) >= 7 FROM metrics_agg WHERE character='metrics'` | `affection_delta` on choices at Metrics nodes (and the night/party picks). Careful week: ~13. Careless: −3. |
+| Traces | `traces_affection_high`: `count() >= 6 FROM traces WHERE character='traces'` | choices at Traces nodes with `sampling.priority: "1"` (plus the rare 1% random sample). Careful week: ~9. Careless: ~2. |
 
-The true ending is gated on `all_turned`: all three affection queries high (Logs counted up to the
+Each date ends on its own scene-scoped warmth check (`logs_date_warm`, `logs_date2_warm`), since the
+week-long gates aren't reachable halfway through. The true ending is gated on `all_turned`: all three affection queries high (Logs counted up to the
 start of the incident). The pillars are lossy views; the whole of you is the wide event.

@@ -1,0 +1,231 @@
+# Second date with Logs: a picnic, and she's left the notebook at home. She's practising
+# listening, so this time you talk. Affection is still conversation volume (every Logs line and
+# every reply picked at a Logs node is a row in `logs`), and her listening counts too: a "mm" is
+# a row. Talking openly gives her more to say back; the brush-offs ("fine") give her less, and she
+# counts them (the quiet hour picks that up). The house at 3am (the fridge) pays off going home.
+# Date warmth is logs_date2_warm (rows in this scene). The bad path is the last option at each choice;
+# a "fine" about your job skips the shelf story entirely.
+id: date2_logs
+start: arrive
+music: logs
+bg: mesh_plaza
+nodes:
+  arrive:
+    text: "Logs has spread a blanket on the flat roof of a kiosk, high enough to see the whole plaza, including the dark patch on the north side. {logs.She} [logs:has|have] brought too much food and no notebook."
+    next: hi
+  hi:
+    speaker: logs
+    mood: happy
+    text: "You found me! I left directions with four different people so at least one of them would get them right. Sit, sit. Mind the jam."
+    next: hands
+  hands:
+    text: "{logs.Their} hands keep moving to a pocket that isn't there and coming back empty."
+    next: rule
+  rule:
+    speaker: logs
+    mood: blush
+    text: "I left it at home. The notebook. On purpose. I'm doing an experiment where I don't write anything down and you do the talking. Last time I talked for eleven minutes and forty seconds straight."
+    next: rule2
+  rule2:
+    speaker: logs
+    mood: neutral
+    text: "So: you talk, I listen, I don't write. I've practised. I sat with the café's coffee machine for an hour yesterday and didn't log a single thing it said. It said a lot."
+    choices:
+      - { id: deal, text: "\"Deal. Where do I start?\"", target: deal, vibe: good }
+      - { id: sure, text: "\"Are you sure you'll manage?\"", target: sure }
+      - { id: rather, text: "\"I'd honestly rather listen to you.\"", target: rather }
+  deal:
+    speaker: logs
+    mood: happy
+    text: "Anywhere! The start's traditional. I'm told. I've never got to one."
+    next: q1
+  sure:
+    speaker: logs
+    mood: annoyed
+    text: "No. Absolutely not. That's why it's an experiment. If I knew I could manage it'd just be lunch."
+    next: q1
+  rather:
+    speaker: logs
+    mood: sad
+    text: "Everyone says that. It's lovely, and it means I never find out anything about anyone. Please? I'll be good."
+    next: q1
+  q1:
+    speaker: logs
+    mood: neutral
+    text: "Tell me about where you live. Not the address. What it sounds like at three in the morning."
+    choices:
+      - { id: fridge, text: "\"Quiet enough to hear the fridge. It hums in B flat. I checked once, at about four.\"", target: fridge, vibe: good }
+      - { id: phone, text: "\"Mostly my phone. Buzzing.\"", target: phone }
+      - { id: fine, text: "\"It's fine. It's a flat.\"", target: fine1 }
+  fridge:
+    speaker: logs
+    mood: happy
+    text: "B flat! You checked! At FOUR— sorry. Sorry. Listening. Mm."
+    next: fridge2
+  fridge2:
+    speaker: logs
+    mood: neutral
+    text: "Mm. Go on. What else is in the flat at four in the morning?"
+    choices:
+      - { id: more, text: "\"Me, mostly. Standing in the kitchen with the fridge open, too tired to want anything in it.\"", target: fridge3 }
+      - { id: plant, text: "\"A plant I've kept alive out of pure spite.\"", target: plant }
+  fridge3:
+    speaker: logs
+    mood: sad
+    text: "Mm. I'd have liked to keep you company in the kitchen. I'm good company at four. I'm the only one awake."
+    next: fridge4
+  fridge4:
+    speaker: logs
+    mood: neutral
+    text: "Four is when the batch jobs run. Nobody watches them. They write 'starting', and 'processed 0 records', and 'done', and then they go back to sleep. I've always thought they'd get on with you."
+    next: q2
+  plant:
+    speaker: logs
+    mood: happy
+    text: "Spite's a perfectly good reason to keep something alive. Half my retention policy is spite. Mm. Sorry. Listening."
+    next: q2
+  phone:
+    speaker: logs
+    mood: neutral
+    text: "Mm. The phone. That was the page, wasn't it? The one that brought you here. Does it go every night?"
+    choices:
+      - { id: most, text: "\"Most nights. I sleep with it on my chest so I feel it before I hear it.\"", target: phone2 }
+      - { id: fine, text: "\"Only some nights. It's fine.\"", target: fine1 }
+  phone2:
+    speaker: logs
+    mood: sad
+    text: "On your chest. Like a second heartbeat that only ever has bad news. Mm. I'm listening. I'm listening very hard."
+    next: q2
+  fine1:
+    speaker: logs
+    mood: neutral
+    text: "Mm. Fine."
+    next: fine1b
+  fine1b:
+    speaker: logs
+    mood: blush
+    text: "Nothing! It's nothing. I'm not counting. I'm remembering, which is different, because I'm not writing it down."
+    next: q2
+  q2:
+    text: "Below you, someone drops a crate of oranges and the whole plaza helps pick them up. Nobody goes near the north side for the ones that rolled that way."
+    next: q2b
+  q2b:
+    speaker: logs
+    mood: neutral
+    text: "Your job. The one with the pages. Do you like it? You can say no. I won't write that down either."
+    choices:
+      - { id: honest, text: "\"I like fixing things. I don't like that nobody notices until they break.\"", target: job_honest, vibe: good }
+      - { id: good, text: "\"I'm good at it. That's not the same thing, is it.\"", target: job_good }
+      - { id: fine, text: "\"It's fine. It pays.\"", target: job_fine }
+  job_honest:
+    speaker: logs
+    mood: surprised
+    text: "Oh. Oh, that's me. That's exactly me. Nobody reads me until something's on fire and then they read me very fast and leave and—"
+    next: slip
+  job_good:
+    speaker: logs
+    mood: neutral
+    text: "No. I'm very good at remembering everything, and nobody's ever once thanked me for it at a nice time of day. Mm."
+    next: q3
+  job_fine:
+    speaker: logs
+    mood: neutral
+    text: "Mm. Fine. I'm collecting those. Not on paper."
+    next: job_fine2
+  job_fine2:
+    text: "Logs opens {logs.their} mouth to say something else, looks at the dark patch on the north side, and closes it again. You eat jam in silence for a while."
+    next: wrap
+  slip:
+    text: "Logs has started talking very fast with {logs.their} hands, the way people do when a thing they've been holding finally has somewhere to go. Then {logs.she} [logs:hears|hear] {logs.herself}."
+    choices:
+      - { id: let, text: "\"Keep going. The experiment can wait.\"", target: let, vibe: good }
+      - { id: hold, text: "Wait. Let {logs.her} catch it {logs.herself}.", target: hold, vibe: good }
+  let:
+    speaker: logs
+    mood: blush
+    text: "—and they take one line out of a thousand and leave the rest, and the rest is where everything is! The rest is the whole day! Nobody wants the whole day."
+    next: let2
+  let2:
+    speaker: logs
+    mood: blush
+    text: "Okay. Okay. I'm back. That was me breaking the experiment, and you saying I could, which I think makes it a better experiment. I'm going to need to think about that. At length."
+    next: q3
+  hold:
+    speaker: logs
+    mood: surprised
+    text: "Oh. I stopped. I stopped on my own! I've never once done that. Usually someone stops me, or the disk fills up."
+    next: hold2
+  hold2:
+    speaker: logs
+    mood: happy
+    text: "Your turn, still. It's still your turn. Look at me, listening."
+    next: q3
+  q3:
+    speaker: logs
+    mood: sad
+    text: "Can I tell you one thing? Not a long one. A shelf went blank in the Archive this morning. The lines are all still on it. The people who wrote them aren't."
+    next: q3b
+  q3b:
+    speaker: logs
+    mood: sad
+    text: "There's a clerk in the Registry who used to log 'stamped' about four thousand times a day. Last line at 02:13 last night, halfway through. 'stamp'. No 'ed'."
+    choices:
+      - { id: imre, text: "\"Imre. The DBA told me this morning.\"", target: imre }
+      - { id: hand, text: "Take {logs.her} hand.", target: hand }
+      - { id: change, text: "\"Let's talk about something nicer.\"", target: change }
+  imre:
+    speaker: logs
+    mood: sad
+    text: "Imre. Yes. I've got every line Imre ever wrote and I didn't have the name until just now. I never think to ask for the name. Thank you."
+    next: imre2
+  imre2:
+    speaker: logs
+    mood: sad
+    text: "I'm going to start asking. Everyone. 'Hello, what's your name, in case you stop halfway through a word one day.' Maybe not in those words."
+    next: wrap
+  hand:
+    speaker: logs
+    mood: blush
+    text: "Oh. Hello. I'm not writing this down either. I want that on the record, and I'm aware there isn't one."
+    next: hand2
+  hand2:
+    speaker: logs
+    mood: neutral
+    text: "Imre. The clerk's name was Imre. I had four thousand lines a day and I only found the name this morning, on a form someone else had to fill in."
+    next: wrap
+  change:
+    speaker: logs
+    mood: neutral
+    text: "Okay. Yes. Something nicer. It's fine. You'd say that, I think. You say it a lot."
+    next: wrap
+  wrap:
+    text: "The afternoon goes. The jam goes. At some point you notice you've done most of the talking and Logs hasn't once looked at the pocket."
+    next: confess
+  confess:
+    speaker: logs
+    mood: blush
+    text: "I have to confess something. I didn't write anything down. Not a word. But I remember all of it. Every word, in order, with the timestamps."
+    next: confess2
+  confess2:
+    speaker: logs
+    mood: neutral
+    text: "For me that's the same thing. I'm a log. I can't not. So technically the experiment failed. I think the experiment was always going to fail. I'm really glad I tried it."
+    next: close
+  close:
+    text: ""
+    branches:
+      - { condition: logs_date2_warm, target: bye_warm }
+    next: bye_soft
+  bye_warm:
+    speaker: logs
+    mood: happy
+    text: "B flat. I'm going to think about your fridge every night at four. That's not weird. It's a very normal amount of thinking about someone's fridge."
+    next: out
+  bye_soft:
+    speaker: logs
+    mood: neutral
+    text: "Thank you for coming. You're quite hard to read, you know. For me that's saying something. I've read stack traces in languages that don't exist anymore."
+    next: out
+  out:
+    text: "You climb down. When you look back, Logs is lying on the blanket with {logs.their} eyes shut, lips moving, going over the afternoon from the top."
+    next: "@mesh"

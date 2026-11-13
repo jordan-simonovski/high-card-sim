@@ -1,0 +1,237 @@
+# The evening of Day 2: the Collector's OnlySpans party (one million subscribers). Everyone's here
+# except Monitoring, who's "on shift". The Collector reads you your Wrapped (collector_wrapped), and
+# shows off the loyalty feature: every subscriber gets their own number on every span. That's the
+# root cause in plain sight (root_cause pays it off; the Collector never connects it till then).
+# You spend the party with one pillar (that pillar's view gets a point), then all three end up at
+# the snack table together for the first time, and the photo: who you stand next to gets a point.
+# A dancer drops out mid-spin. The DBA leaves early with an index card; you follow (migration).
+id: party
+start: arrive
+music: title
+bg: onlyspans_studio
+nodes:
+  arrive:
+    text: "The Collector's studio is above the Mesh's main exchange. Orange light, ring lights on every surface, and glowing envelopes drifting down from the ceiling like slow confetti."
+    next: counter
+  counter:
+    text: "Over the stage, a huge counter: SUBSCRIBERS 999,982. It ticks up while you watch. 999,983. Somebody in the crowd whoops."
+    next: hi
+  hi:
+    speaker: collector
+    mood: happy
+    text: "{name}! You came! I knew you'd come, I read your RSVP. You didn't send an RSVP, but I read the one you would have sent."
+    next: hi2
+  hi2:
+    speaker: collector
+    mood: happy
+    text: "Before anything else, I made you a present. It's your Wrapped! Every event you've made since you fell in. I read them all. Some of them twice. For quality."
+    show: collector_wrapped
+    next: wrapped
+  wrapped:
+    speaker: collector
+    mood: blush
+    text: "Look how much you've been up to! Your top scene, all those choices. I'm not saying I have a favourite. I've printed one of them on a mug."
+    choices:
+      - { id: which, text: "\"Which one is on the mug?\"", target: mug }
+      - { id: creepy, text: "\"You know this is a lot, right?\"", target: creepy }
+  mug:
+    speaker: collector
+    mood: happy
+    text: "I'll never tell! It's the one where you hesitated. Oh no. I told."
+    next: stage
+  creepy:
+    speaker: collector
+    mood: neutral
+    text: "Is it? It doesn't feel like a lot from in here. It just feels like knowing everyone. Nobody's ever said it's a lot. Nobody's ever said anything, really."
+    next: stage
+  stage:
+    text: "A spotlight swings round and finds the Collector, already on stage, though nobody saw them get there. The crowd goes quiet. The counter says 999,994."
+    next: speech
+  speech:
+    speaker: collector
+    mood: happy
+    text: "Hiii everyone! Thank you for being here! A million subscribers! Every span, unsampled, uncut! And my favourite feature, the reason you all love us:"
+    next: speech2
+  speech2:
+    speaker: collector
+    mood: happy
+    text: "Every subscriber gets their very own number, stamped on every single span they're in! So wherever you go in the Realm, you can always find yourself! Loyalty programme!"
+    next: dba_card
+  dba_card:
+    text: "Near the back, the DBA, who is very clearly not here as a guest, writes something on an index card, looks at it, and puts it in a cardigan pocket."
+    next: million
+  million:
+    sfx: affection
+    text: "999,999. The whole room counts down the last one together. 1,000,000. The ceiling opens and about four thousand envelopes come down at once."
+    next: million2
+  million2:
+    speaker: collector
+    mood: blush
+    text: "I'd like to thank my top subscriber, who couldn't be here. They're on shift. They're always on shift. They renew every five minutes and only ever open the same three spans. I love them."
+    next: mingle
+  mingle:
+    text: "The music comes up. Through the envelopes you can see all three of them. Logs is by the screens, reading the live comments aloud to nobody. Metrics is against the back wall, counting the guests. Near the door, something lilac keeps flickering."
+    choices:
+      - { id: logs, text: "Go and stand with Logs by the comments.", target: pl1 }
+      - { id: metrics, text: "Lean on the back wall next to Metrics.", target: pm1 }
+      - { id: traces, text: "Head for the door before Traces drops out.", target: pt1 }
+
+  # Logs
+  pl1:
+    speaker: logs
+    mood: happy
+    text: "Oh good, a reader. Listen to this: 'first'. 'first'. 'FIRST'. 'second'. Isn't that wonderful? Four people, all completely sure of where they were."
+    next: pl2
+  pl2:
+    speaker: logs
+    mood: neutral
+    text: "Nobody's reading these. They scroll past at about forty a second. I'm the only one reading them. Somebody wrote 'this is my first party since my divorce' and it was gone in under a second."
+    choices:
+      - { id: read, text: "\"Read me some more. The ones nobody sees.\"", target: pl_read }
+      - { id: busy, text: "\"It's a party, Logs. Come and dance.\"", target: pl_busy }
+  pl_read:
+    speaker: logs
+    mood: blush
+    text: "'my cat is in this stream'. 'does anyone know if the bridge kiosk is open'. 'hi mum'. 'hi mum' again, different person. Seven hi mums so far. I love them all equally."
+    next: pl_read2
+  pl_read2:
+    speaker: logs
+    mood: happy
+    text: "This is the best party I've ever been to and I've spent it reading the comments with you. That's not a complaint. Please put that in writing. Actually I'll do it."
+    next: snacks
+  pl_busy:
+    speaker: logs
+    mood: neutral
+    text: "In a minute. Somebody just wrote 'sorry for what I said' and I want to see if there's a reply. There usually isn't. I'll come. In a minute."
+    next: snacks
+
+  # Metrics
+  pm1:
+    speaker: metrics
+    mood: neutral
+    text: "Two hundred and twelve guests. Peak was two-nineteen, eight minutes ago. Seven have left. I haven't seen seven people leave."
+    next: pm2
+  pm2:
+    speaker: metrics
+    mood: sad
+    text: "I'll count them again. It's probably me. I've been off all day. My error counter's climbing and I can't tell you whose errors they are."
+    choices:
+      - { id: count, text: "\"Count them with me. Out loud.\"", target: pm_count, affection_delta: 1 }
+      - { id: relax, text: "\"Stop counting for one night.\"", target: pm_relax }
+  pm_count:
+    speaker: metrics
+    mood: blush
+    text: "…Two hundred and eleven. Two-twelve. You're slower than me and you counted the DJ twice. That's the nicest count I've ever done."
+    next: pm_count2
+  pm_count2:
+    speaker: metrics
+    mood: neutral
+    text: "Two hundred and ten when we finished, though. It went down while we were counting. Remember that for me. I'll forget it's important."
+    next: snacks
+  pm_relax:
+    speaker: metrics
+    mood: neutral
+    text: "I don't know how to be at a party without a number. I'll try. Two hundred and— no. Trying."
+    next: snacks
+
+  # Traces
+  pt1:
+    speaker: traces
+    mood: surprised
+    text: "Oh! You came over. I was— I'm by the door so it's less awkward when I drop out. People think I left early. Nobody minds someone leaving early."
+    next: pt2
+  pt2:
+    speaker: traces
+    mood: sad
+    text: "I can't stay sampled in a crowd. Too many events. The sampler gets greedy. I've caught three seconds of this party, all of them envelopes."
+    choices:
+      - { id: mark, text: "\"Then let's make one of them count.\" Mark the moment.", target: pt_mark, character: traces, attributes: { sampling.priority: "1" } }
+      - { id: outside, text: "\"Want to go somewhere quieter?\"", target: pt_out }
+  pt_mark:
+    speaker: traces
+    mood: blush
+    text: "Kept. Me, by a door, at a party, with someone who came over on purpose. I'm going to open that one so often."
+    next: snacks
+  pt_out:
+    speaker: traces
+    mood: neutral
+    text: "It's nice of you. It won't help. The sampler doesn't care how loud it is. I'd rather drop out in here, near you, than out there."
+    next: snacks
+
+  # Everyone
+  snacks:
+    text: "By the end of the next song, all three of them have ended up at the snack table at the same time, which none of them seems to have planned."
+    next: s1
+  s1:
+    speaker: logs
+    mood: happy
+    text: "Metrics! I've been meaning to tell you, at 13:02:44 last Thursday you emitted the loveliest little gauge reading, it was a forty-two and it was so round and—"
+    next: s2
+  s2:
+    speaker: metrics
+    mood: neutral
+    text: "Forty-two. Yes."
+    next: s3
+  s3:
+    speaker: logs
+    mood: blush
+    text: "—and I wrote it down and I thought, Metrics never says anything, but look at that, a forty-two, practically a speech—"
+    next: s4
+  s4:
+    speaker: traces
+    mood: neutral
+    text: "—what was a forty-two? Sorry. I just got here. I've only got 'forty' and 'two', separately."
+    next: s5
+  s5:
+    speaker: metrics
+    mood: blush
+    text: "It was a Thursday. I don't know why it was a forty-two. I never know why. Logs knows what I said and Traces knows I was there, and I only know how many."
+    next: s6
+  s6:
+    text: "The three of them look at each other as if this is the first time anyone has pointed it out."
+    next: photo
+  photo:
+    speaker: collector
+    mood: happy
+    text: "PHOTO! All three pillars and our guest of honour, together, for the free tier! Squish in! {name}, you go in the middle. No, pick a side. No, the middle. Pick a side!"
+    choices:
+      - { id: logs, text: "Stand next to Logs.", target: ph_logs, character: logs }
+      - { id: metrics, text: "Stand next to Metrics.", target: ph_metrics, character: metrics, affection_delta: 1 }
+      - { id: traces, text: "Stand next to Traces, and keep the moment.", target: ph_traces, character: traces, attributes: { sampling.priority: "1" } }
+      - { id: middle, text: "Stay in the middle.", target: ph_middle }
+  ph_logs:
+    text: "Logs links an arm through yours and starts narrating the photo while it's being taken. In the picture {logs.their} mouth is open, mid-word. It's the best one of the night."
+    next: flicker
+  ph_metrics:
+    text: "Metrics stands very straight, exactly one centimetre from your shoulder. At the last second {metrics.he} closes the gap. The camera counts down from three and {metrics.he} [metrics:counts|count] along under {metrics.their} breath."
+    next: flicker
+  ph_traces:
+    text: "Traces tucks in beside you and stays sampled for the whole countdown. When the picture comes out, they're in it. All of them. They stare at it for a long time."
+    next: flicker
+  ph_middle:
+    text: "You stay in the middle. All three of them lean in a little, and nobody quite touches. The photo is lovely and slightly blurred, as if everyone moved at once."
+    next: flicker
+  flicker:
+    sfx: flicker
+    text: "The ring lights over the dance floor go out all at once. When they come back, a dancer who was in the middle of a spin isn't there. Their partner is still holding one hand up, waiting for the other half of the turn."
+    next: flicker2
+  flicker2:
+    speaker: collector
+    mood: neutral
+    text: "Ha! Ha. They'll be back. Probably buffering. Everybody's sending so much tonight, it's a record! Records are good! Music, please!"
+    next: flicker3
+  flicker3:
+    text: "The music comes back. The partner lowers their hand, slowly, and walks off the floor. Logs has gone very still. Both of Metrics' watches buzz. Traces isn't there."
+    next: dba_go
+  dba_go:
+    text: "By the door the DBA is putting on a coat with an index card held between two fingers, looking at it the way you'd look at a bill you can't pay."
+    choices:
+      - { id: follow, text: "Follow the DBA out.", target: out }
+      - { id: stay, text: "Stay a bit longer, then go after them.", target: out_late }
+  out_late:
+    text: "You stay for two more songs. The counter over the stage keeps climbing. The guest count on Metrics' face keeps falling. You go."
+    next: out
+  out:
+    music: registry
+    text: "The DBA is halfway down the stairs, and stops when they hear you."
+    next: "@migration"

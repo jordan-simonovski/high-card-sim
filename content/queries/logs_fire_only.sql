@@ -1,5 +1,5 @@
 -- Read on the quiet day, grepped in the fire, and never mended it.
-SELECT (SELECT count() >= 18 FROM logs WHERE character = 'logs'
+SELECT (SELECT count() >= 52 FROM logs WHERE character = 'logs'
      AND ts < (SELECT if(count() = 0, toDateTime64('2999-01-01', 3), min(ts)) FROM events WHERE event_type = 'incident_started'))
   AND (SELECT countIf(position(attributes['query.text'], 'ERROR') > 0) > 0
   AND (countIf(position(attributes['query.text'], 'WARN') > 0 OR position(attributes['query.text'], 'pattern') > 0) = 0

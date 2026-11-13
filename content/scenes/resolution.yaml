@@ -82,6 +82,18 @@ nodes:
     speaker: baggage
     mood: happy
     text: "My tags! key=value, key=value! Everyone's back! I'm telling everyone. I'm telling everyone that everyone's back."
+    next: wen
+  wen:
+    text: "Baggage holds up one tag in particular, worn soft at the corners. It's heavy. Over the bridge, at a dumpling stall, someone finishes peeling an orange and says \"—stove\" to nobody, and turns it back on."
+    next: imre
+  imre:
+    sfx: hotfix
+    text: "At the back of the Registry, a stamp comes down. Then another. Steady, quick, not thinking about it at all. The DBA closes their eyes and listens to Imre work."
+    next: last_seen
+  last_seen:
+    speaker: dba
+    mood: blush
+    text: "Four hundred and twelve rows in last_seen, by the end. I'm going to leave them in. People should be able to look back and see when they were missed."
     next: monitoring
   monitoring:
     speaker: monitoring

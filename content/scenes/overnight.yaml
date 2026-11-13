@@ -1,0 +1,155 @@
+# The first night, and the morning after. A sector goes dark, the DBA finds you a cot, and Monitoring
+# pages you every five minutes (the shell scene picks this up later). Falling asleep, you think about
+# one of the three: that choice lands in their view (a Logs row, a Metrics +1, a kept Traces moment).
+# In the morning, the clerk who blinked out in the Registry hasn't come back. Then the Day 2 hub.
+id: overnight
+start: dusk
+music: prologue
+bg: mesh_night
+nodes:
+  dusk:
+    text: "By the time you leave the last date it's dark. The Mesh at night is all lanterns and glowing paths, and the packets on them move slower, like they're tired too."
+    next: dark
+  dark:
+    sfx: flicker
+    text: "On the north side of the plaza, a row of lanterns goes out. Then the path under them. Then the kiosks. It doesn't flicker back."
+    next: dark2
+  dark2:
+    text: "Nobody screams. A few people stop walking. Someone selling glow sticks looks at the dark where the next stall used to be, then carefully turns the whole stall round to face the other way."
+    next: dba
+  dba:
+    speaker: dba
+    mood: sad
+    text: "There you are. I've been looking for you since that went. I don't like it when people are where I can't see them. Tonight especially."
+    next: dba2
+  dba2:
+    speaker: dba
+    mood: neutral
+    text: "You'll need somewhere to sleep. I've made up a cot in the Registry, between Reference and Deprecated. It's the quietest aisle. Nothing in it has changed since the migration of '09."
+    next: walk
+  walk:
+    bg: registry
+    music: registry
+    text: "The cot is two filing cabinets and a lot of index cards, with a blanket that has a primary key embroidered in one corner. It's honestly very comfortable."
+    next: dba_ask
+  dba_ask:
+    speaker: dba
+    mood: blush
+    text: "So. How were they? You don't have to tell me. I'll hear it from Baggage by breakfast anyway. I'd just rather hear it from the primary source."
+    choices:
+      - { id: good, text: "\"Good. Strange. Good.\"", target: dba_good }
+      - { id: lot, text: "\"They're a lot. All three of them.\"", target: dba_lot }
+      - { id: tired, text: "\"I'm too tired to have opinions.\"", target: dba_tired }
+  dba_good:
+    speaker: dba
+    mood: happy
+    text: "Good, strange, good. That's the best schema review I've ever had."
+    next: dba_night
+  dba_lot:
+    speaker: dba
+    mood: neutral
+    text: "They are. Each of them has been a lot on their own for a very long time. I don't think anyone's ever had to have all three in one day."
+    next: dba_night
+  dba_tired:
+    speaker: dba
+    mood: happy
+    text: "Then no opinions. I'll pencil some in for you and you can overwrite them in the morning."
+    next: dba_night
+  dba_night:
+    speaker: dba
+    mood: neutral
+    text: "Goodnight, {name}. If you hear stamping, it's only the night clerk. If you stop hearing stamping, come and get me."
+    next: lights
+  lights:
+    music: prologue
+    text: "The DBA turns the lamp down to a careful forty percent and pads off between the shelves. Somewhere at the back of the building, a stamp comes down at a steady rhythm."
+    next: buzz
+  buzz:
+    sfx: pager
+    speaker: pager
+    text: "Status: OK?"
+    next: buzz2
+  buzz2:
+    text: "Your phone. You didn't know it came with you. It has one bar and no apps, and a message from Monitoring, which it seems to have kept up with even here."
+    choices:
+      - { id: answer, text: "Reply \"ok\".", target: answer }
+      - { id: face, text: "Turn it face down.", target: face }
+      - { id: read, text: "Scroll up.", target: scroll }
+  answer:
+    text: "You type \"ok\". It goes. Five minutes later, exactly: \"Status: OK?\" You realise it isn't asking you. It's what Monitoring says instead of goodnight."
+    next: think
+  face:
+    text: "You turn it over. Five minutes later it buzzes against the cabinet. Five minutes after that it buzzes again. The rhythm is very familiar. You've been falling asleep to it for years."
+    next: think
+  scroll:
+    text: "You scroll up. \"Status: OK?\" every five minutes, back past tonight, back past when you fell through the glass, back further than the phone should be able to remember. Nobody ever answered any of them."
+    next: think
+  think:
+    text: "The stamping goes on at the back of the building. You lie in the dark and think about one of them."
+    choices:
+      - { id: logs, text: "Logs, writing your name down as you said it.", target: think_logs, character: logs }
+      - { id: metrics, text: "Metrics, watching a counter tick over after you'd gone.", target: think_metrics, character: metrics, affection_delta: 1 }
+      - { id: traces, text: "Traces, flickering at the edges. You keep the thought on purpose.", target: think_traces, character: traces, attributes: { sampling.priority: "1" } }
+  think_logs:
+    text: "You wonder how many pages you are, so far. Out in the dark, in a café that never closes, a pen keeps going a little longer than it needs to."
+    next: stop
+  think_metrics:
+    text: "You wonder what the counter says now. Across the Mesh, at a gym with every light off, one gauge ticks up by exactly one and stays there."
+    next: stop
+  think_traces:
+    text: "You hold onto the thought like a marked moment. Somewhere, a sampler that was about to look away doesn't."
+    next: stop
+  stop:
+    text: "You're nearly asleep when you notice it. The stamping at the back of the building has stopped."
+    next: stop2
+  stop2:
+    text: "You lie still and listen. Nothing. Then, after what feels like a long time, a new rhythm, slower, and a lot less sure of itself."
+    next: morning
+  morning:
+    bg: registry
+    music: registry
+    text: "Morning. The lamp is still at forty percent. The DBA is at the front desk with a stamp in each hand, stamping a stack of forms with neither of them."
+    next: clerk
+  clerk:
+    speaker: dba
+    mood: sad
+    text: "Imre didn't come back. The clerk, the one who blinked out yesterday when you arrived. Last night Imre blinked out again, mid-stamp, and this time the stamp hit the desk and nobody was holding it."
+    next: clerk2
+  clerk2:
+    speaker: dba
+    mood: sad
+    text: "I took over. I'm not as good. I stamp like someone who's thinking about it."
+    choices:
+      - { id: help, text: "\"Do you want me to look for Imre?\"", target: help }
+      - { id: sure, text: "\"Imre might still come back.\"", target: sure }
+      - { id: dash, text: "\"What do the dashboards say?\"", target: dash }
+  help:
+    speaker: dba
+    mood: neutral
+    text: "Look where? Imre's not in any index I keep. I checked them all. Twice. I even checked Deprecated."
+    next: clerk3
+  sure:
+    speaker: dba
+    mood: neutral
+    text: "I keep thinking that. I've been thinking it since 02:13. I've got a whole column of it."
+    next: clerk3
+  dash:
+    speaker: dba
+    mood: annoyed
+    text: "Green. All of them. One of my clerks is missing and every panel in the building is green. I'm going to start a support group for people being lied to by panels."
+    next: clerk3
+  clerk3:
+    speaker: dba
+    mood: neutral
+    text: "Go on, then. Back to the Mesh. Get to know them better. I mean it. When this gets worse, and it's going to, you'll need people who'll tell you the truth when the panels won't."
+    next: clerk4
+  clerk4:
+    speaker: dba
+    mood: blush
+    text: "Second dates are allowed. I checked the schema. There's no unique constraint on dates."
+    next: out
+  out:
+    bg: mesh_plaza
+    music: mesh
+    text: "Outside, the plaza is bright and loud and pretending very hard that nothing happened on the north side."
+    next: "@mesh"

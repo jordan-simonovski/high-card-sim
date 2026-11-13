@@ -10,6 +10,9 @@ backgrounds:
   sampling_cafe: "A quiet corner café where most tables are greyed out, as if not sampled"
   noc_room: "Monitoring's dim network operations room full of red/green status lights"
   finale_sky: "A sky-high open stage made of one enormous glowing table row"
+  mesh_night: "The Service Mesh plaza at night: lanterns on wires, glowing paths, one dark sector at the edge"
+  running_track: "An elevated running track looping round the Mesh rooftops, distance markers every hundred metres, morning"
+  onlyspans_studio: "The Collector's party venue: an orange-lit streaming studio full of ring lights, envelopes and confetti"
 cgs:
   polycule: "Logs, Metrics and Traces holding hands with the player inside one glowing wide event"
   logs_end: "Logs reading a long love letter aloud, scroll trailing to the horizon"

@@ -1,27 +1,22 @@
-# The DBA hands over the Query Shell: read-only SQL over your own events.
-# Querying the base table here is a nod from the DBA; the root_cause scene comes back to it.
+# The DBA hands over the Query Shell: read-only SQL over your own events. Follows the migration,
+# late on Day 2. Querying the base table here is a nod from the DBA; root_cause comes back to it.
 id: shell
 start: arrive
 music: registry
 bg: registry
 nodes:
   arrive:
-    text: "The Mesh path curls back to the Registry. The DBA is waiting by the door, holding something wrapped in index cards."
+    text: "The DBA gets up, brushes the floor off their cardigan, and goes to a shelf marked RESERVED. They come back holding something wrapped in index cards."
     next: hi
   hi:
     speaker: dba
-    mood: happy
-    text: "You've been on all three dates! I know because Baggage told me. Baggage tells everyone."
-    next: trial
-  trial:
-    speaker: dba
     mood: blush
-    text: "The Collector also posted a recap. Not that I watched it. I don't subscribe. I'm on a free trial. For auditing."
+    text: "I was going to give you this tomorrow. I was going to make a speech. I don't think tomorrow's going to be the kind of day that has room for speeches."
     next: gift
   gift:
     speaker: dba
     mood: blush
-    text: "I made you something. It's a Query Shell. I wrapped it. Badly. Index cards don't really fold."
+    text: "It's a Query Shell. I wrapped it. Badly. Index cards don't really fold."
     next: ask
   ask:
     speaker: dba
@@ -84,7 +79,7 @@ nodes:
   page:
     speaker: dba
     mood: sad
-    text: "One more thing. Someone's been paging you since 03:12. Very consistently. Every five minutes."
+    text: "One more thing. Your phone's been buzzing the whole time we've been talking. Every five minutes. I can hear it through your pocket."
     next: page2
   page2:
     speaker: dba

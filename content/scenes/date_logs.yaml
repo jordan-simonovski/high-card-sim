@@ -1,6 +1,6 @@
 # Date with Logs. Affection is conversation volume: every Logs line shown and every reply
 # picked at a Logs node is a row in the `logs` view. "Tell me more" opens extra lines;
-# "TL;DR" skips them. All-more: 23 rows here. All-TL;DR: 10 rows here.
+# "TL;DR" skips them. All-more: 24 rows here. All-TL;DR: 10 rows here. The date ends on logs_date_warm.
 # more3c2 buries the incident clue (the WARN she keeps writing) in a tangent; TL;DR skips it.
 id: date_logs
 start: arrive
@@ -148,7 +148,7 @@ nodes:
   close:
     text: ""
     branches:
-      - { condition: logs_affection_high, target: bye_warm }
+      - { condition: logs_date_warm, target: bye_warm }
     next: bye_soft
   bye_warm:
     speaker: logs

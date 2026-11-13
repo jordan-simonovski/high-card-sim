@@ -57,6 +57,9 @@ BGS = {
     "sampling_cafe": "indoors, quiet cafe, corner table, two coffee cups, window, rain, grey tones, faded tables, dreamy, soft light, lilac tint",
     "noc_room": "indoors, control room, many monitors, red and green status lights, dark room, desks, headset on desk, night",
     "finale_sky": "sky, above the clouds, sunset, glowing platform, stage, stars, pink and gold sky, sparkles, magical, light rays",
+    "mesh_night": "outdoors, night, plaza, town square, fantasy city, paper lanterns on wires, glowing paths on ground, kiosks, market stalls, pastel buildings, starry sky, one dark empty corner, cozy lights",
+    "running_track": "outdoors, elevated running track, rooftop, running track lanes, distance markers, railings, fantasy city rooftops below, morning, sunrise, blue sky, clouds, clean",
+    "onlyspans_studio": "indoors, party, nightclub, streaming studio, ring lights, orange lighting, stage, disco lights, floating glowing envelopes, confetti, big screen, cables, empty dance floor",
 }
 CG = "highly detailed, beautiful lighting, depth of field, sparkles"
 CGS = {

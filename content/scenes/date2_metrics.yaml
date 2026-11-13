@@ -1,0 +1,239 @@
+# Second date with Metrics: a run. He sets a split for each lap; you match it (+1), overshoot it
+# (0: a deviation is a deviation), or drift off it (-1). Halfway round his watch shows last night's
+# dropped series (the incident clue grows: forty thousand, not four) and he tells you why he dropped
+# his labels in the first place: he got OOM-killed. The last lap he lets you set the pace.
+# He shows you the run the only way he keeps it (metrics_laps): paces and counters, no reasons.
+# Range on this date: -3 to +8. The bad path is the last option at each choice.
+id: date2_metrics
+start: arrive
+music: metrics
+bg: running_track
+nodes:
+  arrive:
+    text: "The running track loops round the outside of the Mesh on stilts, high enough to see every rooftop. There's a distance marker every hundred metres, and every one of them has been recently polished."
+    next: meet
+  meet:
+    speaker: metrics
+    mood: neutral
+    text: "Four laps. Four hundred metres each. I'll call a split at the start of every lap. You match it."
+    next: meet2
+  meet2:
+    speaker: metrics
+    mood: blush
+    text: "I brought you shoes. I estimated your size from your stride yesterday. If they're wrong, I'll want to know by how much."
+    choices:
+      - { id: fit, text: "\"They fit perfectly.\"", target: fit, affection_delta: 1 }
+      - { id: half, text: "\"Half a size big, honestly.\"", target: half, affection_delta: 1 }
+      - { id: whatever, text: "\"Close enough. Let's go.\"", target: whatever }
+  fit:
+    speaker: metrics
+    mood: happy
+    text: "Good. I was eighty percent confident. The other twenty percent has been bothering me since about five this morning."
+    next: lap1
+  half:
+    speaker: metrics
+    mood: surprised
+    text: "Half a size. Thank you. Nobody ever tells me the error. They just say 'close enough' and I have to live with not knowing how close."
+    next: lap1
+  whatever:
+    speaker: metrics
+    mood: neutral
+    text: "Close enough. Right. I'll never know, then."
+    next: lap1
+  lap1:
+    sfx: counter
+    speaker: metrics
+    mood: neutral
+    text: "Lap one. Ninety seconds. Easy pace. Go."
+    choices:
+      - { id: match, text: "Settle in next to {metrics.him}, step for step.", target: lap1_match, affection_delta: 1 }
+      - { id: sprint, text: "Show off a bit. Go out fast.", target: lap1_sprint }
+      - { id: drift, text: "Start slow. It's early.", target: lap1_drift, affection_delta: -1 }
+  lap1_match:
+    speaker: metrics
+    mood: happy
+    text: "Ninety point four. You're four tenths off and so am I. We're off together. That's the same as being on, if you think about it."
+    next: lap2
+  lap1_sprint:
+    speaker: metrics
+    mood: annoyed
+    text: "Seventy-eight. That's twelve seconds of you being somewhere I'm not. I could see your back the whole time. It's a nice back. It's still a deviation."
+    next: lap2
+  lap1_drift:
+    speaker: metrics
+    mood: neutral
+    text: "A hundred and six. Sixteen seconds of me running alone. I'm used to it. I'd hoped not to be today."
+    next: lap2
+  lap2:
+    sfx: counter
+    speaker: metrics
+    mood: neutral
+    text: "Lap two. Eighty-five. Slightly quicker. I'll talk if you can still talk. That's how you check you're aerobic."
+    choices:
+      - { id: match, text: "Match it, and keep talking.", target: lap2_match, affection_delta: 1 }
+      - { id: sprint, text: "Push on. You can talk later.", target: lap2_sprint }
+      - { id: drift, text: "\"Do we have to count every lap?\"", target: lap2_drift, affection_delta: -1 }
+  lap2_match:
+    speaker: metrics
+    mood: blush
+    text: "Eighty-five dead. That's never happened with anyone else. People run with me once and then their schedules get very busy."
+    next: watch
+  lap2_sprint:
+    speaker: metrics
+    mood: neutral
+    text: "Seventy-nine. You're fast. I'll note that you're fast. I'd rather have noted something you said."
+    next: watch
+  lap2_drift:
+    speaker: metrics
+    mood: annoyed
+    text: "Yes. That's what a lap is. It's the unit. Without the count it's just going round in a circle."
+    next: watch
+  watch:
+    sfx: flicker
+    text: "Halfway down the back straight, both of {metrics.his} smartwatches buzz at once. Metrics looks down at them and stops running. You stop too, a few steps on."
+    next: watch2
+  watch2:
+    speaker: metrics
+    mood: surprised
+    text: "Dropped series overnight: forty thousand three hundred and twelve. Normally it's four. Four a night. Five on a bad one."
+    next: watch3
+  watch3:
+    speaker: metrics
+    mood: sad
+    text: "When something gets too detailed, I drop it. It's a rule. I don't look at what it was. That's the point of the rule. Forty thousand is a lot of not looking."
+    choices:
+      - { id: ask, text: "\"Why do you have the rule?\"", target: why, affection_delta: 1 }
+      - { id: north, text: "\"The lights went out on the north side last night. Is it that?\"", target: north }
+      - { id: run, text: "\"Want to just keep running?\"", target: run }
+  north:
+    speaker: metrics
+    mood: neutral
+    text: "Maybe. I can't tell. I don't know what any of the forty thousand were, or where. That's the trade. You keep the number, you lose the where."
+    next: why
+  run:
+    speaker: metrics
+    mood: neutral
+    text: "Yes. Running's good. It's one number, going steadily up. I'll tell you why on the way round, if you want. Or not."
+    next: why
+  why:
+    speaker: metrics
+    mood: neutral
+    text: "I used to keep labels on everything. Host, region, tier, who, why. Every series broken out, every combination. I loved it. I could tell you anything about anyone."
+    next: why2
+  why2:
+    speaker: metrics
+    mood: sad
+    text: "Then one Tuesday I ran out of memory. Got killed mid-scrape. Came back with nothing. Came back, kept everything again, got killed again. Eleven days apart."
+    next: why3
+  why3:
+    speaker: metrics
+    mood: sad
+    text: "The second time I woke up, I made the rule. Keep the totals. Drop the detail. I haven't been killed since. Nine years, zero restarts. I'm very proud of it. Most days."
+    choices:
+      - { id: cost, text: "\"You've been surviving. That's not the same as living.\"", target: cost, affection_delta: 1 }
+      - { id: scared, text: "\"Were you scared? The second time?\"", target: scared, affection_delta: 1 }
+      - { id: smart, text: "\"Sounds like the smart call.\"", target: smart }
+  cost:
+    speaker: metrics
+    mood: blush
+    text: "Surviving's a perfectly good metric. Nine years of uptime is a perfectly good— …I know. I know. I measure everything except whether I'm enjoying it."
+    next: lap3
+  scared:
+    speaker: metrics
+    mood: surprised
+    text: "…Yes. Nobody's asked that. The first time you don't know it's coming. The second time you know exactly, and you know it'll happen again unless you change."
+    next: lap3
+  smart:
+    speaker: metrics
+    mood: neutral
+    text: "It is. Everybody says so. It's the most efficient thing I've ever done, and it's why the gym's so quiet."
+    next: lap3
+  lap3:
+    sfx: counter
+    speaker: metrics
+    mood: neutral
+    text: "We've lost time. Lap three. Eighty. If we hit it we'll still finish under six minutes. Not that it matters. It matters a bit."
+    choices:
+      - { id: match, text: "Hit eighty with {metrics.him}. Exactly.", target: lap3_match, affection_delta: 1 }
+      - { id: sprint, text: "Make up the time. Go hard.", target: lap3_sprint }
+      - { id: drift, text: "Walk it. You've both had a shock.", target: lap3_drift, affection_delta: -1 }
+  lap3_match:
+    speaker: metrics
+    mood: happy
+    text: "Eighty point zero. I'm going to look at that split later when I'm by myself. Probably more than once."
+    next: lap4
+  lap3_sprint:
+    speaker: metrics
+    mood: neutral
+    text: "Seventy-two. We've made up the time. I'm not sure we were supposed to. Some time you're meant to just lose."
+    next: lap4
+  lap3_drift:
+    speaker: metrics
+    mood: sad
+    text: "A hundred and forty. I'm not angry. I just don't know how to log a walk on a running date."
+    next: lap4
+  lap4:
+    speaker: metrics
+    mood: blush
+    text: "Last lap. I'm not going to call it. You set the pace and I'll match you. I've never matched anyone. I've only ever been the thing people match."
+    choices:
+      - { id: slow, text: "Set something slow enough to talk the whole way round.", target: lap4_slow, affection_delta: 1 }
+      - { id: same, text: "Set eighty again. Keep it consistent.", target: lap4_same, affection_delta: 1 }
+      - { id: race, text: "\"Race you.\"", target: lap4_race }
+  lap4_slow:
+    speaker: metrics
+    mood: happy
+    text: "A hundred and twenty-two seconds. The slowest lap I've done in nine years. I didn't look at my watch once. I'm only telling you the time because I worked it out afterwards."
+    next: show
+  lap4_same:
+    speaker: metrics
+    mood: blush
+    text: "Eighty. You picked my number back. That's either very considerate or you were paying attention earlier. Either way I'm incrementing."
+    next: show
+  lap4_race:
+    speaker: metrics
+    mood: annoyed
+    text: "You win. By two point one seconds. I wasn't trying. I was trying a bit. Congratulations. I'll be thinking about the two point one for a while."
+    next: show
+  show:
+    sfx: counter
+    speaker: metrics
+    mood: neutral
+    text: "Here's the run, the way I keep it."
+    show: metrics_laps
+    next: show2
+  show2:
+    speaker: metrics
+    mood: sad
+    text: "Laps, paces, a counter. It doesn't have the back straight in it. Or the watches. Or what I told you. Those were the bits I'd keep, if I kept bits."
+    next: gift
+  gift:
+    text: "Metrics takes off one of the smartwatches and holds it out. The face is blank apart from a single number, which reads 0."
+    next: gift2
+  gift2:
+    speaker: metrics
+    mood: blush
+    text: "It counts up. Not down, not a rate, not a percentile. One counter. Every time you think of something you'd have liked to tell me, press it. I won't see what. I'll see that."
+    choices:
+      - { id: press, text: "Put it on, and press it straight away.", target: press, affection_delta: 1 }
+      - { id: wear, text: "Put it on.", target: wear }
+      - { id: pocket, text: "Put it in your pocket.", target: pocket }
+  press:
+    sfx: affection
+    speaker: metrics
+    mood: blush
+    text: "…One. Already. I'll be wondering about that one all evening. Don't tell me. I'd like to wonder."
+    next: out
+  wear:
+    speaker: metrics
+    mood: happy
+    text: "It suits you. I measured. Well, I didn't. It just does."
+    next: out
+  pocket:
+    speaker: metrics
+    mood: neutral
+    text: "That's fine. It'll count in there too. Pockets have the same uptime as wrists."
+    next: out
+  out:
+    text: "When you leave, Metrics is doing one more lap, alone, at no pace in particular, with one wrist bare."
+    next: "@mesh"

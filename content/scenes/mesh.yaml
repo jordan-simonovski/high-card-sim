@@ -1,5 +1,6 @@
-# The Service Mesh: the hub. Baggage on the first visit; a date picker after that;
-# once all three dates are done, on to the Query Shell.
+# The Service Mesh: the hub. Day 1: Baggage on the first visit, then the three first dates.
+# Once those are done, the night (overnight). Day 2: three second dates and Baggage's lost tag,
+# any order. Once those are done, the evening: the Collector's party.
 id: mesh
 start: start
 music: mesh
@@ -8,7 +9,9 @@ nodes:
   start:
     text: ""
     branches:
-      - { condition: all_dated, target: "@shell" }
+      - { condition: all_day_two, target: "@party" }
+      - { condition: day_two, target: back2 }
+      - { condition: all_dated, target: "@overnight" }
       - { condition: first_mesh_visit, target: arrive }
     next: back
   arrive:
@@ -83,3 +86,13 @@ nodes:
       - { id: logs, text: "The Archive Café (Logs)", condition: not_dated_logs, target: "@date_logs" }
       - { id: metrics, text: "The Dashboard Gym (Metrics)", condition: not_dated_metrics, target: "@date_metrics" }
       - { id: traces, text: "The Sampling Café (Traces)", condition: not_dated_traces, target: "@date_traces" }
+  back2:
+    text: "The plaza again. The kiosk shutters are down on the north side, where the lights went out last night, and people are walking the long way round so they don't have to look at it."
+    next: hub2
+  hub2:
+    text: "Where to?"
+    choices:
+      - { id: logs, text: "Find Logs. {logs.She} said something about a picnic.", condition: not_dated2_logs, target: "@date2_logs" }
+      - { id: metrics, text: "The running track (Metrics)", condition: not_dated2_metrics, target: "@date2_metrics" }
+      - { id: traces, text: "Wait for Traces at the edge of the lights", condition: not_dated2_traces, target: "@date2_traces" }
+      - { id: baggage, text: "Baggage is waving a luggage tag at you", condition: not_lost_tag, target: "@lost_tag" }

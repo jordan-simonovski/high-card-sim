@@ -1,0 +1,176 @@
+# Baggage's lost tag. One of Baggage's tags points at someone who isn't there: Wen, who runs a
+# dumpling stall. You follow the tag through the Mesh (context propagation as a treasure hunt) to an
+# empty stall, then to Logs, who has Wen's last line. The stakes get a face before the incident.
+# Plant for the root cause: Wen never subscribed to OnlySpans. The people dropping out are the free
+# tier, crowded out of the queue (phase_metrics shows free and pro going flat).
+# Logs' lines here count toward her view; no choices here move any affection.
+id: lost_tag
+start: hi
+music: mesh
+bg: mesh_plaza
+nodes:
+  hi:
+    speaker: baggage
+    mood: sad
+    text: "There you are! I need a favour. A big one. Well, a small one, but it's very heavy. Look at this."
+    next: tag
+  tag:
+    text: "Baggage holds out a luggage tag. It's worn soft at the corners. In neat handwriting: stall=dumplings, owner=Wen, order=the_usual."
+    next: tag2
+  tag2:
+    speaker: baggage
+    mood: sad
+    text: "I've carried Wen's tag every day for six years. I get the usual at noon, and I pass on whatever Wen's heard to whoever's next. This morning the tag went light. It's never been light."
+    next: ask
+  ask:
+    speaker: baggage
+    mood: neutral
+    text: "A tag that's light means the other end isn't there anymore. Everyone says I'm imagining it. Will you come and look with me?"
+    choices:
+      - { id: come, text: "\"Of course. Where do we start?\"", target: start }
+      - { id: sure, text: "\"How do you follow a tag?\"", target: how }
+  how:
+    speaker: baggage
+    mood: happy
+    text: "Context propagation, love! Every hop a request makes, it carries the tags along. So you go to the last place that saw it, and ask who they passed it to. It's just gossip with a protocol."
+    next: start
+  start:
+    speaker: baggage
+    mood: neutral
+    text: "Last hop that saw Wen was the fruit stall. Come on."
+    next: fruit
+  fruit:
+    text: "The fruit stall is run by someone whose apron has more pockets than seems practical. Baggage holds up the tag, and they nod straight away."
+    next: fruit2
+  fruit2:
+    text: "\"Wen came by first thing. Bought six oranges for the dumpling sauce. Asked if I'd heard about the north side. Then headed for the bridge, same as always.\""
+    next: hop
+  hop:
+    speaker: baggage
+    mood: neutral
+    text: "The bridge. That's the next hop. Wen goes over the bridge every morning, right past the hot chocolate kiosk. Never stops for one. Thinks hot chocolate's for people who can't commit to soup."
+    choices:
+      - { id: bridge, text: "Follow the tag to the bridge.", target: bridge }
+      - { id: ask_more, text: "\"Did Wen subscribe to OnlySpans? Half the Mesh does, apparently.\"", target: sub }
+  sub:
+    speaker: baggage
+    mood: happy
+    text: "Wen? Never. Said dumplings don't need a premium tier, they need a steamer and somebody hungry. Free tier for life. Very proud of it."
+    next: sub2
+  sub2:
+    speaker: baggage
+    mood: sad
+    text: "Funny you ask, though. Everyone whose tag's gone light this week, I went through them last night. Not one of them was premium. Not one."
+    next: bridge
+  bridge:
+    text: "On the far side of the bridge the stalls are close together, and the dumpling stall is where it's always been. The steamers are stacked. The stove is on. There's nobody behind the counter."
+    next: stall
+  stall:
+    sfx: flicker
+    text: "Six oranges sit on the chopping board, one of them half peeled. The peel is still curling. Whoever was peeling it was here a few minutes ago, or a few seconds ago, or not quite at all."
+    next: stall2
+  stall2:
+    speaker: baggage
+    mood: sad
+    text: "Oh, Wen. You left the stove on. You never leave the stove on."
+    choices:
+      - { id: stove, text: "Turn the stove off for Wen.", target: stove }
+      - { id: look, text: "Look round the back of the stall.", target: look }
+  stove:
+    text: "You turn the stove off. Baggage watches you do it and doesn't say anything, which for Baggage is a lot."
+    next: idea
+  look:
+    text: "Round the back there's a stool, a radio on low, and a rack of aprons. One of them has a name tag. WEN. Nothing else."
+    next: idea
+  idea:
+    speaker: baggage
+    mood: neutral
+    text: "The tag's still pointing here. That means Wen's here, or was the last thing here. I don't know how to follow it any further. I only carry context. I don't keep it."
+    choices:
+      - { id: logs, text: "\"Logs keeps everything. Let's ask {logs.her}.\"", target: walk }
+      - { id: what, text: "\"Who would know what Wen said last?\"", target: what }
+  what:
+    speaker: baggage
+    mood: surprised
+    text: "Logs! Logs would know. Logs knows everyone's last line. That's the saddest party trick in the Mesh and I've never been so glad of it."
+    next: walk
+  walk:
+    bg: archive_cafe
+    music: logs
+    text: "The Archive Café. Logs is at the usual table with two shelves pulled out beside {logs.them}, scrolling, already looking up as you come in."
+    next: logs1
+  logs1:
+    speaker: logs
+    mood: neutral
+    text: "Baggage. And you! Both of you, together, with that face, which means someone. Who?"
+    next: logs2
+  logs2:
+    speaker: baggage
+    mood: sad
+    text: "Wen. Dumplings. Over the bridge."
+    next: logs3
+  logs3:
+    sfx: page_flip
+    speaker: logs
+    mood: neutral
+    text: "Wen. I've got Wen. Six years, mostly 'order up', four thousand two hundred and six times 'order up'. One 'sorry, out of pork' in the second winter that I've always found very moving."
+    next: logs4
+  logs4:
+    speaker: logs
+    mood: sad
+    text: "Last line this morning. 10:41:07. 'back in a sec, don't touch the'. That's where it stops."
+    next: logs5
+  logs5:
+    speaker: baggage
+    mood: sad
+    text: "Don't touch the stove. It's always the stove."
+    next: logs6
+  logs6:
+    speaker: logs
+    mood: sad
+    text: "I've got eleven of these since yesterday. Lines that stop in the middle. I've been reading them over and over, as if the rest will turn up if I keep looking."
+    next: logs7
+  logs7:
+    speaker: logs
+    mood: neutral
+    text: "And I keep writing something next to them. A WARN. Same words every time. I don't know if it's related. I never know if anything's related. That isn't my job."
+    choices:
+      - { id: warn, text: "\"Which WARN?\"", target: warn }
+      - { id: eleven, text: "\"Eleven people. In a day.\"", target: eleven }
+  warn:
+    speaker: logs
+    mood: neutral
+    text: "Something about a limit. Something about dropping. I'd have to look, and I haven't, because it reads like the cron jobs. Same sort of noise. I filed it next to them."
+    next: back_in
+  eleven:
+    speaker: logs
+    mood: sad
+    text: "Eleven that I've noticed. I only notice when a line stops halfway. If someone finished their sentence and then never said anything again, I'd have no way of knowing."
+    next: back_in
+  back_in:
+    sfx: flicker
+    text: "Over the shelves, very faintly, a new line writes itself. Logs goes completely still."
+    next: back_in2
+  back_in2:
+    speaker: logs
+    mood: surprised
+    text: "10:41:07 and then, just now: 'stove'. Wen finished the sentence. Just the one word, from somewhere, and nothing after."
+    next: back_in3
+  back_in3:
+    speaker: baggage
+    mood: blush
+    text: "The tag. It's heavy again. Just for a second, it was heavy. It's light now. But it was."
+    next: end
+  end:
+    speaker: baggage
+    mood: neutral
+    text: "Wen's not gone. Not all the way. Somewhere between here and gone. I'm going to keep carrying the tag. It's what I do. Somebody has to keep the context while they're away."
+    next: end2
+  end2:
+    speaker: logs
+    mood: neutral
+    text: "And I'll keep the lines. Both of us, keeping half of Wen each. I suppose that's something."
+    next: out
+  out:
+    text: "Baggage ties Wen's tag to the outside of the rucksack, where it'll be the first thing anyone sees. You walk back to the plaza without saying much."
+    next: "@mesh"
