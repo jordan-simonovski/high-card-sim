@@ -19,10 +19,11 @@ const icon = (maskable) => `<style>${base}
 
 const og = `<style>${base}
   body{background:url(${img('public/art/bgs/finale_sky.webp')}) center/cover;font-family:N;color:#3a1d4a}
-  .wash{position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,240,247,.97) 0 42%,rgba(255,240,247,.55) 56%,transparent 70%)}
-  .cast{position:absolute;right:-10px;bottom:-40px;height:640px;display:flex;align-items:flex-end}
-  .cast img{height:100%;margin-left:-150px;filter:drop-shadow(0 12px 18px rgba(58,29,74,.3))}
-  .cast img:nth-child(2){height:108%}
+  .wash{position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,240,247,.97) 0 40%,rgba(255,240,247,.4) 48%,transparent 54%)}
+  .cast{position:absolute;right:-40px;bottom:-60px;height:600px;display:flex;align-items:flex-end}
+  .cast img{height:100%;margin-left:-215px;filter:drop-shadow(0 12px 18px rgba(58,29,74,.3))}
+  .cast img:first-child{margin-left:0}
+  .cast img:nth-child(2){height:106%}
   .copy{position:absolute;left:60px;top:70px;width:560px}
   h1{font:700 104px/0.88 F;color:#d63384;-webkit-text-stroke:5px #fff;paint-order:stroke fill;text-shadow:0 7px 0 #b69cff,0 16px 26px rgba(58,29,74,.3)}
   p.ln{margin-top:28px;padding:14px 22px;border-radius:20px;background:#fffafd;border:3px solid #b69cff;font:800 23px/1.3 N;transform:rotate(-1.5deg);box-shadow:inset 0 2px 0 #fff,0 8px 18px -6px rgba(58,29,74,.4)}

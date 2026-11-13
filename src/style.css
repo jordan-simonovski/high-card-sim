@@ -64,7 +64,9 @@ button, label, select, input, #box, summary { touch-action: manipulation; -webki
 #bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(58, 29, 74, 0.35), transparent 45%); }
 #bg .layer { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.7s ease; }
 #bg .layer.on { opacity: 1; }
-#cg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: fade 0.8s ease; }
+/* An illustration replaces the sprites (VN convention): it sits above the portrait, and the portrait hides. */
+#cg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: fade 0.8s ease; z-index: 2; }
+#stage:has(#cg:not([hidden])) #portrait { visibility: hidden; }
 #portrait {
   position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
   height: min(88dvh, 1100px); display: flex; align-items: flex-end; justify-content: center; pointer-events: none;
@@ -201,7 +203,7 @@ td { max-width: 46ch; overflow: hidden; text-overflow: ellipsis; }
 @keyframes rise { 0% { opacity: 0; transform: translate(0, 0) rotate(0); } 10% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), -92vh) rotate(var(--r)); } }
 
 /* ---------- manga flourishes (src/fx.ts) ---------- */
-#fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+#fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 3; }
 .onomato {
   position: absolute; transform: translate(-50%, -50%) rotate(var(--tilt)); white-space: nowrap;
   font-family: var(--font-display); font-weight: 700; letter-spacing: 0.02em; line-height: 1;
