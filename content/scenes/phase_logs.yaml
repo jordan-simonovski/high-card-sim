@@ -2,19 +2,22 @@
 # WARNs, the ERRORs (the symptom), and dozens of "WARN cardinality limit exceeded, dropping series"
 # from service metrics (attribute subscriber_id), the WARN she mentioned on the date.
 # Wrong answers hint and re-ask; the re-ask always has a way forward (nobody gets stuck).
-# Turning point lands harder with logs_affection_high (she was read on the date, not skimmed).
+# Turning point lands with logs_affection_high (she was read on the date, not skimmed), unless the
+# player's first move in the shell was ERROR (grepped_error): she logged the query, so she knows.
+# Then her guilt (she wrote the clue for a week without knowing what it meant), and the handoff:
+# Logs still has the name Metrics dropped.
 id: phase_logs
 start: arrive
 music: incident
 bg: archive_cafe
 nodes:
   arrive:
-    text: "Logs pulls you across the Mesh at a run, to the Archive Café. The shelves are scrolling so fast the text blurs."
+    text: "Logs pulls you across the Mesh at a run, to the Archive Café. The shelves are scrolling so fast the text blurs. Here and there, a shelf is empty."
     next: l1
   l1:
     speaker: logs
     mood: neutral
-    text: "Okay. Everything the Realm wrote in the last twenty minutes is in me. About two thousand lines. Mostly INFO. Mostly lovely, honestly, under the circumstances."
+    text: "Okay. Everything the Realm wrote in the last twenty minutes is in me. About two thousand lines. Mostly INFO. Mostly lovely, honestly, under the circumstances. There should be more. I'm dropping lines. I have never dropped a line in my life."
     next: l2
   l2:
     speaker: logs
@@ -24,7 +27,7 @@ nodes:
   l3:
     speaker: logs
     mood: blush
-    text: "You can do that. Or you can read me. Up to you."
+    text: "You can do that. I'll log it either way, I log every query. Or you can read me. I'd know the difference."
     next: open
   open:
     action: open_console:logs
@@ -80,8 +83,19 @@ nodes:
   turn:
     text: ""
     branches:
+      - { condition: grepped_error, target: turn_grep }
       - { condition: logs_affection_high, target: turn_high }
     next: turn_soft
+  turn_grep:
+    speaker: logs
+    mood: sad
+    text: "You found it. After ERROR. That was the first thing you ran, I've got the query right here, I'll have it forever."
+    next: turn_grep2
+  turn_grep2:
+    speaker: logs
+    mood: neutral
+    text: "It's okay. It's what everyone does when it's loud. I just thought, for a second— no. Later. People are disappearing. I'll mind about it later, at length."
+    next: source
   turn_high:
     music: logs
     speaker: logs
@@ -114,7 +128,50 @@ nodes:
     speaker: logs
     mood: neutral
     text: "And every one of them has the same attribute on it: subscriber_id. I don't know what that means. I never know what anything means. But it's the same every time."
+    next: guilt
+  guilt:
+    speaker: logs
+    mood: sad
+    text: "A week. I've been writing it for a week. Every time I wrote it somebody flickered, and I put it down next to the cron jobs like it was the same sort of thing."
+    next: guilt2
+  guilt2:
+    speaker: logs
+    mood: sad
+    text: "I told you about it. On our date. As a joke. 'WARN is just INFO with anxiety.' I had the whole answer and I thought it was a tangent."
+    choices:
+      - { id: kept, text: "\"You wrote it down. That's the only reason we can find it now.\"", target: guilt_kept, vibe: good }
+      - { id: known, text: "\"You couldn't have known what it meant.\"", target: guilt_known }
+      - { id: week, text: "\"A week is a long time, Logs.\"", target: guilt_week, vibe: bad }
+  guilt_kept:
+    speaker: logs
+    mood: blush
+    text: "…That's the job, isn't it. Write it down so someone can know later. I just always thought the someone would be cleverer than me. Not kinder."
+    next: handoff
+  guilt_known:
+    speaker: logs
+    mood: sad
+    text: "I never know what anything means. I've said it for years like it's charming. It was charming until about twenty minutes ago."
+    next: handoff
+  guilt_week:
+    speaker: logs
+    mood: sad
+    text: "Seven days, two hours, eleven minutes. I know exactly how long. That's the bit I'm good at."
     next: handoff
   handoff:
     text: "At the end of the aisle, Metrics is standing very still, reading over your shoulder."
+    next: name
+  name:
+    speaker: logs
+    mood: neutral
+    text: "Metrics. The series you liked. Three a minute, two years. You dropped the label. I didn't. I never drop anything. Do you want the name?"
+    next: name2
+  name2:
+    speaker: metrics
+    mood: sad
+    text: "…Not yet. After. If there's an after. Don't lose it."
+    next: name3
+  name3:
+    speaker: logs
+    mood: sad
+    text: "I can't lose it. That's sort of my whole problem."
     next: "@phase_metrics"

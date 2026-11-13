@@ -57,6 +57,9 @@ nodes:
     speaker: traces
     mood: sad
     text: "I keep seeing requests start. I don't see any of them end. Sorry. This is— this is what I always see."
+    next: thin
+  thin:
+    text: "Traces' coat is see-through to the elbow. Logs has stopped mid-line twice, which you have never seen. Nobody mentions either."
     next: collector
   collector:
     speaker: collector

@@ -8,7 +8,7 @@ export interface Lead {
   who: string; // character id, for the colour
   title: string;
   /** Which shell tab this lead is worked in. */
-  tab: View | 'sql';
+  tab: View;
   look: string; // the hint while it's the current lead
   clue: string; // what it says once found
   state: 'found' | 'current' | 'locked';
@@ -32,9 +32,9 @@ const LEADS: (Omit<Lead, 'state'> & { scene: string; node: string })[] = [
     clue: 'The failing request dies in collector.batch_processor: 30 s, then deadline exceeded',
   },
   {
-    id: 'wide', who: 'dba', title: 'The wide event: root cause', tab: 'sql', scene: 'root_cause', node: 'explain',
-    look: 'Query the base table: GROUP BY tier and count the distinct subscriber_ids. There’s a hint button for it.',
-    clue: 'OnlySpans stamps a new subscriber_id on every span. The cardinality explosion is sampling citizens out of existence.',
+    id: 'wide', who: 'dba', title: 'The wide event: root cause', tab: 'deltas', scene: 'root_cause', node: 'explain',
+    look: 'Open Deltas and box the slow band at the top (or press “select the slow ones”). Read which attributes differ most from everything else.',
+    clue: 'OnlySpans stamps a new subscriber_id on every span, and the Collector sends it to Metrics as a label: a new series per span. The wide table never minded.',
   },
 ];
 

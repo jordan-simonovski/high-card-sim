@@ -33,6 +33,8 @@ function drawCaseFile(o: ConsoleOptions, select: (name: string, focus?: boolean)
   const box = $<HTMLDetailsElement>('#casefile');
   const cf = o.caseFile();
   box.hidden = !cf.active;
+  // The DBA's own view of the wide table: handed over when the root cause is the lead, and kept.
+  $('#tab-deltas').hidden = cf.leads[3].state === 'locked';
   for (const t of document.querySelectorAll('#console [role=tab]')) t.classList.toggle('lead', !!cf.current && t.id === `tab-${cf.current.tab}`);
   if (!cf.active) return;
   const n = cf.leads.findIndex((l) => l === cf.current) + 1;
@@ -49,7 +51,7 @@ function drawCaseFile(o: ConsoleOptions, select: (name: string, focus?: boolean)
       li.setAttribute('aria-label', `${l.title}: ${l.state === 'found' ? `found. ${l.clue}` : l.state === 'current' ? `current lead. ${l.look}` : 'not yet'}`);
       if (l.state === 'found') li.append(el('span', 'cf-text', l.clue));
       if (l.state === 'current') {
-        const go = el('button', 'viz-btn', `open ${l.tab === 'sql' ? 'SQL' : l.tab[0].toUpperCase() + l.tab.slice(1)}`);
+        const go = el('button', 'viz-btn', `open ${l.tab[0].toUpperCase() + l.tab.slice(1)}`);
         go.type = 'button';
         go.onclick = () => select(l.tab, true);
         li.append(el('span', 'cf-text', l.look), go);
@@ -104,7 +106,8 @@ export function openConsole(o: ConsoleOptions): Promise<void> {
   };
 
   // Tabs: roving tabindex, arrows / Home / End move and select (automatic activation).
-  const tabs = [...dialog.querySelectorAll<HTMLButtonElement>('[role=tab]')];
+  drawCaseFile(o, (name, focus) => select(name, focus)); // first: it decides which tabs exist
+  const tabs = [...dialog.querySelectorAll<HTMLButtonElement>('[role=tab]')].filter((t) => !t.hidden);
   const select = (name: string, focus = false) => {
     for (const t of tabs) {
       const on = t.id === `tab-${name}`;
@@ -117,7 +120,6 @@ export function openConsole(o: ConsoleOptions): Promise<void> {
   };
   views ??= mountViews({ run: o.run, table: o.table, characters: o.characters, select: (v) => select(v), caseFile: () => current.caseFile() });
   current = o;
-  drawCaseFile(o, select);
   for (const [i, t] of tabs.entries()) {
     t.onclick = () => select(t.id.slice(4));
     t.onkeydown = (e) => {

@@ -1,7 +1,11 @@
-# The wide event. The three clues only add up in the base table: GROUP BY tier shows onlyspans
-# with nearly all the errors and a different subscriber_id on almost every span (show: root_cause).
-# The Collector's OnlySpans tier stamped a unique subscriber_id on every span; the cardinality
-# explosion is what's sampling citizens out of existence. The Collector is mortified, not a villain.
+# The wide event. The three clues only add up in the base table. The DBA hands over wide event deltas:
+# box the slow spans and every attribute is compared against the rest. tier = onlyspans, service =
+# collector.batch_processor, and a different subscriber_id on nearly every span (show: root_cause
+# gives the same answer as a query).
+# Why it broke: the wide table is columnar and doesn't mind a high-cardinality column. Metrics
+# keeps one series per label combination, and the Collector was sending subscriber_id to him as a
+# label. He hit his limit and dropped series; the batch processor timed out waiting on him and
+# shed its queue: spans, then citizens. The Collector is mortified, not a villain.
 id: root_cause
 start: arrive
 music: incident
@@ -18,21 +22,21 @@ nodes:
   recap2:
     speaker: dba
     mood: blush
-    text: "Each of them saw one piece. None of the pieces is the answer. The answer is in the table they all come from."
+    text: "Three views, three places, and you carried the context between them in your head. That was hard, and it isn't because you're bad at it. Each of them threw away the part the others needed."
     next: recap3
   recap3:
     speaker: dba
     mood: happy
-    text: "events. The wide one. Nobody's sampled it, summed it or cut it short. Go on. GROUP BY tier, and count the distinct subscriber_ids. It's on a hint button, if you'd rather not type. I won't judge. I'll judge a little."
+    text: "events. The wide one. Nobody's sampled it, summed it or cut it short. I've got a view of my own for it. I don't usually show people. You draw a box round whatever looks wrong, and it tells you what's different about it."
     next: open
   open:
-    action: open_console
-    text: "The Query Shell opens on the base table. Every column, every event, nothing dropped."
+    action: open_console:deltas
+    text: "The Query Shell opens on a tab you haven't seen before: Deltas. Wide event deltas, the DBA says, as if it were obvious. Every span the Realm wrote, mostly quick, and a dark band along the top where nothing should be."
     next: mine
   mine:
     speaker: dba
     mood: neutral
-    text: "Here's mine, in case yours had a typo. Mine never has typos. Mine had one once."
+    text: "Here's the same answer as a query, for the postmortem. Mine never has typos. Mine had one once."
     show: root_cause
     next: ask
   ask:
@@ -42,11 +46,11 @@ nodes:
     choices:
       - { id: labels, text: "\"Metrics dropped too many labels.\"", target: hint_labels }
       - { id: batch, text: "\"The batch processor is too slow.\"", target: hint_batch }
-      - { id: onlyspans, text: "\"OnlySpans puts a unique subscriber_id on every span. The cardinality's blowing everything up.\"", target: found }
+      - { id: onlyspans, text: "\"OnlySpans puts a different subscriber_id on every span, and it's reaching Metrics as a label. A new series per span.\"", target: found }
   hint_labels:
     speaker: metrics
     mood: annoyed
-    text: "I dropped them because of this. Not the other way round. Look at the last column."
+    text: "That's how people went missing. Me, coping. It isn't why there was so much to cope with. Look at the last column."
     next: ask2
   hint_batch:
     speaker: traces
@@ -74,12 +78,37 @@ nodes:
   explain:
     speaker: dba
     mood: neutral
-    text: "Every new value is a new series for Metrics, a new line for Logs, another span for the Collector to batch. It never stops growing. So everything downstream starts dropping things to cope."
+    text: "Look at my table. It's columnar. subscriber_id is one more column, and a million different values in it don't slow me down at all. I never made a series out of anyone."
+    next: explain_b
+  explain_b:
+    speaker: dba
+    mood: neutral
+    text: "Metrics isn't built like that. One series for every combination of labels. And the Collector's been passing every span attribute along to Metrics as a label. subscriber_id included."
     next: explain2
   explain2:
     speaker: dba
     mood: sad
-    text: "Series first. Then spans. Then people. The sampler can't tell the difference anymore. That's the flickering."
+    text: "So every OnlySpans span became a brand-new series. Metrics hit the limit and started dropping. The batch processor waits on Metrics, thirty seconds, deadline exceeded, and then its queue sheds whatever's in it. Series, then spans, then people. That's the flickering."
+    next: explain3
+  explain3:
+    speaker: dba
+    mood: blush
+    text: "High cardinality was never the problem, {name}. You'd know. The problem is putting it somewhere that can't hold it."
+    next: because
+  because:
+    speaker: logs
+    mood: sad
+    text: "So that's what it meant. I wrote that line dozens of times and I never once knew what it meant."
+    next: because2
+  because2:
+    speaker: traces
+    mood: neutral
+    text: "You wrote it because something was wrong and you were the only one who'd noticed. That's a because. A whole one. I kept it. You can have it."
+    next: because3
+  because3:
+    speaker: logs
+    mood: blush
+    text: "…Say it again, slower? I want to get it down exactly. I've never had one of those."
     next: col1
   col1:
     speaker: collector
@@ -90,24 +119,27 @@ nodes:
     speaker: collector
     mood: sad
     text: "On every span! So my subscribers could find their spans! It was a FEATURE. It was in the PITCH DECK."
-    next: col3
+    next: logs
   col3:
     speaker: collector
     mood: blush
     text: "I did this? I sampled people out of existence with a loyalty programme?"
-    next: logs
+    next: col4
   logs:
     speaker: logs
     mood: neutral
     text: "To be fair, it was a very popular loyalty programme. I logged every signup. There were so many signups."
-    next: col4
+    next: col3
   col4:
     speaker: collector
     mood: sad
     text: "I just wanted everyone to get everything. Unsampled, uncut. Nobody ever told me no."
+    next: hush
+  hush:
+    text: "Nobody says anything. The Collector's two antenna tufts have gone flat. Somewhere in the stacks, the label maker stops."
     next: dba_no
   dba_no:
     speaker: dba
-    mood: neutral
-    text: "Well. Somebody's about to."
+    mood: sad
+    text: "No. Nobody did. I run the schema, so that one's mine. I'm telling you now, and I'm sorry it's this late: no."
     next: "@resolution"

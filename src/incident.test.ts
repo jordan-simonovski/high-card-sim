@@ -21,6 +21,10 @@ test('the clues are there: the WARN, errors carried by OnlySpans, one subscriber
   const osSubs = new Set(rows.filter((r) => r.attributes.tier === 'onlyspans').map((r) => r.attributes.subscriber_id));
   const proSubs = new Set(rows.filter((r) => r.attributes.tier === 'pro').map((r) => r.attributes.subscriber_id));
   assert.ok(osSubs.size > 100 && proSubs.size <= 6);
+  // Citizens being sampled out: free and pro traffic has stopped by the last two minutes.
+  const quiet = (r: { ts: string; attributes: Record<string, string> }) => r.attributes.tier && r.attributes.tier !== 'onlyspans';
+  assert.ok(rows.filter((r) => quiet(r) && r.ts < '2026-11-13 03:02').length > 50);
+  assert.equal(rows.filter((r) => quiet(r) && r.ts >= '2026-11-13 03:10').length, 0);
 });
 
 test('the kept trace is a whole, tail-sampled path that dies in the batch processor', () => {

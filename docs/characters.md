@@ -20,9 +20,13 @@ ever a punchline.
   ellipses, never gets to the point. Says "anyway—" and "sorry, verbose mode". Delighted by detail.
 - **Joke:** Logs is a view with only `ts`, `character`, `dialogue_text`. She remembers every word,
   unstructured, but can't tell you what any of it *meant*.
-- **Wound:** people only grep her when something is on fire. Nobody reads her for pleasure.
+- **Wound:** people only grep her when something is on fire. Nobody reads her for pleasure. She
+  also keeps everyone's last line ("brb", 02:41:19) and can't lose any of it.
 - **Arc:** learns that being listened to on an ordinary day is love; learns to let someone else
-  talk too. Her good ending: you read her, start to finish, on purpose.
+  talk too. In the incident she finds she wrote the clue for a week without knowing what it
+  meant. She logs your queries, so she knows if you filtered to ERROR first; that costs her
+  turning point unless you mend it in the quiet hour. Her good ending: one entry, three words,
+  and she knows what it means.
 - **Mechanic:** affection = how much conversation with her is in the `logs` view. Letting her talk
   ("tell me more") raises it; asking for the TL;DR lowers it (she understands, but it stings).
 - **Visual:** tall, long wavy ink-black hair that fades to pink at the ends, like ink
@@ -39,9 +43,12 @@ ever a punchline.
 - **Joke:** a materialized view into a summing table keyed only by `(character, scene)`. He
   remembers *that* you fought (the counter went down) but never *why*: the words were never stored.
 - **Wound:** he dropped his labels to save memory, long ago, and lost the details of everyone he
-  ever cared about. He's efficient and lonely.
-- **Arc:** learns that some things are worth the cardinality. His good ending: he adds a new
-  dimension just for you.
+  ever cared about. One series in particular: three requests a minute for two years, then zero.
+  He kept the shape and dropped the name (Logs still has it: Pim). He's efficient and lonely.
+- **Arc:** learns that some things are worth the cardinality. In the incident his drop rule is
+  the mechanism, and he has to watch free and pro traffic go flat, which is what he dropped his
+  labels to never see again. Staying with him counts; pushing costs. His good ending: he adds a
+  new dimension just for you.
 - **Mechanic:** affection = `sum(affection)` in `metrics_agg` for him. Choices at his nodes carry
   `affection_delta`. He values consistency and honesty over flattery. One argument is possible
   (negative delta) and he later quotes the counter without knowing what it was about.
@@ -58,8 +65,12 @@ ever a punchline.
 - **Joke:** a view filtered to `cityHash64(event_id) % 100 = 0`. They genuinely miss 99% of your
   dates. Unless you mark a moment `sampling.priority = 1`: tail sampling keeps it.
 - **Wound:** feels absent from their own life; only ever catches the first span and a timeout.
-- **Arc:** learns that you can choose to keep the moments that matter. Their good ending: one
-  whole, unbroken trace, with you in every span.
+  The sampler decided at the start that they weren't worth keeping, and nobody has ever asked
+  them what they'd keep.
+- **Arc:** learns that you can choose to keep the moments that matter, and then that they can
+  choose. The date has a budget of two kept moments out of four, picked without knowing what
+  comes next. In the incident they are the one being sampled out. Their good ending reads back
+  exactly what was kept, gaps included: one whole trace, with you in every span.
 - **Mechanic:** affection = rows with `character = 'traces'` in the `traces` view. Their date
   opens with them not showing up (unsampled) until the player marks the moment as important.
   Choices with `attributes: { sampling.priority: "1" }` are the ones Traces keeps.
@@ -76,7 +87,8 @@ ever a punchline.
   anything new to a known metric. "That isn't one of my saved queries."
 - **Joke:** only has a fixed list of saved queries and literally cannot answer a new question.
 - **Arc:** not a villain. They loved you the only way they could. The player can relapse (bad
-  ending) or let them go kindly.
+  ending) or let them go kindly. The player's own wound sits here: a life reported as "fine" in
+  three panels. Logs later asks for the long version.
 - **Visual:** tidy and tired; NOC headset; lanyard with a red/green status badge; grey cardigan
   over a polo; faint dark circles; clipboard of checkboxes. Palette: muted greys with red/green
   status accents.

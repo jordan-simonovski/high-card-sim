@@ -61,7 +61,7 @@ test('choices never make the dialogue box scroll sideways', async ({ page }) => 
   await page.addInitScript(() => localStorage.setItem('hc.textSpeed', 'instant'));
   await page.goto('/');
   await page.locator('#btn-new').click();
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 4; i++) {
     await expect(page.locator('#box.waiting')).toBeVisible();
     await page.keyboard.press('Enter');
   }

@@ -73,6 +73,11 @@ nodes:
     speaker: metrics
     mood: sad
     text: "It got expensive. So I dropped them. Now I keep totals. Very efficient. Very… quiet."
+    next: labels2b
+  labels2b:
+    speaker: metrics
+    mood: sad
+    text: "There was one series I liked. Three requests a minute, every minute, for two years. Then zero. The name was on a label. I dropped the label. I kept the shape."
     next: labels3
   labels3:
     speaker: metrics

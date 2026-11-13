@@ -72,11 +72,16 @@ test('true ending: every turning point lands, stop sampling yourself', async ({ 
       dates: await q("SELECT uniqExact(scene) FROM events WHERE event_type = 'scene_enter' AND scene LIKE 'date_%'"),
       base: await q("SELECT count() FROM events WHERE event_type = 'query_run' AND attributes['query.base_table'] = 'true'"),
       ending: await q("SELECT attributes['ending.title'] FROM events WHERE event_type = 'ending'"),
+      // Traces' date has a budget of two kept moments.
+      keeps: await q("SELECT count() FROM events WHERE scene = 'date_traces' AND choice_id = 'keep'"),
+      quiet: await q("SELECT count() FROM events WHERE event_type = 'scene_enter' AND scene = 'quiet'"),
       // The console is read-only even if the page tries to write through it.
       write: await h.console('SELECT 1').then(() => h.console("INSERT INTO events (scene) VALUES ('x')")).then(() => 'wrote', (e: Error) => e.message),
     };
   });
   expect(Number(facts.dates)).toBe(3);
+  expect(Number(facts.keeps)).toBe(2);
+  expect(Number(facts.quiet)).toBe(1);
   expect(Number(facts.base)).toBeGreaterThan(0);
   expect(facts.ending).toBe('Stop Sampling Yourself');
   expect(facts.write).toMatch(/read-only/);

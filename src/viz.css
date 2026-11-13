@@ -195,7 +195,7 @@ button.wf-row:hover .wf-label { background: var(--lilac-tint); }
 .cf-leads li.found .cf-text { font: 12.5px/1.5 var(--font-code); color: var(--ink); }
 .cf-leads li.current { padding: 8px 10px; border-radius: 12px; background: white; box-shadow: inset 0 0 0 2px #f0a3ae; }
 .cf-leads li.current .viz-btn { grid-column: 3; grid-row: 1 / span 2; min-height: 36px; padding: 4px 12px; font-size: 14px; }
-.cf-leads li.locked { opacity: 0.55; }
+.cf-leads li.locked { display: none; } /* the summary already says lead n of 4 */
 #console [role='tab'].lead { position: relative; }
 #console [role='tab'].lead::after { content: ''; position: absolute; top: 6px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: #e8566b; box-shadow: 0 0 0 2px white; }
 #btn-shell.sev { border-color: #e8566b !important; }
@@ -216,5 +216,24 @@ button.wf-row:hover .wf-label { background: var(--lilac-tint); }
 .wf-you { margin: 16px 0 4px; font: 600 16px var(--font-display); }
 @media (max-width: 520px) {
   .cf-leads li.current .viz-btn { grid-column: 2; grid-row: auto; justify-self: start; margin-top: 4px; }
-  .cf-leads li.locked { display: none; } /* the summary already says lead n of 4 */
 }
+
+/* Wide event deltas: the heatmap, its selection box, and the attribute comparison under it. */
+.viz { --wd-sel: #e8743b; --wd-base: #a99ad6; }
+.wd-heat svg { touch-action: none; cursor: crosshair; user-select: none; }
+.wd-cell { fill: var(--lilac-deep); }
+.wd-sel { fill: rgba(232, 116, 59, 0.16); stroke: var(--wd-sel); stroke-width: 2.5; pointer-events: none; }
+.wd-dims { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 10px; }
+.wd-dims > .viz-legend, .wd-dims > .viz-empty { grid-column: 1 / -1; margin: 0; }
+.wd-dim { padding: 10px 14px; border-radius: 14px; background: var(--lilac-tint); min-width: 0; }
+.wd-dim h3 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0 0 6px; font: 700 15px var(--font-code); }
+.wd-score { font: 600 13px var(--font-display); color: var(--ink-soft); }
+.wd-uniq { margin: 0 0 6px; font-size: 13px; font-weight: 700; }
+.wd-dim ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.wd-dim li { display: grid; grid-template-columns: minmax(0, 1fr) 70px 78px; gap: 8px; align-items: center; font: 13px var(--font-code); }
+.wd-val { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wd-bars { display: grid; gap: 2px; }
+.wd-bars i { display: block; height: 5px; min-width: 1px; border-radius: 3px; }
+.wd-s { background: var(--wd-sel); }
+.wd-b { background: var(--wd-base); }
+.wd-pct { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-soft); }

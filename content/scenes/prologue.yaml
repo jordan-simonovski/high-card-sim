@@ -15,6 +15,9 @@ nodes:
     next: dash
   dash:
     text: "You open the dashboard. Every panel is green. Every panel is lying."
+    next: life
+  life:
+    text: "Fourth page this week. At work you say you're fine. At home you say you're tired. Both are true, and between them they leave out nearly everything."
     next: ack
   ack:
     text: "Your thumb hovers."

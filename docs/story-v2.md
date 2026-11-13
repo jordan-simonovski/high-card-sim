@@ -115,3 +115,28 @@ manga flourishes, and the music cues (the incident gets its own track and sounds
 - Queries for each phase's gate, and for each turning point landing (affection plus phase result).
 - New scenes, music (`incident`) and a few sounds (alarm, flicker, resolve).
 - The portal choice and two new endings (go home, and the reworked stay endings).
+
+## v3 changes (arcs with a cost, and a root cause that holds up)
+
+- **Why it broke.** The wide table is columnar and doesn't mind a high-cardinality column. Metrics
+  keeps one series per label combination, and the Collector was passing `subscriber_id` to him as
+  a label. He hit his limit and dropped series; the batch processor timed out waiting on him and
+  shed its queue: spans, then citizens. The fix keeps `subscriber_id` on the wide event and bans
+  `_id` labels. "High cardinality was never the problem."
+- **Wide event deltas.** The root-cause step is a view, not a typed query: a heatmap of span durations,
+  box the slow band, and each attribute is compared inside the box against the rest. Unlocked by
+  the DBA when the wide event becomes the lead.
+- **Logs.** She logged your queries: filtering to ERROR first costs her turning point
+  (`grepped_error`), and can be mended in the quiet hour. Her guilt: she wrote the clue for a week
+  without knowing what it meant. Her ending is three words, not a scroll.
+- **Metrics.** One lost series has a shape (three a minute, two years) and, via Logs, a name. In
+  the incident he watches free and pro traffic go flat, and his drop rule is the mechanism.
+  Staying or pushing moves his counter.
+- **Traces.** The date has a budget of two kept moments out of four, chosen blind; the finale reads
+  back exactly what was kept. In the incident they are the one being sampled out, and they get to
+  choose what to keep for the first time.
+- **Each holds what another lost.** Logs has Metrics' names, Metrics has counted every time Traces
+  turned up, Traces gives Logs a "because".
+- **The quiet hour** (`quiet.yaml`): one private scene with one pillar before the portal.
+- **The player.** "Fine" in the prologue; Logs asks for the long version; going home ends with
+  you sending it.

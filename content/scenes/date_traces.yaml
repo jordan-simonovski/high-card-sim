@@ -1,6 +1,8 @@
 # Date with Traces. Traces only sees sampled events: 1% at random, plus anything marked
 # sampling.priority = 1. They don't show up until the moment is marked important.
-# Kept moments on this date: 0-1 (careless) to 5 (sincere).
+# The first mark (which makes them appear) is free. After that the date has a budget of two kept
+# moments out of four (keeps_left / keeps_spent), chosen without knowing what comes next: that is
+# head sampling. The finale reads back which ones were kept (kept_wait, kept_because, ...).
 id: date_traces
 start: start
 music: traces
@@ -49,13 +51,23 @@ nodes:
     speaker: traces
     mood: sad
     text: "Root span: {name}, waiting since… oh no. Ages. I'm so sorry. It's not you. It's my sample rate."
+    next: budget
+  budget:
+    speaker: traces
+    mood: neutral
+    text: "Before you say anything nice. You can mark a moment so I keep it. Twice. That's the whole budget for tonight, the sampler's very firm about it."
+    next: budget2
+  budget2:
+    speaker: traces
+    mood: sad
+    text: "And you have to choose while it's happening, before you know what comes after. Everyone hates that part. I hate that part."
     next: t1
   t1:
     speaker: traces
     mood: neutral
     text: "Can I ask— how long were you waiting? I only caught the end. I always only catch the end. It's a bit embarrassing, honestly."
     choices:
-      - { id: keep, text: "\"Long enough. I'm glad you're here.\" (Keep this moment.)", target: t1_keep, attributes: { sampling.priority: "1" } }
+      - { id: keep, text: "\"Long enough. I'm glad you're here.\" (Keep this moment.)", target: t1_keep, condition: keeps_left, attributes: { sampling.priority: "1" } }
       - { id: plain, text: "\"Not long. Don't worry about it.\"", target: t1_plain }
   t1_keep:
     speaker: traces
@@ -75,7 +87,7 @@ nodes:
     mood: neutral
     text: "I think in cause and effect. This happened because— but I usually lose the 'because'. Can I tell you why I like it here?"
     choices:
-      - { id: keep, text: "\"Tell me. I'll make sure you keep it.\" (Keep this moment.)", target: t2_keep, attributes: { sampling.priority: "1" } }
+      - { id: keep, text: "\"Tell me. I'll make sure you keep it.\" (Keep this moment.)", target: t2_keep, condition: keeps_left, attributes: { sampling.priority: "1" } }
       - { id: plain, text: "\"Sure, go ahead.\"", target: t2_plain }
   t2_keep:
     speaker: traces
@@ -97,12 +109,18 @@ nodes:
     mood: sad
     text: "Mostly I just catch the first span and a timeout. I feel like I'm missing my own—"
     choices:
-      - { id: keep, text: "\"Then let's keep this one. All of it.\" (Keep this moment.)", target: t3_keep, attributes: { sampling.priority: "1" } }
+      - { id: keep, text: "\"Then let's keep this one. All of it.\" (Keep this moment.)", target: t3_keep, condition: keeps_left, attributes: { sampling.priority: "1" } }
+      - { id: spent, text: "\"I'd keep that one too. I've nothing left to keep it with.\"", target: t3_spent, condition: keeps_spent }
       - { id: plain, text: "\"That's just how sampling works, I guess.\"", target: t3_plain }
   t3_keep:
     speaker: traces
     mood: surprised
     text: "You can— you can do that? Just decide something matters, and it stays?"
+    next: t4
+  t3_spent:
+    speaker: traces
+    mood: sad
+    text: "That's okay. You spent them on me already. I just won't know that by tomorrow."
     next: t4
   t3_plain:
     speaker: traces
@@ -114,12 +132,21 @@ nodes:
     mood: blush
     text: "Would you— can I hold your hand? I'm not usually sampled this long. The gold threads are just context. They don't bite."
     choices:
-      - { id: keep, text: "Take {traces.their} hand. (Keep this moment.)", target: t4_keep, attributes: { sampling.priority: "1" } }
+      - { id: keep, text: "Take {traces.their} hand. (Keep this moment.)", target: t4_keep, condition: keeps_left, attributes: { sampling.priority: "1" } }
+      - { id: anyway, text: "Take {traces.their} hand anyway. It won't be kept.", target: t4_anyway, condition: keeps_spent }
       - { id: plain, text: "\"Maybe next time.\"", target: t4_plain }
   t4_keep:
     speaker: traces
     mood: blush
     text: "Parent span: you. Child span: me. And they're— oh. They're nested. I've never been nested before."
+    next: out
+  t4_anyway:
+    speaker: traces
+    mood: blush
+    text: "It won't stay. I know it won't. I'd still like to have had it, even if I don't get to keep it."
+    next: t4_anyway2
+  t4_anyway2:
+    text: "You hold on. The gold threads are warm. Somewhere a sampler rolls its dice and looks the other way."
     next: out
   t4_plain:
     speaker: traces

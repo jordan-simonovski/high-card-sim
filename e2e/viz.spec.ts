@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from 'node:fs';
 import { test, expect, type Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
@@ -198,12 +199,15 @@ test('the incident: clues in every view, the kept trace, and the same incident a
   // Metrics: an incident opens on errors per minute, one series until tier is back…
   await page.locator('#tab-metrics').click();
   await expect(page.locator('#panel-metrics .viz-seg[aria-pressed=true]')).toHaveText('errors');
-  await expect(page.locator('#metrics-chart svg')).toHaveAttribute('aria-label', /^Errors per minute, from events.*Totals: all errors \d+\.$/);
+  await expect(page.locator('#metrics-chart svg').first()).toHaveAttribute('aria-label', /^Errors per minute, from events.*Totals: all errors \d+\.$/);
+  await expect(page.locator('#metrics-chart svg').nth(1)).toHaveAttribute('aria-label', /^Requests per minute, from events.*Totals: all requests \d+\.$/);
   // …then Metrics adds it back, and the same chart splits with onlyspans carrying it.
   await page.locator('#console .close').click();
   await page.evaluate(() => (window as any).__hc.log.append({ scene: 'phase_metrics', node: 'add', event_type: 'line' }));
   await page.evaluate(() => (window as any).__hc.openShell('metrics'));
-  await expect(page.locator('#metrics-chart svg')).toHaveAttribute('aria-label', /^Errors per minute by tier.*Totals: onlyspans \d{2,}, /);
+  await expect(page.locator('#metrics-chart svg').first()).toHaveAttribute('aria-label', /^Errors per minute by tier.*Totals: onlyspans \d{2,}, /);
+  // …and under it the requests, where free and pro thin out and stop.
+  await expect(page.locator('#metrics-chart svg').nth(1)).toHaveAttribute('aria-label', /^Requests per minute by tier.*Totals: onlyspans \d{2,}, /);
 
   // Traces: nothing kept yet; keep it, and the whole path shows, dying in the batch processor.
   await page.locator('#tab-trace').click();
@@ -215,6 +219,37 @@ test('the incident: clues in every view, the kept trace, and the same incident a
   await expect(kept).toContainText('the-one-that-never-finishes');
   await expect(kept).toContainText('kept (sampling.priority = 1)');
   await expect(kept.locator('li.error')).toContainText('collector.batch_processor');
+
+  // Deltas stays locked until the wide event is the lead; then the DBA hands it over.
+  await expect(page.locator('#tab-deltas')).toBeHidden();
+  await page.locator('#console .close').click();
+  for (const [scene, node] of [['phase_logs', 'source'], ['phase_metrics', 'clue'], ['phase_traces', 'every_span']])
+    await page.evaluate(([scene, node]) => (window as any).__hc.log.append({ scene, node, event_type: 'line' }), [scene, node]);
+  await page.evaluate(() => (window as any).__hc.openShell('deltas'));
+  await expect(page.locator('#tab-deltas')).toHaveClass(/lead/);
+  await expect(page.locator('#wd-heat svg')).toHaveAttribute('aria-label', /^Span durations by minute.*\d+ spans, \d{2,} of them slower than 1\.0 s\.$/);
+  // Box the slow band: what's different about it comes first.
+  await page.locator('#wd-slow').click();
+  const dim = (name: string) => page.locator(`#wd-dims .wd-dim[data-attribute="${name}"]`);
+  await expect(dim('tier').locator('li').first()).toHaveAttribute('aria-label', /^onlyspans: (9\d|100)% of the selection, \d+% of everything else$/);
+  await expect(dim('service').locator('li').first()).toHaveAttribute('aria-label', /^collector\.batch_processor: 100% of the selection/);
+  await expect(dim('subscriber_id')).toContainText('nearly every one has its own');
+  // Dragging a box over the same band selects it too.
+  await page.locator('#wd-clear').click();
+  await expect(page.locator('#wd-dims')).toContainText('No selection yet');
+  const hb = (await page.locator('#wd-heat svg').boundingBox())!;
+  await page.mouse.move(hb.x + 60, hb.y + 12);
+  await page.mouse.down();
+  await page.mouse.move(hb.x + hb.width - 20, hb.y + 30, { steps: 4 });
+  await page.mouse.up();
+  await expect(dim('tier').locator('li').first()).toHaveAttribute('aria-label', /^onlyspans: /);
+
+  // Every story gate still parses and runs against the real engine.
+  for (const f of readdirSync('content/queries')) {
+    const sql = readFileSync(`content/queries/${f}`, 'utf8');
+    const r = await page.evaluate(({ sql }) => (window as any).__hc.query(sql, { session_id: (window as any).__hc.log.sessionId }).then(() => 'ok', (e: Error) => e.message), { sql });
+    expect(r, f).toBe('ok');
+  }
   const before = await page.evaluate(() => (window as any).__hc.query("SELECT count() AS n, sum(cityHash64(event_id)) AS h FROM events WHERE scene = 'incident'"));
 
   // Reload: the log replays and the markers regenerate the same Realm telemetry.

@@ -18,7 +18,7 @@ nodes:
   metrics:
     speaker: metrics
     mood: neutral
-    text: "subscriber_id comes off the spans. Put it on the events, where it belongs. I'm keeping tier. Three values. Affordable."
+    text: "subscriber_id stops being a label. It stays on the wide event, where a million of them cost nothing. I'm keeping tier. Three values. Affordable."
     next: logs
   logs:
     speaker: logs
@@ -54,7 +54,7 @@ nodes:
   constraint:
     speaker: dba
     mood: happy
-    text: "ALTER TABLE spans ADD CONSTRAINT stay_in_your_lane CHECK (NOT has(attributes, 'subscriber_id'))."
+    text: "ALTER TABLE metric_labels ADD CONSTRAINT stay_in_your_lane CHECK (name NOT LIKE '%_id')."
     next: constraint2
   constraint2:
     speaker: dba
@@ -100,5 +100,5 @@ nodes:
   dba_end2:
     speaker: dba
     mood: blush
-    text: "Which means the portal's open. Come on. Everyone wants to see you off. Or not off. Come on."
-    next: "@finale"
+    text: "Which means the portal's open. It'll keep for an hour. I've put a chair by it. Go and be somewhere first."
+    next: "@quiet"

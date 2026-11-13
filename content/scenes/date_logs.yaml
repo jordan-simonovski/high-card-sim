@@ -98,6 +98,11 @@ nodes:
     speaker: logs
     mood: neutral
     text: "Or the cron job that says 'starting' at midnight like it's nervous. Or this one WARN I keep writing lately, same line, over and over, nobody's noticed, it's fine, WARN is just INFO with anxiety. Or the cache that hits ninety-nine times in a row and never brags."
+    next: more3last
+  more3last:
+    speaker: logs
+    mood: sad
+    text: "And I've got everyone's last line. Nobody knows which line is going to be their last one, so they're never good ones. Someone I read to for a whole year: the last thing they said was 'brb'. 02:41:19. I still check, sometimes, in case there's a second line."
     next: more3d
   more3d:
     speaker: logs

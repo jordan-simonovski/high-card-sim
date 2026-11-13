@@ -117,11 +117,6 @@ nodes:
     speaker: monitoring
     mood: neutral
     text: "Runbook note for {name}: no further paging required. Status: resolved."
-    next: unsub
-  unsub:
-    speaker: monitoring
-    mood: neutral
-    text: "Runbook note two: cancel OnlySpans subscription. …Downgrade to the free tier. One change at a time."
     next: bye
   bye:
     text: "The amber light blinks once and turns green, and this time it's telling the truth."

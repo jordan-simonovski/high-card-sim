@@ -1,7 +1,8 @@
 # Act 4: the portal. The page has resolved and the portal home is open. Relapse first; otherwise
 # stay for one pillar (their affection decides: good ending, or they gently send you home),
 # stay for all three (all_turned: the true ending), or go home (bittersweet).
-# Logs: logs_affection_high only counts lines from before the incident, so finale lines don't move it.
+# Logs' good ending needs logs_turned (read on the date, and read rather than grepped in the fire,
+# unless that was mended in the quiet hour). Traces reads back exactly which date moments were kept.
 id: finale
 start: start
 music: finale
@@ -55,7 +56,7 @@ nodes:
     speaker: dba
     mood: neutral
     text: "You can go back to your on-call rotation now. If you want. Going home is a nullable column. I made it nullable on purpose this time."
-    next: pillars
+    next: live
   pillars:
     text: "Logs, Metrics and Traces are waiting by the portal. Logs has already filled three pages about this moment. {logs.She} [logs:is|are] trying very hard not to read them aloud."
     next: metrics_hi
@@ -68,7 +69,7 @@ nodes:
     speaker: traces
     mood: sad
     text: "Or you could— no. Sorry. I'm only saying it because I'm sampled right now, and I might not be later."
-    next: live
+    next: status
   live:
     speaker: collector
     mood: happy
@@ -81,7 +82,7 @@ nodes:
     next: live3
   live3:
     text: "Metrics glances at the viewer count and fixes {metrics.his} hair. Traces, camera-shy, drops out of frame and back in."
-    next: status
+    next: pillars
   status:
     text: "Here is how much of you each of them got to keep."
     show: relationship_status
@@ -104,7 +105,8 @@ nodes:
     mood: blush
     text: "Oh! You picked— okay, hold on, let me find the right page. I want to get this exactly right."
     branches:
-      - { condition: logs_affection_high, target: logs_good_1 }
+      - { condition: logs_turned, target: logs_good_1 }
+      - { condition: logs_fire_only, target: logs_fire_1 }
     next: logs_bad_1
   logs_good_1:
     music: end_true
@@ -118,23 +120,34 @@ nodes:
   logs_good_2:
     speaker: logs
     mood: blush
-    text: "I don't know what every line meant. But I know what this one means. Can I read you something? It's long. Obviously."
+    text: "I had a speech. It's long. Obviously. It goes to the horizon, look."
     next: logs_good_3
   logs_good_3:
-    text: "You nod. Logs unrolls the scroll and begins. It keeps going, all the way to the horizon."
+    text: "Logs unrolls the scroll, takes a breath, and then lets it roll itself back up."
     cg: logs_end
     next: logs_good_4
   logs_good_4:
     speaker: logs
     mood: happy
-    text: "'At 14:02:11 I met someone who let me finish my sentences—' anyway— retention policy: forever."
+    text: "'I love you.' That's the whole entry. Three words. I know what it means. I checked."
     cg: logs_end
     next: end_logs
   end_logs:
     sfx: ending
-    text: "You read Logs start to finish, on purpose, on ordinary days. It takes the rest of your life. You never skip a line."
+    text: "You read Logs start to finish, on purpose, on ordinary days, and {logs.she} [logs:reads|read] you back. Most entries are long. The ones that matter are short, and neither of you ever skips a line."
     cg: logs_end
     ending: "Verbose, Forever"
+  logs_fire_1:
+    music: end_bittersweet
+    speaker: logs
+    mood: sad
+    text: "I looked for us. There's so much! The café, the weather, all of it. And then the fire starts, and the first line of the fire is you, searching ERROR."
+    next: logs_fire_2
+  logs_fire_2:
+    speaker: logs
+    mood: neutral
+    text: "I think you should go home. You read me beautifully on a quiet day. I need someone who reads me on the loud ones too. Thirty days, then I rotate. It's a policy thing. Mostly."
+    next: end_retention
   logs_bad_1:
     music: end_bittersweet
     speaker: logs
@@ -234,7 +247,52 @@ nodes:
     music: end_true
     speaker: traces
     mood: happy
-    text: "I kept it. The waiting, the hot chocolate, your hand, the request that never finished. It's all connected. Nothing dropped."
+    text: "I kept it. Not all of it, there wasn't the budget. Let me read you what's there."
+    next: tk1
+  tk1:
+    text: ""
+    branches:
+      - { condition: kept_wait, target: tk_wait }
+    next: tk2
+  tk_wait:
+    speaker: traces
+    mood: blush
+    text: "The waiting. You said 'long enough', and that you were glad I was there."
+    next: tk2
+  tk2:
+    text: ""
+    branches:
+      - { condition: kept_because, target: tk_because }
+    next: tk3
+  tk_because:
+    speaker: traces
+    mood: happy
+    text: "Why I like the café. The whole sentence, with the because still on it."
+    next: tk3
+  tk3:
+    text: ""
+    branches:
+      - { condition: kept_request, target: tk_request }
+    next: tk4
+  tk_request:
+    speaker: traces
+    mood: neutral
+    text: "You saying we'd keep the one that never finishes. Before either of us knew what it was."
+    next: tk4
+  tk4:
+    text: ""
+    branches:
+      - { condition: kept_hand, target: tk_hand }
+    next: tk_gaps
+  tk_hand:
+    speaker: traces
+    mood: blush
+    text: "Your hand. Parent span, child span. I've opened that one so many times the edges have gone soft."
+    next: tk_gaps
+  tk_gaps:
+    speaker: traces
+    mood: neutral
+    text: "And there are gaps. I can feel where they are. I've stopped apologising for them. They're just where you spent the budget on something else."
     next: traces_good_1b
   traces_good_1b:
     text: "You tell {traces.them} to put you on the rota here. Permanently. Traces marks it important before you've finished the sentence."
@@ -298,6 +356,11 @@ nodes:
     speaker: metrics
     mood: blush
     text: "No pre-aggregation. I'd have to keep everything. Every label. …I want to keep everything."
+    next: all_6b
+  all_6b:
+    speaker: logs
+    mood: happy
+    text: "Then you get the names back. Every one I kept for you. Starting with Pim."
     next: all_7
   all_7:
     speaker: traces
@@ -360,6 +423,12 @@ nodes:
     next: home_7
   home_7:
     text: "No new pages. The house is so quiet you can hear the fridge."
+    next: home_7b
+  home_7b:
+    text: "One unread message, from hours ago. 'you ok? you've seemed off.' You type 'fine'. You look at it for a while."
+    next: home_7c
+  home_7c:
+    text: "You delete it and write the long answer instead. It comes out in the wrong order, with tangents. You send all of it."
     next: home_8
   home_8:
     sfx: affection

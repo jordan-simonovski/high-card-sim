@@ -80,6 +80,9 @@ export function incidentRows(sessionId: string, startedTs: string): GameEvent[] 
     const p = i / TRACES; // OnlySpans traffic ramps up across the window; so do the errors
     const t0 = begin + p * WINDOW_MS + r() * (WINDOW_MS / TRACES);
     const tier = r() < 0.1 + 0.6 * p ? 'onlyspans' : r() < 0.4 ? 'pro' : 'free';
+    // Citizens on free and pro are being sampled out: their traffic thins from 60% of the way
+    // through the window and has stopped by 90%. Metrics sees it as series going flat.
+    if (tier !== 'onlyspans' && r() < (p - 0.6) / 0.3) continue;
     const fails = tier === 'onlyspans' ? r() < 0.75 : r() < 0.01;
     const spans = trace(sessionId, r, t0, tier, pickOf(r, REQUESTS), fails);
     rows.push(...spans);

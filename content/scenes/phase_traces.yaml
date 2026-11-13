@@ -2,19 +2,25 @@
 # keep_trace tail-samples it (every span gets sampling.priority = 1); the second look shows
 # request the-one-that-never-finishes: gateway → checkout/registry → … → collector.batch_processor,
 # status error after 30,000 ms (deadline exceeded).
-# Turning point lands harder with traces_affection_high.
+# Traces is the one being sampled out here. Asking them which request to keep is the first time
+# anyone has let them decide; with traces_affection_high they then mark a moment themselves.
 id: phase_traces
 start: arrive
 music: incident
 bg: sampling_cafe
 nodes:
   arrive:
-    text: "The Sampling Café is greyer than before. Whole rows of tables are missing, chairs and all."
+    text: "The Sampling Café is greyer than before. Whole rows of tables are missing, chairs and all. Traces is at yours. You can see the chair through {traces.them}."
     next: t1
   t1:
     speaker: traces
     mood: sad
     text: "There's a request that keeps dying in the middle. I think I told you? I think it's this. I think it's all of this."
+    next: t1b
+  t1b:
+    speaker: traces
+    mood: sad
+    text: "And look at my hands. The threads are going out. The sampler's dropping whole paths now, and I'm— I'm mostly paths."
     next: t2
   t2:
     speaker: traces
@@ -38,8 +44,18 @@ nodes:
   remember:
     text: "You remember a café table, and a chair that stayed empty until you decided the moment mattered."
     choices:
-      - { id: mark, text: "Mark the failing request as important. Keep it, whatever it costs.", target: keep }
-      - { id: wait, text: "\"Don't decide at the start. Wait for the end, and keep the one that hurts.\"", target: keep }
+      - { id: ask, text: "\"You choose. Which one do you want to keep?\"", target: ask_them, character: traces, attributes: { sampling.priority: "1" } }
+      - { id: mark, text: "Mark the failing request yourself. There's no time to ask.", target: keep }
+  ask_them:
+    speaker: traces
+    mood: surprised
+    text: "Me? Nobody's ever— the sampler decides. At the start, before anything's happened. It decided about me at the start."
+    next: ask_them2
+  ask_them2:
+    speaker: traces
+    mood: neutral
+    text: "…That one. The one that hurts. And don't decide at the start. Wait for the end."
+    next: keep
   keep:
     sfx: affection
     action: keep_trace
@@ -54,6 +70,9 @@ nodes:
     speaker: traces
     mood: surprised
     text: "Oh. Oh, I have it. The whole thing. I can feel it, start to finish. I've never felt the end of anything."
+    next: solid
+  solid:
+    text: "The chair stops showing through."
     next: open2
   kept_unsure:
     speaker: traces
@@ -118,6 +137,15 @@ nodes:
     speaker: traces
     mood: happy
     text: "Start to end, and I didn't drop anything. Is this what it's like for everyone else? All the time?"
+    next: own
+  own:
+    sfx: affection
+    text: "Traces lifts a hand. One gold thread loops round your wrist and ties itself off. sampling.priority = 1, and this time you didn't put it there."
+    next: own2
+  own2:
+    speaker: traces
+    mood: blush
+    text: "I marked that one. Me. I didn't know I was allowed."
     next: errors
   turn_soft:
     music: traces

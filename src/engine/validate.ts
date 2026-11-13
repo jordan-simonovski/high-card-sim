@@ -20,7 +20,7 @@ export interface Content {
 
 export const ACTIONS = [
   'create_character',
-  'open_console', 'open_console:logs', 'open_console:trace', 'open_console:metrics',
+  'open_console', 'open_console:logs', 'open_console:trace', 'open_console:metrics', 'open_console:deltas',
   'incident_start', // inserts the Realm's incident telemetry and sounds the alarm
   'keep_trace', // tail-samples the failing request: its whole path becomes visible to Traces
   'resolve_incident', // the page resolves; the alarm stops

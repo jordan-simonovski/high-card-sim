@@ -1,7 +1,9 @@
 # Phase 2: add the dimension back. The first look shows errors per minute, unsplit; Metrics adds one
 # label back: tier (free, pro, onlyspans). onlyspans carries almost every error.
-# No affection_delta here on purpose: the finale gates read affection from the dates.
-# Turning point lands harder with metrics_affection_high.
+# The shell shows requests per minute under the errors: free and pro thin out and stop, which is
+# the thing he dropped his labels to never watch again. Staying counts (+1); pushing costs (-1).
+# Turning point lands harder with metrics_affection_high. Handoff: he has counted every time
+# Traces turned up.
 id: phase_metrics
 start: arrive
 music: incident
@@ -13,7 +15,7 @@ nodes:
   m1:
     speaker: metrics
     mood: neutral
-    text: "Yes. That WARN is mine. When something gets too detailed, I drop it. That's the job."
+    text: "Yes. That WARN is mine. When something gets too detailed, I drop it. That's the job. I never asked what I was dropping."
     next: m2
   m2:
     speaker: metrics
@@ -44,9 +46,9 @@ nodes:
     mood: neutral
     text: "If I add it back, I'll remember this. Exactly. Whatever it shows."
     choices:
-      - { id: stay, text: "\"I'm not going anywhere. Add it back. I'll be right here.\"", target: stay, vibe: good }
-      - { id: hand, text: "Put a hand on {metrics.his} shoulder and wait.", target: stay_quiet, vibe: good }
-      - { id: push, text: "\"Metrics, people are disappearing. We need it.\"", target: push }
+      - { id: stay, text: "\"I'm not going anywhere. Add it back. I'll be right here.\"", target: stay, affection_delta: 1 }
+      - { id: hand, text: "Put a hand on {metrics.his} shoulder and wait.", target: stay_quiet, affection_delta: 1 }
+      - { id: push, text: "\"Metrics, people are disappearing. We need it.\"", target: push, affection_delta: -1 }
   push:
     speaker: metrics
     mood: annoyed
@@ -73,7 +75,7 @@ nodes:
     next: open
   open:
     action: open_console:metrics
-    text: "The Query Shell opens on Metrics' charts. The error spike, split by tier."
+    text: "The Query Shell opens on Metrics' charts. The error spike, split by tier. Under it, requests per minute, split the same way."
     next: ask
   ask:
     speaker: metrics
@@ -105,11 +107,42 @@ nodes:
     speaker: metrics
     mood: neutral
     text: "onlyspans. Nearly all of it. I'll say it slower next time. There won't be a next time. Probably."
-    next: turn
+    next: flat
   found:
     speaker: metrics
     mood: surprised
     text: "onlyspans. Nearly every error in the Realm."
+    next: flat
+  flat:
+    text: "Metrics hasn't looked away from the second chart. Requests per minute. free thins out over the last few minutes and stops. pro thins out and stops. The only colour still arriving is OnlySpans orange."
+    next: flat2
+  flat2:
+    speaker: metrics
+    mood: sad
+    text: "Those aren't errors stopping. Those are people stopping. Going to zero while I watch. This is the thing. This is exactly the thing I dropped my labels to never see again."
+    next: flat3
+  flat3:
+    speaker: metrics
+    mood: sad
+    text: "And it's my drop rule doing it. It can't tell a series from a citizen. I never asked it to."
+    choices:
+      - { id: look, text: "\"Keep looking. I'm looking with you.\"", target: flat_look, affection_delta: 1 }
+      - { id: fault, text: "\"It's not your fault.\"", target: flat_fault }
+      - { id: stop, text: "\"Then stop dropping things.\"", target: flat_stop, affection_delta: -1 }
+  flat_look:
+    speaker: metrics
+    mood: blush
+    text: "…Okay. Zero. Zero. Zero. Still looking. It's different with someone else reading the axis."
+    next: turn
+  flat_fault:
+    speaker: metrics
+    mood: neutral
+    text: "It's my mechanism. Fault is a label. I'm taking that one back as well."
+    next: turn
+  flat_stop:
+    speaker: metrics
+    mood: annoyed
+    text: "I can't stop until I know what to keep. That's what the label was for. …You're right. Loudly, but right."
     next: turn
   turn:
     text: ""
@@ -153,4 +186,24 @@ nodes:
     speaker: traces
     mood: sad
     text: "—me. Um. Hi. I've been here a while, actually. Nobody was sampling me."
+    next: count
+  count:
+    speaker: metrics
+    mood: neutral
+    text: "Forty-one."
+    next: count2
+  count2:
+    speaker: traces
+    mood: surprised
+    text: "…Sorry?"
+    next: count3
+  count3:
+    speaker: metrics
+    mood: neutral
+    text: "Times you've turned up this month. You apologise as if it's fewer. It's forty-one. I don't know what happened at any of them. I know you were there."
+    next: count4
+  count4:
+    speaker: traces
+    mood: blush
+    text: "I've only got four of those. You've had the rest this whole time?"
     next: "@phase_traces"

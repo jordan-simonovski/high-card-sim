@@ -1,0 +1,185 @@
+# The quiet hour: after the page closes and before the portal, one private scene with one pillar
+# (or none). It is also the one chance to mend something: the `repair` choice with Logs undoes
+# grepped_error, Metrics' choices move his counter, and a kept moment here lands in Traces' view.
+id: quiet
+start: start
+music: resolution
+bg: mesh_plaza
+nodes:
+  start:
+    text: ""
+    branches:
+      - { condition: chose_relapse, target: "@finale" }
+    next: dusk
+  dusk:
+    text: "The Mesh is lit again, sector by sector. Nobody is paging anybody. You have an hour, and for once it isn't on a rota."
+    next: who
+  who:
+    text: "Who do you go and find?"
+    choices:
+      - { id: logs, text: "Logs, in the Archive Café.", target: ql1 }
+      - { id: metrics, text: "Metrics, at the gym.", target: qm1 }
+      - { id: traces, text: "Traces, if they're around.", target: qt1 }
+      - { id: nobody, text: "Nobody. Walk to the portal.", target: "@finale" }
+
+  # Logs
+  ql1:
+    bg: archive_cafe
+    music: logs
+    text: "The shelves have stopped scrolling. Logs is sitting on the floor between two of them with the notebook shut, which you have never seen."
+    branches:
+      - { condition: grepped_error, target: ql_grep }
+    next: ql_read
+  ql_grep:
+    speaker: logs
+    mood: sad
+    text: "You searched ERROR. First thing. It's in me now, timestamp and all, and I keep rereading it. I've been deciding whether to mind."
+    choices:
+      - { id: repair, text: "\"I panicked, and I treated you like everyone does. I'm sorry. Read me tonight's INFO?\"", target: ql_repair, vibe: good }
+      - { id: defend, text: "\"People were disappearing. ERROR was the fastest way in.\"", target: ql_defend }
+  ql_repair:
+    speaker: logs
+    mood: surprised
+    text: "All of it? It's about eighteen hundred lines. Most of them are 'heartbeat ok'."
+    next: ql_repair2
+  ql_repair2:
+    speaker: logs
+    mood: blush
+    text: "Okay. From the top. Don't skim. I'll know."
+    next: ql_repair3
+  ql_repair3:
+    text: "It takes most of the hour. Somewhere around the four hundredth 'heartbeat ok' you notice you've stopped waiting for it to end."
+    next: ql_ask
+  ql_defend:
+    speaker: logs
+    mood: neutral
+    text: "It was. It always is. That's the whole trouble with me."
+    next: ql_end
+  ql_read:
+    speaker: logs
+    mood: neutral
+    text: "I'm not writing. I keep nearly starting. I wanted to see what an hour's like if I just have it, instead of keeping it."
+    next: ql_read2
+  ql_read2:
+    speaker: logs
+    mood: happy
+    text: "It's quite long, an hour. I see why people ask for the summary."
+    next: ql_ask
+  ql_ask:
+    speaker: logs
+    mood: neutral
+    text: "Can I ask you one? I've got every word you've said since you fell in, and there's one I can't parse. When you say you're fine. What's the long version?"
+    choices:
+      - { id: long, text: "Tell {logs.her} the long version.", target: ql_long, vibe: good }
+      - { id: fine, text: "\"Fine is the long version.\"", target: ql_fine }
+  ql_long:
+    text: "You tell it badly, out of order, with tangents. Logs doesn't write down a word. {logs.She} [logs:listens|listen], to the end."
+    next: ql_long2
+  ql_long2:
+    speaker: logs
+    mood: blush
+    text: "Thank you. That was very verbose. I loved it."
+    next: ql_end
+  ql_fine:
+    speaker: logs
+    mood: sad
+    text: "Okay. I'll keep 'fine'. I've got a lot of those from you. They stack up nicely. I'll wait."
+    next: ql_end
+  ql_end:
+    text: "When the hour's up, Logs opens the notebook, writes one line, and doesn't show you."
+    next: "@finale"
+
+  # Metrics
+  qm1:
+    bg: dashboard_gym
+    music: metrics
+    text: "The gauges have come off the right-hand side. Metrics is sitting on the bench with both watches off, face down beside {metrics.him}."
+    next: qm2
+  qm2:
+    speaker: metrics
+    mood: neutral
+    text: "I asked Logs for the name."
+    next: qm3
+  qm3:
+    speaker: metrics
+    mood: sad
+    text: "Pim. Three requests a minute for two years. Last line: 'heartbeat ok'. Then nothing. I had the zeroes. I never had the 'ok'."
+    next: qm4
+  qm4:
+    speaker: metrics
+    mood: blush
+    text: "I thought the detail would be the worst part. It's the best part. I've been wrong about that at a rate of once per decade."
+    choices:
+      - { id: pim, text: "\"Tell me about Pim. Whatever you've got now.\"", target: qm_pim, affection_delta: 1 }
+      - { id: sit, text: "Sit down next to {metrics.him}. Don't count the minutes.", target: qm_sit, affection_delta: 1 }
+      - { id: everyone, text: "\"You can't keep everyone, Metrics.\"", target: qm_everyone }
+  qm_pim:
+    speaker: metrics
+    mood: happy
+    text: "Steady. That's all I had before. Now I know they said 'ok' right up to the end. I'd like to think they meant it."
+    next: qm_end
+  qm_sit:
+    speaker: metrics
+    mood: blush
+    text: "…I counted. Eleven. Sorry. They were good ones."
+    next: qm_end
+  qm_everyone:
+    speaker: metrics
+    mood: neutral
+    text: "No. I've costed it. But I dropped everyone so I'd never have to find out which ones I could."
+    next: qm_end
+  qm_end:
+    speaker: metrics
+    mood: neutral
+    text: "The portal's open. I checked. Don't tell me which way you're leaning. I'd like to not know something for an hour."
+    next: "@finale"
+
+  # Traces
+  qt1:
+    bg: sampling_cafe
+    music: traces
+    text: "The Sampling Café has all its tables back. Traces is at yours, early, with two hot chocolates on the table and neither one dropped."
+    next: qt2
+  qt2:
+    speaker: traces
+    mood: happy
+    text: "I got here first. I've never got anywhere first. I didn't know what to do with my hands."
+    branches:
+      - { condition: kept_hand, target: qt_hand }
+    next: qt_gap
+  qt_hand:
+    speaker: traces
+    mood: blush
+    text: "I kept the hand. From our date. I keep opening it to check. It's there every time."
+    next: qt3
+  qt_gap:
+    speaker: traces
+    mood: sad
+    text: "There's a gap in our date, right near the end. I can feel the edges of it. I think something happened to my hand."
+    next: qt3
+  qt3:
+    speaker: traces
+    mood: neutral
+    text: "The new policy decides at the end. So I get to see how a thing turns out before anyone picks what I keep. Tonight, um. I'd like to pick."
+    choices:
+      - { id: theirs, text: "\"Then pick. I won't mark anything. This one's yours.\"", target: qt_theirs, character: traces, attributes: { sampling.priority: "1" }, vibe: good }
+      - { id: mine, text: "Mark the moment for {traces.them}.", target: qt_mine, character: traces, attributes: { sampling.priority: "1" } }
+      - { id: rest, text: "\"You should rest. You nearly got sampled out.\"", target: qt_rest }
+  qt_theirs:
+    speaker: traces
+    mood: blush
+    text: "This. Now. Nothing's even happening. I'm keeping it because nothing's happening and you're here."
+    next: qt_end
+  qt_mine:
+    speaker: traces
+    mood: neutral
+    text: "Oh. Thank you. I was about to. It's all right. It's kept either way."
+    next: qt_end
+  qt_rest:
+    speaker: traces
+    mood: neutral
+    text: "I nearly always get sampled out. Tonight I didn't. I'd like to stay up for it."
+    next: qt_end
+  qt_end:
+    text: "You finish both hot chocolates between you. Traces is there for all of it, start to end."
+    next: "@finale"

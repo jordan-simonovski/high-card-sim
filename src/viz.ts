@@ -5,7 +5,7 @@ import './viz.css';
 import type { Row } from './db.ts';
 import type { CaseFile } from './casefile.ts';
 
-export type View = 'logs' | 'trace' | 'metrics';
+export type View = 'logs' | 'trace' | 'metrics' | 'deltas';
 export interface Views {
   show(v: View): void;
 }
@@ -29,6 +29,7 @@ export function mountViews(o: Opts): Views {
       trace.open(seq);
       o.select('trace');
     }),
+    deltas: deltasView(o, $('#panel-deltas')),
   };
   return { show: (v) => void views[v].refresh() };
 }
@@ -192,9 +193,9 @@ function logsView(o: Opts, panel: HTMLElement) {
     h('div', { class: 'viz-controls' }, h('label', { class: 'viz-search' }, icon(ICON.search), h('span', { class: 'sr-only' }, 'Search lines'), search), order),
     h('div', { class: 'viz-controls' }, levels.el, group),
     chips,
-    status.el,
     count,
     list,
+    status.el, // the query goes under what it found, so the lines start higher up
   );
   search.oninput = draw;
   order.onclick = () => {
@@ -332,7 +333,7 @@ function traceView(o: Opts, panel: HTMLElement) {
   const realm = h('section', { class: 'wf-realm', id: 'trace-realm', 'aria-label': 'Realm requests', hidden: '' });
   const you = h('h3', { class: 'wf-you', hidden: '' }, 'Your session');
   // The Realm's requests come first: during the incident they're what you're here for.
-  panel.append(h('div', { class: 'viz-controls' }, sources.el), realm, you, summary, status.el, legend, scroll, details);
+  panel.append(h('div', { class: 'viz-controls' }, sources.el), realm, you, summary, legend, scroll, details, status.el);
 
   /** One mini waterfall per Realm request; a span whose parent wasn't sampled says so. */
   function drawRealm(rows: Row[]) {
@@ -570,9 +571,9 @@ const METRICS_SQL = {
   statChoices: "SELECT count() AS choices FROM events WHERE event_type = 'choice'",
   time: "SELECT seq, ts, scene, node, character, choice_text, affection_delta, time_to_choose_ms FROM events WHERE event_type = 'choice' ORDER BY seq",
   /** The incident, as Metrics sees it: one number per minute, going up. */
-  errors: "SELECT toStartOfMinute(ts) AS minute, countIf(attributes['status'] = 'error') AS errors FROM events WHERE event_type = 'realm_span' GROUP BY minute ORDER BY minute",
+  errors: "SELECT toStartOfMinute(ts) AS minute, countIf(attributes['status'] = 'error') AS errors, countIf(attributes['parent_span_id'] = '') AS requests FROM events WHERE event_type = 'realm_span' GROUP BY minute ORDER BY minute",
   /** …and once he adds tier back, the same number split by it. */
-  errorsByTier: "SELECT toStartOfMinute(ts) AS minute, attributes['tier'] AS tier, countIf(attributes['status'] = 'error') AS errors FROM events WHERE event_type = 'realm_span' GROUP BY minute, tier ORDER BY minute, tier",
+  errorsByTier: "SELECT toStartOfMinute(ts) AS minute, attributes['tier'] AS tier, countIf(attributes['status'] = 'error') AS errors, countIf(attributes['parent_span_id'] = '') AS requests FROM events WHERE event_type = 'realm_span' GROUP BY minute, tier ORDER BY minute, tier",
 };
 const TIERS = ['onlyspans', 'pro', 'free']; // stacked bottom to top: the one that matters sits on the axis
 const CHART_IDLE_CAP = 5 * 60_000;
@@ -598,7 +599,7 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
   const status = statusLine();
   const host = h('div', { class: 'chart', id: 'metrics-chart' });
   const numbers = h('details', { class: 'viz-table' });
-  panel.append(h('div', { class: 'viz-controls' }, kinds.el), note, status.el, host, numbers);
+  panel.append(h('div', { class: 'viz-controls' }, kinds.el), note, host, numbers, status.el);
   new ResizeObserver(() => {
     if (host.clientWidth && Math.abs(host.clientWidth - drawnWidth) > 4) draw();
   }).observe(host);
@@ -872,15 +873,24 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
     host.replaceChildren(legend, svg, tip.el);
   }
 
-  /** Errors per minute: one red column each until tier is back, then stacked by tier. */
+  /**
+   * Errors per minute, and under them requests per minute: one column each until tier is back,
+   * then stacked by tier. In the requests, free and pro thin out and stop: citizens sampled out.
+   */
   function errorsChart(W: number) {
+    if (!rows.length) return empty('No incident. Metrics would like it to stay that way.');
+    host.replaceChildren(...perMinute(W, 'errors'), ...perMinute(W, 'requests'));
+  }
+
+  function perMinute(W: number, col: 'errors' | 'requests'): Node[] {
+    const noun = col.slice(0, -1);
+    const all = `all ${col}`;
     const split = rows.some((r) => r.tier !== undefined);
     const minutes = [...new Set(rows.map((r) => str(r.minute)))].sort();
-    if (!minutes.length) return empty('No incident. Metrics would like it to stay that way.');
-    const tiers = split ? [...new Set(rows.map((r) => str(r.tier)))].sort((a, b) => (TIERS.indexOf(a) + 1 || 9) - (TIERS.indexOf(b) + 1 || 9)) : ['all errors'];
-    const at = new Map(rows.map((r) => [`${str(r.minute)}|${split ? str(r.tier) : 'all errors'}`, num(r.errors)]));
+    const tiers = split ? [...new Set(rows.map((r) => str(r.tier)))].sort((a, b) => (TIERS.indexOf(a) + 1 || 9) - (TIERS.indexOf(b) + 1 || 9)) : [all];
+    const at = new Map(rows.map((r) => [`${str(r.minute)}|${split ? str(r.tier) : all}`, num(r[col])]));
     const val = (mi: string, t: string) => at.get(`${mi}|${t}`) ?? 0;
-    const color = (t: string) => (t === 'onlyspans' ? who(o, 'collector').color : t === 'pro' ? 'var(--lilac-deep)' : t === 'free' ? '#b8aecb' : '#e8566b');
+    const color = (t: string) => (t === 'onlyspans' ? who(o, 'collector').color : t === 'pro' ? 'var(--lilac-deep)' : t === 'free' ? '#b8aecb' : col === 'errors' ? '#e8566b' : 'var(--lilac-deep)');
     const totals = tiers.map((t) => ({ t, n: minutes.reduce((a, mi) => a + val(mi, t), 0) }));
     const hm = (mi: string) => clock(parseTs(mi)).slice(0, 5);
 
@@ -893,7 +903,7 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
     const y = (v: number) => m.t + (1 - v / hi) * (H - m.t - m.b);
     const svg = s('svg', {
       width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'group',
-      'aria-label': `Errors per minute${split ? ' by tier' : ''}, from events, ${hm(minutes[0])} to ${hm(minutes.at(-1)!)}. Totals: ${totals.map((x) => `${x.t} ${x.n}`).join(', ')}.`,
+      'aria-label': `${col[0].toUpperCase()}${col.slice(1)} per minute${split ? ' by tier' : ''}, from events, ${hm(minutes[0])} to ${hm(minutes.at(-1)!)}. Totals: ${totals.map((x) => `${x.t} ${x.n}`).join(', ')}.`,
     });
     for (let v = 0; v <= hi; v += step)
       svg.append(s('line', { class: v ? 'grid' : 'zero', x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), s('text', { class: 'tick', x: m.l - 8, y: y(v), 'text-anchor': 'end', 'dominant-baseline': 'central' }, String(v)));
@@ -904,7 +914,7 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
       const w = Math.max(1, bw - 3);
       const total = tiers.reduce((a, t) => a + val(mi, t), 0);
       const parts = tiers.filter((t) => val(mi, t));
-      const g = s('g', { class: 'mark', tabindex: 0, 'aria-label': `${hm(mi)}: ${total} errors${split ? `, ${parts.map((t) => `${t} ${val(mi, t)}`).join(', ')}` : ''}` });
+      const g = s('g', { class: 'mark', tabindex: 0, 'aria-label': `${hm(mi)}: ${total} ${col}${split ? `, ${parts.map((t) => `${t} ${val(mi, t)}`).join(', ')}` : ''}` });
       g.append(s('rect', { class: 'hit', x: m.l + i * bw, y: m.t, width: bw, height: H - m.t - m.b }));
       let acc = 0;
       for (const t of parts) {
@@ -913,15 +923,15 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
         acc += v;
       }
       wire(g, tip, () => [x0 + w / 2, y(total)], () => [
-        h('strong', { class: 'tip-value' }, `${total} error${total === 1 ? '' : 's'}`),
-        h('span', {}, `${hm(mi)} · countIf(status = 'error')`),
+        h('strong', { class: 'tip-value' }, `${total} ${noun}${total === 1 ? '' : 's'}`),
+        h('span', {}, `${hm(mi)} · ${col === 'errors' ? "countIf(status = 'error')" : 'requests started'}`),
         ...(split ? parts.map((t) => h('span', { class: 'tip-who' }, h('i', { class: 'key', style: `--c: ${color(t)}`, 'aria-hidden': 'true' }), `${t}: ${val(mi, t)}`)) : []),
       ]);
       svg.append(g);
       if (i % every === 0) svg.append(s('text', { class: 'tick', x: x0 + w / 2, y: H - 8, 'text-anchor': i ? 'middle' : 'start' }, hm(mi)));
     });
-    const legend = h('div', { class: 'viz-legend', 'aria-hidden': 'true' }, ...totals.map(({ t, n }) => h('span', {}, h('i', { class: 'key', style: `--c: ${color(t)}` }), `${t} `, h('strong', {}, String(n)))));
-    host.replaceChildren(legend, svg, tip.el);
+    const legend = h('div', { class: 'viz-legend', 'aria-hidden': 'true' }, h('strong', {}, `${col} per minute`), ...totals.map(({ t, n }) => h('span', {}, h('i', { class: 'key', style: `--c: ${color(t)}` }), `${t} `, h('strong', {}, String(n)))));
+    return [legend, svg, tip.el];
   }
 
   function draw() {
@@ -943,7 +953,7 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
     note.textContent =
       kind === 'errors'
         ? cf.labelBack
-          ? 'Errors per minute, split by tier: the label Metrics dropped to save memory, and just added back. It reads events, the only place tier survived.'
+          ? 'Errors per minute, split by tier: the label Metrics dropped to save memory, and just added back. Under them, requests per minute: watch free and pro. It reads events, the only place tier survived.'
           : 'Errors per minute, from events. Metrics dropped tier with the rest of his labels, so this is all he’s got: one number, going up.'
         : kind === 'time'
         ? 'Over time and its exemplars read events, the whole table: metrics_agg only keeps totals, so Metrics can’t remember when anything happened.'
@@ -956,6 +966,165 @@ function metricsView(o: Opts, panel: HTMLElement, openInTrace: (seq: number) => 
     numbers.hidden = kind === 'stat';
     draw();
   }
+
+  return { refresh };
+}
+
+// ---------- Wide event deltas: box what looks wrong, see what's different about it ----------
+// The wide table's own view. A heatmap of every Realm span (minute by duration); select a region
+// and each attribute is compared inside the selection against everything outside it. The ones
+// whose values differ most come first. The selection is bin indexes, so only numbers reach the SQL.
+const WD_DIMS = ['tier', 'service', 'status', 'request', 'subscriber_id'];
+/** Two buckets per power of ten: 0 is 1 ms, 6 is 1 s, 8 is 10 s. */
+const WD_BUCKET = "toUInt8(floor(2 * log10(greatest(toFloat64OrZero(attributes['duration_ms']), 1))))";
+const WD_SLOW = 6;
+const WD_HEAT = `SELECT toStartOfMinute(ts) AS minute, ${WD_BUCKET} AS bucket, count() AS spans FROM events WHERE event_type = 'realm_span' GROUP BY minute, bucket ORDER BY minute, bucket`;
+const WD_COMPARE = (from: string, to: string, b0: number, b1: number) =>
+  `SELECT tupleElement(kv, 1) AS attribute, tupleElement(kv, 2) AS value, countIf(sel) AS selected, countIf(NOT sel) AS baseline FROM (SELECT arrayJoin([${WD_DIMS.map((d) => `('${d}', attributes['${d}'])`).join(', ')}]) AS kv, (ts >= '${from}' AND ts < '${to}' AND ${WD_BUCKET} BETWEEN ${b0} AND ${b1}) AS sel FROM events WHERE event_type = 'realm_span') GROUP BY attribute, value ORDER BY attribute = 'subscriber_id', attribute, selected DESC, baseline DESC LIMIT ${ROW_LIMIT - 1}`;
+const sqlTs = (ms: number) => new Date(ms).toISOString().slice(0, 19).replace('T', ' ');
+
+function deltasView(o: Opts, panel: HTMLElement) {
+  type Sel = { m0: number; m1: number; b0: number; b1: number }; // inclusive bin indexes
+  let heat: Row[] = [];
+  let minutes: string[] = [];
+  let top = 9;
+  let sel: Sel | undefined;
+  let drawnWidth = 0;
+
+  const slow = h('button', { type: 'button', class: 'viz-btn', id: 'wd-slow' }, 'select the slow ones');
+  const clear = h('button', { type: 'button', class: 'viz-btn', id: 'wd-clear' }, 'clear');
+  const status = statusLine();
+  const host = h('div', { class: 'chart wd-heat', id: 'wd-heat' });
+  const out = h('div', { class: 'wd-dims', id: 'wd-dims', 'aria-live': 'polite' });
+  panel.append(
+    h('p', { class: 'viz-note' }, 'Every span the Realm wrote, from events: when, and how long it took. Drag a box round what looks wrong. The attributes that differ most between the box and everything else come first.'),
+    h('div', { class: 'viz-segs' }, slow, clear),
+    host, out, status.el,
+  );
+  slow.onclick = () => pick({ m0: 0, m1: minutes.length - 1, b0: WD_SLOW, b1: top });
+  clear.onclick = () => pick(undefined);
+
+  const label = (b: number) => dur(10 ** (b / 2));
+  function pick(next: Sel | undefined) {
+    sel = next;
+    draw();
+    void compare();
+  }
+
+  function draw() {
+    const W = host.clientWidth;
+    if (!W) return;
+    drawnWidth = W;
+    if (!minutes.length) return host.replaceChildren(h('p', { class: 'viz-empty' }, 'Nothing to compare. The Realm is quiet, and the wide table would like it noted that it was ready anyway.'));
+    const m = { l: 44, r: 8, t: 8, b: 26 };
+    const ch = 18;
+    const H = m.t + (top + 1) * ch + m.b;
+    const cw = (W - m.l - m.r) / minutes.length;
+    const max = Math.max(1, ...heat.map((r) => num(r.spans)));
+    const hm = (mi: string) => clock(parseTs(mi)).slice(0, 5);
+    const total = heat.reduce((a, r) => a + num(r.spans), 0);
+    const slowN = heat.filter((r) => num(r.bucket) >= WD_SLOW).reduce((a, r) => a + num(r.spans), 0);
+    const svg = s('svg', {
+      width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img',
+      'aria-label': `Span durations by minute, from events, ${hm(minutes[0])} to ${hm(minutes.at(-1)!)}. ${total} spans, ${slowN} of them slower than ${label(WD_SLOW)}.`,
+    });
+    for (let b = 0; b <= top; b += 2) svg.append(s('text', { class: 'tick', x: m.l - 8, y: m.t + (top - b + 1) * ch, 'text-anchor': 'end', 'dominant-baseline': 'central' }, label(b)));
+    const every = Math.ceil(minutes.length / (W < 460 ? 4 : 7));
+    minutes.forEach((mi, i) => {
+      if (i % every === 0) svg.append(s('text', { class: 'tick', x: m.l + i * cw + cw / 2, y: H - 8, 'text-anchor': i ? 'middle' : 'start' }, hm(mi)));
+    });
+    for (const r of heat) {
+      const i = minutes.indexOf(str(r.minute));
+      const b = Math.min(num(r.bucket), top);
+      svg.append(s('rect', { class: 'wd-cell', x: m.l + i * cw + 1, y: m.t + (top - b) * ch + 1, width: Math.max(1, cw - 2), height: ch - 2, rx: 3, 'fill-opacity': (0.18 + 0.82 * Math.sqrt(num(r.spans) / max)).toFixed(2) }));
+    }
+    const box = s('rect', { class: 'wd-sel', rx: 4 });
+    const place = (x: Sel | undefined) => {
+      if (!x) return box.setAttribute('visibility', 'hidden');
+      box.setAttribute('visibility', 'visible');
+      for (const [k, v] of Object.entries({ x: m.l + x.m0 * cw, y: m.t + (top - x.b1) * ch, width: (x.m1 - x.m0 + 1) * cw, height: (x.b1 - x.b0 + 1) * ch })) box.setAttribute(k, String(v));
+    };
+    place(sel);
+    svg.append(box);
+
+    // Drag from one bin to another; the box snaps to whole bins.
+    const bin = (e: PointerEvent) => {
+      const r = svg.getBoundingClientRect();
+      const k = W / r.width;
+      const clamp = (v: number, hi: number) => Math.max(0, Math.min(hi, Math.floor(v)));
+      return { mi: clamp(((e.clientX - r.left) * k - m.l) / cw, minutes.length - 1), b: top - clamp(((e.clientY - r.top) * k - m.t) / ch, top) };
+    };
+    let from: { mi: number; b: number } | undefined;
+    let drag: Sel | undefined;
+    const span = (e: PointerEvent): Sel => {
+      const to = bin(e);
+      return { m0: Math.min(from!.mi, to.mi), m1: Math.max(from!.mi, to.mi), b0: Math.min(from!.b, to.b), b1: Math.max(from!.b, to.b) };
+    };
+    svg.addEventListener('pointerdown', (e) => {
+      from = bin(e);
+      svg.setPointerCapture(e.pointerId);
+      place((drag = span(e)));
+      e.preventDefault();
+    });
+    svg.addEventListener('pointermove', (e) => from && place((drag = span(e))));
+    const end = () => {
+      if (!from) return;
+      from = undefined;
+      pick(drag);
+    };
+    svg.addEventListener('pointerup', end);
+    svg.addEventListener('pointercancel', end);
+    host.replaceChildren(svg);
+  }
+
+  async function compare() {
+    if (!sel) {
+      status.set('', '');
+      return out.replaceChildren(h('p', { class: 'viz-empty' }, minutes.length ? 'No selection yet. Most of this is quick. What isn’t?' : ''));
+    }
+    const from = parseTs(minutes[sel.m0]);
+    const rows = await load(o, out, status, WD_COMPARE(sqlTs(from), sqlTs(parseTs(minutes[sel.m1]) + 60_000), sel.b0, sel.b1));
+    if (!rows) return;
+    const dims = WD_DIMS.map((name) => {
+      const vals = rows.filter((r) => str(r.attribute) === name).map((r) => ({ v: str(r.value), s: num(r.selected), b: num(r.baseline) }));
+      const S = vals.reduce((a, x) => a + x.s, 0);
+      const B = vals.reduce((a, x) => a + x.b, 0);
+      const share = vals.map((x) => ({ v: x.v, s: S ? x.s / S : 0, b: B ? x.b / B : 0 }));
+      // Half the summed gap between the two distributions: 0 is identical, 1 is nothing in common.
+      const score = share.reduce((a, x) => a + Math.abs(x.s - x.b), 0) / 2;
+      const distinct = vals.filter((x) => x.s).length;
+      return { name, S, share: share.sort((a, b) => Math.max(b.s, b.b) - Math.max(a.s, a.b)).slice(0, 5), score, distinct };
+    });
+    const S = dims[0]?.S ?? 0;
+    if (!S) return out.replaceChildren(h('p', { class: 'viz-empty' }, 'Nothing in that box. Try the dark band at the top.'));
+    const pct = (x: number) => `${Math.round(x * 100)}%`;
+    out.replaceChildren(
+      h('p', { class: 'viz-legend' }, h('strong', {}, `${S} spans selected`), h('span', {}, h('i', { class: 'key', style: '--c: var(--wd-sel)' }), 'in the box'), h('span', {}, h('i', { class: 'key', style: '--c: var(--wd-base)' }), 'everything else')),
+      ...dims.sort((a, b) => b.score - a.score).map((d) =>
+        h('section', { class: 'wd-dim', 'data-attribute': d.name },
+          h('h3', {}, d.name, h('span', { class: 'wd-score' }, `differs ${pct(d.score)}`)),
+          d.distinct > 5 && d.distinct > d.S / 2 ? h('p', { class: 'wd-uniq' }, `${d.distinct} different values across ${d.S} selected spans: nearly every one has its own.`) : null,
+          h('ul', {}, ...d.share.map((x) =>
+            h('li', { 'aria-label': `${x.v || 'none'}: ${pct(x.s)} of the selection, ${pct(x.b)} of everything else` },
+              h('span', { class: 'wd-val' }, x.v || '(none)'),
+              h('span', { class: 'wd-bars', 'aria-hidden': 'true' }, h('i', { class: 'wd-s', style: `width: ${x.s * 100}%` }), h('i', { class: 'wd-b', style: `width: ${x.b * 100}%` })),
+              h('span', { class: 'wd-pct', 'aria-hidden': 'true' }, `${pct(x.s)} · ${pct(x.b)}`),
+            ))),
+        )),
+    );
+  }
+
+  async function refresh() {
+    const rows = await load(o, host, status, WD_HEAT);
+    if (!rows) return;
+    heat = rows;
+    minutes = [...new Set(rows.map((r) => str(r.minute)))].sort();
+    top = Math.max(9, ...rows.map((r) => num(r.bucket)));
+    if (sel && sel.m1 >= minutes.length) sel = undefined;
+    draw();
+    await compare();
+  }
+  new ResizeObserver(() => host.clientWidth && host.clientWidth !== drawnWidth && draw()).observe(host);
 
   return { refresh };
 }

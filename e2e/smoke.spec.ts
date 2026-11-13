@@ -27,7 +27,7 @@ test('prologue, character creation, SQL branch, reload replays the event log', a
 
   // Prologue renders before the engine is up.
   await say(page, /03:12/);
-  for (const line of [/03:12/, /CRITICAL/, /dashboard/]) await next(page, line);
+  for (const line of [/03:12/, /CRITICAL/, /dashboard/, /Fourth page/]) await next(page, line);
   await page.locator('[data-choice="ack"]').click(); // instantly: avg hesitation < 3 s
   for (const line of [/through the glass/, /ingested/, /high cardinality/, /span attributes/]) await next(page, line);
 
