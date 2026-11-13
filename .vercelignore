@@ -1,0 +1,6 @@
+node_modules
+public/chdb
+dist
+spike-results
+test-results
+playwright-report
