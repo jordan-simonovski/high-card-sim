@@ -1,7 +1,11 @@
 // Offline support. Hashed files (engine, JS, CSS) never change, so they're cache-first forever;
 // art and audio come from cache and refresh in the background; pages go to the network first so
 // a deploy shows up immediately, with the cached copy as the offline fallback.
-const CACHE = 'high-card-v1';
+const CACHE = 'high-card-v2'; // bump when art or audio is replaced in place
+
+self.addEventListener('activate', (e) =>
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))),
+);
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
@@ -31,7 +35,8 @@ async function cacheFirst(req) {
 async function staleWhileRevalidate(req, e) {
   const cache = await caches.open(CACHE);
   const hit = await cache.match(req);
-  const fresh = fetch(req).then((res) => {
+  // no-cache: revalidate with the server (a cheap 304 when nothing changed), never the day-old HTTP cache.
+  const fresh = fetch(req, { cache: 'no-cache' }).then((res) => {
     if (res.ok) cache.put(req, res.clone());
     return res;
   });
