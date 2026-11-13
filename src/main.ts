@@ -7,6 +7,7 @@ import { needsQueries, nextNode, node, sceneTarget, visibleChoices, type Conditi
 import { PRESETS, render, type Player, type Preset } from './engine/pronouns.ts';
 import { resumePoint } from './engine/resume.ts';
 import { createCharacter, playerAttributes, playerFromEvents } from './create.ts';
+import { drawCard, statLines } from './sharecard.ts';
 import { parseSave } from './saves.ts';
 import { openConsole } from './console.ts';
 import type { View } from './viz.ts';
@@ -21,6 +22,10 @@ const { scenes, queries } = content;
 const characters = Object.fromEntries(Object.entries(content.characters).map(([id, c]) => [id, PRESETS[c.pronouns as Preset]]));
 const ENDING_COUNT = Object.values(scenes).reduce((n: number, s: Scene) => n + Object.values(s.nodes).filter((x: SceneNode) => x.ending).length, 0);
 const ART = '/art';
+// Vercel Web Analytics: page views only, nothing from the event log. Skipped locally, where
+// the script isn't served.
+if (!/^(localhost|127\.)/.test(location.hostname))
+  document.head.append(Object.assign(document.createElement('script'), { defer: true, src: '/_vercel/insights/script.js' }));
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
 const boot = { state: 'starting' as string, replayed: 0, error: '' };
@@ -411,7 +416,7 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
       await advance({ textLength });
       await logged;
       await log.append({ scene: scene.id, node: n.id, event_type: 'ending', route: n.id, attributes: { 'ending.title': n.ending } });
-      return endingScreen(n.ending);
+      return endingScreen(n.ending, n.id);
     }
 
     const choices = (await visibleChoices(n, cond)).map((c) => ({ ...c, text: fill(c.text) }));
@@ -458,7 +463,39 @@ const ENDINGS = Object.values(scenes).flatMap((s: Scene) =>
 // Reached endings survive new sessions (a new session wipes the event log, not the gallery).
 const reachedEndings = () => new Set<string>(JSON.parse(pref.get('endings') ?? '[]') as string[]);
 
-function endingScreen(title: string) {
+// Endings without an illustration: who you didn't end up with, where it happened.
+const CARD_ART: Record<string, { bg: string; sprites: string[] }> = {
+  end_relapse: { bg: 'noc_room', sprites: ['monitoring_happy'] },
+  end_retention: { bg: 'archive_cafe', sprites: ['logs_sad'] },
+  end_rolled_up: { bg: 'dashboard_gym', sprites: ['metrics_sad'] },
+  end_sampled_out: { bg: 'sampling_cafe', sprites: ['traces_sad'] },
+  end_home: { bg: 'bedroom_night', sprites: [] },
+};
+let card: Blob | undefined;
+
+/** Paint the share card from the ending and a stats row; the screen works without it. */
+async function makeCard(title: string, nodeId: string, cg?: string) {
+  const img = $<HTMLImageElement>('#share-card');
+  img.hidden = true;
+  card = undefined;
+  try {
+    const [row] = await (await ready).query(queries.share_stats);
+    const lines = statLines(row ?? {});
+    const art = CARD_ART[nodeId] ?? { bg: 'finale_sky', sprites: [] };
+    card = await drawCard({
+      title, lines, name: player?.name ?? 'Someone', site: location.host,
+      art: { cg: cg && `${ART}/cgs/${cg}.webp`, bg: `${ART}/bgs/${art.bg}.webp`, sprites: art.sprites.map((s) => `${ART}/sprites/${s}.webp`) },
+      colors: ['logs', 'traces', 'metrics', 'collector', 'dba'].map((k) => content.characters[k]?.color ?? '#ff7eb6'),
+    });
+    img.src = URL.createObjectURL(card);
+    img.alt = `Share card: ${title}. ${lines.join('. ')}.`;
+    img.hidden = false;
+  } catch (e) {
+    console.error('[share] no card', e);
+  }
+}
+
+function endingScreen(title: string, nodeId: string) {
   const reached = reachedEndings();
   reached.add(title);
   pref.set('endings', JSON.stringify([...reached]));
@@ -471,6 +508,7 @@ function endingScreen(title: string) {
   $('#btn-again').focus();
   // Only the good endings celebrate (they're the ones with an illustration), in that route's colours.
   const cg = ENDINGS.find((e) => e.title === title)?.cg;
+  void makeCard(title, nodeId, cg);
   const ROUTE: Record<string, string[]> = { polycule: ['logs', 'metrics', 'traces'], logs_end: ['logs'], metrics_end: ['metrics'], traces_end: ['traces'] };
   if (cg && ROUTE[cg]) burst(ROUTE[cg].map((k) => content.characters[k]?.color ?? '#ff7eb6'));
 }
@@ -478,9 +516,16 @@ function endingScreen(title: string) {
 async function share(title: string) {
   const text = `I got the "${title}" ending in High Cardinality, a dating sim where ClickHouse decides who loves you.`;
   const url = location.origin;
+  const file = card && new File([card], 'high-cardinality.png', { type: 'image/png' });
   try {
-    if (navigator.share) await navigator.share({ title: 'High Cardinality', text, url });
-    else {
+    if (file && navigator.canShare?.({ files: [file] })) await navigator.share({ title: 'High Cardinality', text, url, files: [file] });
+    else if (navigator.share) await navigator.share({ title: 'High Cardinality', text, url });
+    else if (file) {
+      // No share sheet (most desktops): save the card, and put the words on the clipboard.
+      Object.assign(document.createElement('a'), { href: URL.createObjectURL(file), download: file.name }).click();
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      $('#share-note').textContent = 'Saved the card, and copied the text to your clipboard.';
+    } else {
       await navigator.clipboard.writeText(`${text} ${url}`);
       $('#share-note').textContent = 'Copied to your clipboard.';
     }

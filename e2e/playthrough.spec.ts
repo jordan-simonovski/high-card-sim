@@ -64,6 +64,12 @@ test('true ending: every turning point lands, stop sampling yourself', async ({ 
   await page.locator('#btn-new').click();
   const ending = await playToEnding(page, { queryBaseTable: true, prefer: (ids) => ids.find((i) => i !== 'relapse') ?? ids[0] });
   expect(ending).toBe('Stop Sampling Yourself');
+  // The share card: painted from the ending's art and one stats row.
+  const card = page.locator('#share-card');
+  await expect(card).toBeVisible();
+  await expect(card).toHaveAttribute('alt', /^Share card: Stop Sampling Yourself\. Sev-1 resolved in .*Traces kept \d+ of \d+ moments.*queries run/);
+  expect(await card.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1200);
+  await card.screenshot({ path: test.info().outputPath('card.png') });
 
   const facts = await page.evaluate(async () => {
     const h = (window as any).__hc;
@@ -94,5 +100,7 @@ test('a careless player never reaches the polycule', async ({ page }) => {
   // Always the last option: TL;DR, flattery, plain moments.
   const ending = await playToEnding(page, { queryBaseTable: false, prefer: (ids) => ids[ids.length - 1] });
   expect(ending).not.toBe('Stop Sampling Yourself');
+  await expect(page.locator('#share-card')).toBeVisible();
+  await page.locator('#share-card').screenshot({ path: test.info().outputPath('card.png') });
   test.info().annotations.push({ type: 'ending', description: ending });
 });

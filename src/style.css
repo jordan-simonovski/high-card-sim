@@ -399,3 +399,7 @@ dialog .close svg { width: 20px; height: 20px; }
   #loader.gone { transform: translateX(50%) translateY(-8px); }
   .settings label { grid-template-columns: 7.5em 1fr; }
 }
+
+/* The ending's share card, shown as it will be shared. */
+#share-card { width: min(560px, 92vw); height: auto; border-radius: 18px; border: 3px solid white; box-shadow: var(--lift); }
+@media (max-height: 640px) { #share-card { width: min(360px, 70vw); } }
