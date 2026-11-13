@@ -27,7 +27,7 @@ nodes:
     text: "You tap SNOOZE. The pager, offended, pages harder. The room tilts."
     next: ingest
   ingest:
-    text: "Somewhere, a collector is spinning up. You are being… ingested."
+    text: "The floor turns into a progress bar. You are being… ingested."
     bg: ingest_void
     next: hello
   hello:
@@ -62,7 +62,7 @@ nodes:
   slow:
     speaker: stranger
     mood: neutral
-    text: "You took your time with that page, {name}. That's okay. Someone is going to notice, though."
+    text: "You're a slow chooser, {name}. Over three seconds a decision. Someone is going to notice that."
     next: "@registry"
   fast:
     speaker: stranger

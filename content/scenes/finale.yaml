@@ -21,7 +21,7 @@ nodes:
     text: "events_last_hour: some. errors: 0. Status: OK. Status: OK. Status: OK."
     next: relapse_3
   relapse_3:
-    text: "It's quiet. It's safe. Nobody asks you anything that isn't on the dashboard."
+    text: "It's quiet and safe, and nobody asks you anything that isn't on the dashboard."
     next: relapse_4
   relapse_4:
     speaker: monitoring
@@ -32,7 +32,7 @@ nodes:
     text: "Far below, three pillars wave up at you. You wave back. The dashboard doesn't have a panel for that."
     next: end_relapse
   end_relapse:
-    text: "You're back on call. Every panel is green. Every panel is lying. But it's a lie you know by heart, and Monitoring never misses a night."
+    text: "You're back on call. Every panel is green. Every panel is lying. Monitoring never misses a night."
     ending: "Monitoring Relapse"
 
   # The choice
@@ -78,7 +78,7 @@ nodes:
   logs_good_1:
     speaker: logs
     mood: happy
-    text: "I've been reading back everything we said. All of it. On purpose. Not because anything was on fire."
+    text: "I've been reading back everything we said. On purpose! Nothing was even on fire."
     next: logs_good_2
   logs_good_2:
     speaker: logs
@@ -112,10 +112,10 @@ nodes:
   logs_bad_3:
     speaker: logs
     mood: happy
-    text: "But for thirty whole days I'll remember that you asked for the TL;DR. And honestly? It was a really good TL;DR."
+    text: "But for thirty whole days I'll remember that you asked for the TL;DR. It was a really good TL;DR."
     next: end_retention
   end_retention:
-    text: "Thirty days later, Logs rotates you out, gently. Somewhere in cold storage, one compressed line still says hi."
+    text: "Thirty days later, Logs rotates you out, gently. In cold storage, one gzipped line still says hi."
     ending: "30-Day Retention"
 
   # Metrics
@@ -193,7 +193,7 @@ nodes:
   traces_good_2:
     speaker: traces
     mood: blush
-    text: "This happened because you decided it mattered. And then it stayed. You're in every span."
+    text: "This happened because you decided it mattered. Look. I finally kept a whole 'because'."
     cg: traces_end
     next: end_traces
   end_traces:
@@ -213,10 +213,10 @@ nodes:
   traces_bad_3:
     speaker: traces
     mood: happy
-    text: "But that one percent? It was you. I'm really glad it was you."
+    text: "But you were in my one percent. I'm really glad it was you."
     next: end_sampled_out
   end_sampled_out:
-    text: "The sampler rolls its dice and you land in the other ninety-nine. Somewhere, a single span with your name on it keeps glowing."
+    text: "The sampler rolls its dice and you land in the other ninety-nine. Traces keeps the one span with your name on it anyway."
     ending: "Head-Sampled Out"
 
   # All three
@@ -226,7 +226,7 @@ nodes:
   all_2:
     speaker: metrics
     mood: surprised
-    text: "Stop— we're views. That's the architecture. Each of us is a SELECT over—"
+    text: "Stop. We're views. That's the architecture. Each of us is a SELECT over—"
     next: all_3
   all_3:
     speaker: traces
@@ -239,7 +239,7 @@ nodes:
     text: "Wait, so this whole time we were all looking at the same— oh, I have SO much to tell you both—"
     next: all_5
   all_5:
-    text: "You queried it yourself, in the shell. One wide event per moment. Every column. Nothing sampled, nothing summed, nothing truncated."
+    text: "You queried it yourself, in the shell: one wide event per moment, with every column still on it."
     next: all_6
   all_6:
     speaker: metrics
@@ -249,7 +249,7 @@ nodes:
   all_7:
     speaker: traces
     mood: blush
-    text: "No sampling. Every span. I'd be here all the time. I'd be here for all of it."
+    text: "If nobody samples me, I don't drop anything. I'd just… be here. For all of it."
     next: all_8
   all_8:
     speaker: logs
@@ -257,13 +257,13 @@ nodes:
     text: "And I'd finally have columns! I'd know what things MEANT! Anyway— sorry— yes. Yes. Obviously yes."
     next: all_9
   all_9:
-    text: "The three of them step into one glowing row with you. Same timestamp. Same trace ID. One wide event."
+    text: "The three of them step into one glowing row with you. Same timestamp, same trace ID."
     cg: polycule
     next: all_10
   all_10:
     speaker: logs
     mood: blush
-    text: "Metrics, Traces, look. {They} [was|were] whole this entire time. We were just each holding a slice."
+    text: "Metrics, Traces, look. {They} [was|were] whole this entire time. We each just kept the part we were built for."
     cg: polycule
     next: all_11
   all_11:

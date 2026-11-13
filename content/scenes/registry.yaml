@@ -8,12 +8,12 @@ nodes:
     text: "You land softly in a drift of index cards. The air smells like toner and fresh coffee."
     next: office
   office:
-    text: "Shelves of schema diagrams climb into the dark. Somewhere, a label maker is working very hard."
+    text: "Shelves of schema diagrams climb into the dark. A label maker you can't see is working very hard."
     next: greet
   greet:
     speaker: dba
     mood: happy
-    text: "Welcome to the Registry! You must be— hello, NULL!"
+    text: "Welcome to the Registry! You must be… hello, NULL!"
     next: react
   react:
     text: "You blink."
@@ -37,7 +37,7 @@ nodes:
   greet2:
     speaker: dba
     mood: happy
-    text: "Hello, {name}! Welcome! You were never NULL. That was a bug, and it was mine."
+    text: "Hello, {name}! Welcome! You were never NULL. That one's on me. I'll write the postmortem tonight."
     next: file
   file:
     speaker: dba
@@ -85,17 +85,17 @@ nodes:
   mine:
     speaker: dba
     mood: surprised
-    text: "You wrote it. I'd be overwriting it with my own guess. That's— that's exactly what I just did with NULL."
+    text: "You wrote it. I'd be overwriting it with my own guess. That's… that's exactly what I just did with NULL."
     next: realise
   realise:
     speaker: dba
     mood: sad
-    text: "It would make the queries fast and the answers wrong. An enum would just be a lie with good indexing."
+    text: "So the queries would be fast and the answers would be wrong. An enum would just be a lie with good indexing."
     next: grow
   grow:
     speaker: dba
     mood: happy
-    text: "Free text stays. Querying it properly is my job, not yours. Okay. Okay! I feel better. I think I just grew."
+    text: "Free text stays. If it's hard to query, that's my problem. Okay. Okay! I feel better. Is this growth? It feels like a migration."
     next: intrude
   intrude:
     speaker: stranger
@@ -115,7 +115,7 @@ nodes:
   reveal2:
     speaker: collector
     mood: happy
-    text: "Your messages, your feelings, your little choice events! I batch them, I read them, then I forward them. For your safety!"
+    text: "Messages, feelings, little choice events! I batch them up and read every single one before I forward it. For your safety!"
     next: dba_no
   dba_no:
     speaker: dba
@@ -125,12 +125,12 @@ nodes:
   dba_record:
     speaker: dba
     mood: neutral
-    text: "And for the record: {name} wrote {their} own attributes. Nobody normalises them. Not me. Not you."
+    text: "And for the record: {name} wrote {their} own attributes. Nobody normalises them. That includes you."
     next: collector_ok
   collector_ok:
     speaker: collector
     mood: blush
-    text: "Understood! Unnormalised. Raw. Pristine. I'll only read them a normal amount."
+    text: "Understood! Raw and unnormalised, just how I like them. I'll only read them a normal amount~"
     next: question
   question:
     speaker: dba
@@ -142,7 +142,7 @@ nodes:
   goal:
     speaker: dba
     mood: neutral
-    text: "That page that woke you? It won't resolve until someone knows you whole. Not a sample. Not a summary. All of you."
+    text: "The page that woke you won't resolve until someone knows you whole. Every column. I don't make the rules. Well, I make most of them. Not that one."
     next: pillars
   pillars:
     speaker: dba
@@ -152,7 +152,7 @@ nodes:
   goal2:
     speaker: dba
     mood: blush
-    text: "So go and get to know them. On a— well. It's a date. I'm allowed to call it a date. The field is free text."
+    text: "So go and get to know them. On a… well. It's a date. I'm allowed to call it a date. The field is free text."
     next: collector_bye
   collector_bye:
     speaker: collector

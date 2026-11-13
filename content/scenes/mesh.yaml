@@ -48,7 +48,7 @@ nodes:
   tour2:
     speaker: baggage
     mood: happy
-    text: "Metrics is at the gym, counting reps. Very fit. Very few words. Traces is… around. One percent of the time."
+    text: "Metrics is at the gym, counting reps out loud. It's the most you'll hear from {metrics.him} all day. Traces is… around. One percent of the time."
     next: glimpse
   glimpse:
     text: "A blur in a navy jacket jogs past at exactly 3.0 metres per second. Behind you, something lilac flickers and is gone."

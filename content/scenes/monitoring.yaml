@@ -113,5 +113,5 @@ nodes:
     text: "Runbook note for {name}: {they} [does|do] not need paging anymore. Status: resolved."
     next: bye
   bye:
-    text: "The amber light blinks once and turns green. Not lying, this time."
+    text: "The amber light blinks once and turns green, and this time it's telling the truth."
     next: "@finale"

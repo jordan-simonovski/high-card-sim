@@ -23,7 +23,7 @@ nodes:
     mood: neutral
     text: "Question one. Why are you here?"
     choices:
-      - { id: honest, text: "\"Honestly? I'm a bit lost, and you seemed like someone who'd know where I am.\"", target: c1_honest, affection_delta: 1 }
+      - { id: honest, text: "\"I'm a bit lost, and you look like someone who'd know where I am.\"", target: c1_honest, affection_delta: 1 }
       - { id: flatter, text: "\"To see the most beautiful dashboard in the whole mesh.\"", target: c1_flatter }
   c1_honest:
     speaker: metrics
@@ -117,7 +117,7 @@ nodes:
   view:
     speaker: metrics
     mood: neutral
-    text: "Here. This is everything I keep about you. This is all of you I get to keep."
+    text: "Here. This is all of you I get to keep."
     show: metrics_view_of_you
     next: c4
   c4:

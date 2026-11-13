@@ -20,7 +20,7 @@ prologue ─► registry ─► mesh (hub) ─┬─► date_logs ────�
 | `date_logs` | archive_cafe | Logs overshares. "Tell me more" vs "TL;DR?" choices. Affection is conversation volume. |
 | `date_metrics` | dashboard_gym | Metrics, terse. `affection_delta` choices, one possible argument. A `show: metrics_view_of_you` moment: "this is all of you I get to keep". |
 | `date_traces` | sampling_cafe | Traces doesn't show up (`traces_saw_you` false) until you choose to mark the moment important (`sampling.priority: "1"`). Then a gentle date where marked moments are the ones they keep. |
-| `shell` | registry | The DBA gives you the Query Shell (`action: open_console`): read-only SQL over your own events. Hints that each pillar sees only part of you; "somewhere, you're whole". |
+| `shell` | registry | The DBA gives you the Query Shell (`action: open_console`): read-only SQL over your own events. Hints that each pillar sees only part of you, and that the table they all come from has all of you. |
 | `monitoring` | noc_room | The ex. `show: monitoring_dashboard`. Can't answer new questions. Choice `relapse` (get back together) or let them go kindly. |
 | `finale` | finale_sky | `chose_relapse` → relapse ending. Else `show: relationship_status`, then choose: Logs / Metrics / Traces / all three (only if `queried_base_table`). Each pillar branches on its affection query to a good or bad ending. |
 

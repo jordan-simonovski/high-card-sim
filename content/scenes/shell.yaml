@@ -56,7 +56,7 @@ nodes:
   after:
     speaker: dba
     mood: neutral
-    text: "Each pillar only ever sees part of you. Somewhere, you're whole."
+    text: "Take your time. The views only show bits of you, but the rest is in there. I'd know. I designed the schema."
     next: check
   check:
     text: ""
@@ -66,7 +66,7 @@ nodes:
   found:
     speaker: dba
     mood: blush
-    text: "You found it. The wide one. Every column, every moment, nothing sampled or summed. That's you. That's what you actually look like."
+    text: "You found it. The wide one, every column, nothing sampled. That's what you actually look like. I'm not crying, it's the toner."
     next: page
   not_yet:
     speaker: dba

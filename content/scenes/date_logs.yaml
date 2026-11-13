@@ -127,10 +127,10 @@ nodes:
   turn_end:
     speaker: logs
     mood: blush
-    text: "You know what's funny? I wrote down every word you said, and I think I actually know what it meant this time."
+    text: "I wrote down every word you said, and for once I think I know what it meant. That's new. I'm logging that it's new."
     next: wrap
   wrap:
-    text: "The café lights dim a notch. Somewhere deep in the stacks, a log file rotates."
+    text: "The café lights dim a notch. Deep in the stacks, a log file rotates."
     next: close
   close:
     text: ""
