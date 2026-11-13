@@ -1,0 +1,60 @@
+# Everything before `listening` runs without the query engine: it covers the download.
+# Quote every text value: YAML reads a leading { or [ as a mapping or list.
+id: prologue
+start: ceiling
+nodes:
+  ceiling:
+    text: "03:12. Your phone lights up the ceiling."
+    next: page
+  page:
+    speaker: pager
+    text: "CRITICAL: checkout p99 is… yes. All of it. Everything is on fire."
+    next: dash
+  dash:
+    text: "You open the dashboard. Every panel is green. Every panel is lying."
+    next: ack
+  ack:
+    text: "Your thumb hovers."
+    choices:
+      - { id: ack, text: "Acknowledge the page", target: through }
+      - { id: snooze, text: "Snooze it (five minutes, tops)", target: tilt }
+  through:
+    text: "You tap ACK. Your thumb goes through the glass and keeps going."
+    next: ingest
+  tilt:
+    text: "You tap SNOOZE. The pager, offended, pages harder. The room tilts."
+    next: ingest
+  ingest:
+    text: "Somewhere, a collector is spinning up. You are being… ingested."
+    next: hello
+  hello:
+    speaker: stranger
+    text: "Oh! A new span. Hi! Sorry, you're very high cardinality. It's taking a second to index you."
+    next: attributes
+  attributes:
+    speaker: stranger
+    text: "Before you're fully ingested I need your span attributes. All of them. Free text, obviously. We're not animals."
+    next: create
+  create:
+    text: ""
+    action: create_character
+    next: welcome
+  welcome:
+    speaker: stranger
+    text: "player.name = \"{name}\". Ooh. That one's going to look great in a GROUP BY."
+    next: announce
+  announce:
+    speaker: stranger
+    text: "EVERYONE! {name} is here! {They} [has|have] been paged into the wrong world and {they} [is|are] extremely high cardinality!"
+    next: listening
+  listening:
+    text: ""
+    branches:
+      - { condition: hesitated, target: slow }
+    next: fast
+  slow:
+    speaker: stranger
+    text: "You took your time with that page, {name}. That's okay. Someone is going to notice, though."
+  fast:
+    speaker: stranger
+    text: "You acked fast, {name}. Someone is going to notice that, too."

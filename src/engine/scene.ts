@@ -24,6 +24,8 @@ export interface SceneNode {
   /** Evaluated in order after the node; first truthy wins, else `next`. */
   branches?: Branch[];
   next?: string;
+  /** UI step to run when the node is reached (e.g. 'create_character'), then continue to `next`. */
+  action?: string;
 }
 
 export interface Scene {

@@ -1,0 +1,117 @@
+// Content validator, run at build time. Pure TS: no DOM, no chDB, no fs.
+import type { Scene, SceneNode } from './scene.ts';
+import { FORMS, TOKEN, formOf, type Form } from './pronouns.ts';
+
+export interface CharacterDef {
+  name: string;
+  pronouns: string; // preset key
+}
+
+export interface Content {
+  scenes: Scene[];
+  queries: string[];
+  characters: Record<string, CharacterDef>;
+  presets: string[];
+}
+
+export const ACTIONS = ['create_character'] as const;
+
+// Hardcoded gendered pronouns are banned in content text: every pronoun must be a token,
+// so the player is never misgendered and NPC pronouns live in one registry.
+const HARDCODED = /\b(he|she|him|her|his|hers|himself|herself)\b/i;
+// "{they}'re" renders "she're" for some players; write "{they} [is|are]".
+const CONTRACTION = /\{(?:[A-Za-z_]+\.)?(?:they|them|their|she|he)\}['’](?:re|ve|s)\b/i;
+
+function textsOf(n: SceneNode): string[] {
+  return [n.text, ...(n.choices ?? []).map((c) => c.text)].filter((t) => typeof t === 'string');
+}
+
+/** Problems with a single content string. `usesPlayer` reports whether it needs the player. */
+export function checkText(text: string, characters: Record<string, CharacterDef>): { errors: string[]; usesPlayer: boolean } {
+  const errors: string[] = [];
+  let usesPlayer = false;
+  for (const m of text.matchAll(TOKEN)) {
+    const [whole, a, b, who, sing] = m;
+    if (sing !== undefined) {
+      if (who) {
+        if (!characters[who]) errors.push(`unknown character in ${whole}`);
+      } else usesPlayer = true;
+    } else if (b !== undefined) {
+      if (!characters[a]) errors.push(`unknown character in ${whole}`);
+      if (!formOf(b)) errors.push(`unknown pronoun form in ${whole}`);
+    } else if (a === 'name' || a === 'gender' || FORMS.includes(a.toLowerCase() as Form)) {
+      usesPlayer = true;
+    } else errors.push(`unknown token ${whole} (player forms: {they} {them} {their} {theirs} {themself})`);
+  }
+  const bare = text.replace(TOKEN, ' ');
+  const hard = bare.match(HARDCODED);
+  if (hard) errors.push(`hardcoded pronoun "${hard[0]}": use a token like {they} or {logs.she}`);
+  if (CONTRACTION.test(text)) errors.push(`pronoun token with a contraction: write "{they} [is|are]" instead`);
+  return { errors, usesPlayer };
+}
+
+export function validate(c: Content): string[] {
+  const errors: string[] = [];
+  const queries = new Set(c.queries);
+  const ids = new Set<string>();
+
+  for (const s of c.scenes) {
+    const at = (node: string, msg: string) => errors.push(`${s.id}/${node}: ${msg}`);
+    if (ids.has(s.id)) errors.push(`duplicate scene id ${s.id}`);
+    ids.add(s.id);
+    if (!s.nodes[s.start]) errors.push(`${s.id}: start node "${s.start}" does not exist`);
+
+    const targets = (n: SceneNode) => [n.next, ...(n.branches ?? []).map((b) => b.target), ...(n.choices ?? []).map((c) => c.target)].filter((t): t is string => !!t);
+    const usesPlayer = new Set<string>();
+
+    for (const [key, n] of Object.entries(s.nodes)) {
+      if (typeof n.text !== 'string') at(key, 'text must be a string ("" for silent nodes)');
+      if (n.speaker && !c.characters[n.speaker]) at(key, `unknown speaker "${n.speaker}"`);
+      if (n.action && !(ACTIONS as readonly string[]).includes(n.action)) at(key, `unknown action "${n.action}"`);
+      if (n.choices?.length && (n.next || n.branches?.length)) at(key, 'a node with choices cannot also have next/branches');
+      const choiceIds = new Set<string>();
+      for (const ch of n.choices ?? []) {
+        if (!ch.id) at(key, 'choice without an id');
+        if (choiceIds.has(ch.id)) at(key, `duplicate choice id "${ch.id}"`);
+        choiceIds.add(ch.id);
+        if (!ch.target) at(key, `choice "${ch.id}" has no target`);
+        if (!ch.text?.trim()) at(key, `choice "${ch.id}" has no text`);
+      }
+      for (const q of [...(n.branches ?? []).map((b) => b.condition), ...(n.choices ?? []).map((ch) => ch.condition)])
+        if (q && !queries.has(q)) at(key, `unknown query "${q}" (no content/queries/${q}.sql)`);
+      for (const t of targets(n)) if (!s.nodes[t]) at(key, `target "${t}" does not exist`);
+      for (const text of textsOf(n)) {
+        const r = checkText(text, c.characters);
+        for (const e of r.errors) at(key, e);
+        if (r.usesPlayer) usesPlayer.add(key);
+      }
+    }
+
+    // Reachability from start; and, in a scene that creates the character, no player
+    // tokens on any path that hasn't been through creation yet.
+    const walk = (stopAtCreate: boolean) => {
+      const seen = new Set<string>();
+      const stack = [s.start];
+      while (stack.length) {
+        const id = stack.pop()!;
+        const n = s.nodes[id];
+        if (!n || seen.has(id)) continue;
+        seen.add(id);
+        if (!(stopAtCreate && n.action === 'create_character')) stack.push(...targets(n));
+      }
+      return seen;
+    };
+    const reachable = walk(false);
+    for (const key of Object.keys(s.nodes)) if (!reachable.has(key)) at(key, 'unreachable from start');
+    if (Object.values(s.nodes).some((n) => n.action === 'create_character'))
+      for (const key of walk(true))
+        if (usesPlayer.has(key) && s.nodes[key].action !== 'create_character') at(key, 'uses player tokens before character creation');
+  }
+
+  for (const [id, ch] of Object.entries(c.characters)) {
+    if (!c.presets.includes(ch.pronouns)) errors.push(`characters/${id}: unknown pronoun preset "${ch.pronouns}"`);
+    if (!ch.name) errors.push(`characters/${id}: missing name`);
+  }
+  for (const q of c.queries) if (!/^[a-z0-9_]+$/.test(q)) errors.push(`queries/${q}.sql: name must be snake_case`);
+  return errors;
+}

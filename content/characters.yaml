@@ -1,0 +1,14 @@
+# Character registry. NPC pronouns live here and nowhere else: content refers to them
+# with tokens like {logs.she} / [logs:is|are], so changing one line here updates every scene.
+# pronouns: a preset key (she, he, they, xe, ze, it).
+logs: { name: Logs, pronouns: she }
+metrics: { name: Metrics, pronouns: he }
+traces: { name: Traces, pronouns: they }
+# Not specified in the design yet; they/them until decided.
+monitoring: { name: Monitoring, pronouns: they }
+collector: { name: The Collector, pronouns: they }
+baggage: { name: Baggage, pronouns: they }
+dba: { name: The DBA, pronouns: they }
+# Prologue voices.
+pager: { name: pager, pronouns: it }
+stranger: { name: "???", pronouns: they }

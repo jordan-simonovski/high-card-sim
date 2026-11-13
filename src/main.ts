@@ -3,13 +3,14 @@
 import { clientSupport, openDb, truthy, type BootProgress, type Db, type Unsupported } from './db.ts';
 import { openLog, type EventLog } from './eventlog.ts';
 import { needsQueries, nextNode, node, visibleChoices, type Conditions, type Scene } from './engine/scene.ts';
-import { prologue } from './prologue.ts';
+import { PRESETS, render, type Player, type Preset } from './engine/pronouns.ts';
+import { createCharacter, playerAttributes, playerFromEvents } from './create.ts';
+import content from 'virtual:content';
 
-const queries = Object.fromEntries(
-  Object.entries(import.meta.glob('../content/queries/*.sql', { query: '?raw', import: 'default', eager: true })).map(
-    ([path, sql]) => [path.split('/').pop()!.replace(/\.sql$/, ''), sql as string],
-  ),
-);
+const { scenes, queries } = content;
+const characters = Object.fromEntries(Object.entries(content.characters).map(([id, c]) => [id, PRESETS[c.pronouns as Preset]]));
+const displayName = (id?: string) => (id ? content.characters[id]?.name ?? id : '');
+let player: Player | undefined;
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
 const boot = { state: 'starting' as string, replayed: 0, error: '' };
@@ -58,13 +59,14 @@ async function main() {
     $('#loader').classList.add('bad');
   });
   hooks.log = log;
+  player = playerFromEvents(await log.all());
 
   const cond: Conditions = async (name) => {
     const sql = queries[name];
     if (!sql) throw new Error(`unknown query ${name}`);
     return truthy(await (await ready).query(sql, { session_id: log.sessionId }));
   };
-  await play(prologue, log, cond, ready);
+  await play(scenes.prologue, log, cond, ready);
 }
 
 async function play(scene: Scene, log: EventLog, cond: Conditions, ready: Promise<unknown>) {
@@ -76,13 +78,20 @@ async function play(scene: Scene, log: EventLog, cond: Conditions, ready: Promis
       say('', 'Waiting for the collector to finish indexing you…');
       await ready;
     }
+    const lineKey = `${scene.id}/${n.id}`;
+    const fill = (text: string) => render(text, { player, characters, lineKey });
+    if (n.action === 'create_character' && !player) {
+      player = await createCharacter(characters);
+      await log.append({ scene: scene.id, node: n.id, event_type: 'character_created', attributes: playerAttributes(player) });
+    }
     let logged: Promise<unknown> = Promise.resolve();
     if (n.text) {
-      say(n.speaker ?? '', n.text);
+      const text = fill(n.text);
+      say(displayName(n.speaker), text);
       // Don't await before listening for input, or fast clicks get dropped.
-      logged = log.append({ scene: scene.id, node: n.id, event_type: 'line', character: n.speaker ?? '', dialogue_text: n.text });
+      logged = log.append({ scene: scene.id, node: n.id, event_type: 'line', character: n.speaker ?? '', dialogue_text: text });
     }
-    const choices = await visibleChoices(n, cond);
+    const choices = (await visibleChoices(n, cond)).map((c) => ({ ...c, text: fill(c.text) }));
     if (choices.length) {
       const shown = performance.now();
       const choice = await pick(choices.map((c) => ({ id: c.id, text: c.text })));
@@ -100,7 +109,7 @@ async function play(scene: Scene, log: EventLog, cond: Conditions, ready: Promis
       id = await nextNode(n, cond);
     }
   }
-  say('', 'End of the M1 skeleton. Your playthrough is safe in the event log.');
+  say('', 'End of the M2 build. Your playthrough is safe in the event log.');
   $('#game').dataset.ended = 'true';
 }
 
