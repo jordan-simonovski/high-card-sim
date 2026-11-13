@@ -412,6 +412,7 @@ async function main() {
     boot.state = 'ready';
     $('#loader').textContent = 'collector online';
     $('#loader').classList.add('ok');
+    setTimeout(() => $('#loader').classList.add('gone'), 3000);
     hooks.query = db.query;
     hooks.console = db.console;
     return db;
