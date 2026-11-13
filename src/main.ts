@@ -9,7 +9,7 @@ import { resumePoint } from './engine/resume.ts';
 import { createCharacter, playerAttributes, playerFromEvents } from './create.ts';
 import { parseSave } from './saves.ts';
 import { openConsole } from './console.ts';
-import { babble, getVolume, playMusic, setVolume, sfx, unlock } from './audio.ts';
+import { babble, getVolume, isMuted, playMusic, setMuted, setVolume, sfx, unlock } from './audio.ts';
 import * as fx from './fx.ts';
 const { badChoice, goodChoice, keptMoment, moodChange, resetMood } = fx;
 import content from 'virtual:content';
@@ -190,7 +190,11 @@ function setCg(cg?: string) {
 
 // ---------- dialogue ----------
 const SPEEDS: Record<string, number> = { slow: 28, normal: 55, fast: 110, instant: Infinity };
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Reduce motion: the OS setting, or the player's own choice in settings (which wins either way).
+const motionPref = pref.get('reduceMotion');
+const reducedMotion = motionPref ? motionPref === '1' : matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.documentElement.classList.toggle('reduce-motion', reducedMotion);
+let autoFactor = Number(pref.get('autoSpeed') ?? 1);
 let textSpeed = pref.get('textSpeed') ?? (reducedMotion ? 'instant' : 'normal');
 let typing: { finish(): void } | undefined;
 
@@ -288,7 +292,7 @@ function advance(opts: { textLength?: number; seenLine?: boolean } = {}): Promis
     box.addEventListener('click', done);
     box.addEventListener('keydown', done);
     if (skipMode && opts.seenLine) timer = setTimeout(finish, 80);
-    else if (autoMode) timer = setTimeout(finish, 1200 + (opts.textLength ?? 0) * 45);
+    else if (autoMode) timer = setTimeout(finish, (1200 + (opts.textLength ?? 0) * 45) * autoFactor);
   });
 }
 
@@ -624,6 +628,24 @@ function wireChrome() {
   const setSkip = (on: boolean) => { skipMode = on; toggle('#btn-skip', on); };
   $('#btn-auto').onclick = () => setAuto(!autoMode);
   $('#btn-skip').onclick = () => setSkip(!skipMode);
+  const openSettings = () => $<HTMLDialogElement>('#settings').showModal();
+  $('#btn-settings-title').onclick = openSettings;
+  $('#btn-settings-menu').onclick = () => { $<HTMLDialogElement>('#menu').close(); openSettings(); };
+  const sound = $<HTMLInputElement>('#set-sound');
+  sound.checked = !isMuted();
+  sound.onchange = () => setMuted(!sound.checked);
+  const auto = $<HTMLSelectElement>('#auto-speed');
+  auto.value = String(autoFactor);
+  auto.onchange = () => { autoFactor = Number(auto.value); pref.set('autoSpeed', auto.value); };
+  const effects = $<HTMLInputElement>('#set-fx');
+  effects.checked = pref.get('fx') !== '0';
+  effects.onchange = () => pref.set('fx', effects.checked ? '1' : '0');
+  const motion = $<HTMLInputElement>('#set-motion');
+  motion.checked = reducedMotion;
+  motion.onchange = () => {
+    pref.set('reduceMotion', motion.checked ? '1' : '0');
+    document.documentElement.classList.toggle('reduce-motion', motion.checked);
+  };
   for (const c of ['music', 'sfx', 'voice'] as const) {
     const input = $<HTMLInputElement>(`#vol-${c}`);
     input.value = String(getVolume(c));

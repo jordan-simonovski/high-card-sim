@@ -2,7 +2,9 @@
 // Purely decorative (aria-hidden); under reduced motion the lettering fades in place and
 // particles are skipped.
 
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Read live: the player can switch these in settings mid-game.
+const reducedNow = () => document.documentElement.classList.contains('reduce-motion');
+const enabled = () => { try { return localStorage.getItem('hc.fx') !== '0'; } catch { return true; } };
 
 function layer(): HTMLElement {
   let el = document.querySelector<HTMLElement>('#fx');
@@ -29,6 +31,7 @@ function spawn(el: HTMLElement, ms: number) {
 
 /** Big lettered sound effect next to the character's head. */
 export function sfxText(text: string, opts: { color: string; side?: 1 | -1; tilt?: number; size?: number; className?: string }) {
+  if (!enabled()) return;
   const a = anchor();
   const side = opts.side ?? (Math.random() < 0.5 ? -1 : 1);
   const el = Object.assign(document.createElement('span'), { className: `onomato ${opts.className ?? ''}`, textContent: text });
@@ -42,7 +45,7 @@ export function sfxText(text: string, opts: { color: string; side?: 1 | -1; tilt
 
 /** Particles rising (hearts) or falling (drops) around the character. */
 export function particles(kind: 'heart' | 'drop' | 'spark', count: number, color: string) {
-  if (reduced) return;
+  if (reducedNow() || !enabled()) return;
   const a = anchor();
   for (let i = 0; i < count; i++) {
     const p = Object.assign(document.createElement('i'), { className: `particle ${kind}` });
@@ -60,7 +63,7 @@ export function particles(kind: 'heart' | 'drop' | 'spark', count: number, color
 
 /** Gloom lines behind a sad or crushed character. */
 export function gloom() {
-  if (reduced) return;
+  if (reducedNow() || !enabled()) return;
   const a = anchor();
   const el = Object.assign(document.createElement('div'), { className: 'gloom' });
   el.style.left = `${a.x - a.w * 0.4}px`;
@@ -71,6 +74,7 @@ export function gloom() {
 
 /** The cross-shaped anger vein, drawn, next to the head. */
 export function vein(color = '#e5484d') {
+  if (!enabled()) return;
   const a = anchor();
   const el = document.createElement('span');
   el.className = 'vein';

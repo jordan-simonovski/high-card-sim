@@ -47,11 +47,13 @@ sfx:
   ending: { prompt: "Warm magical sting, sparkling chime resolving to a major chord, game ending", seconds: 3 }
   error: { prompt: "Gentle cartoon error boop, soft and friendly, not harsh", seconds: 0.6 }
 # One babble syllable per speaking character, played under their text as it types out.
+# All built on the DBA's recipe (the one that tested easiest to listen to): a short, soft, rounded
+# plosive syllable. Characters differ by vowel, pitch and pacing (pitch/pacing in src/audio.ts).
 babble:
-  logs: "A single short cute high-pitched vocal syllable 'bip', playful cartoon voice, dry, no reverb"
-  metrics: "A single short low clipped vocal syllable 'dut', deadpan cartoon voice, dry, no reverb"
-  traces: "A single soft breathy vocal syllable 'mi', gentle airy cartoon voice, dry, no reverb"
-  dba: "A single quick nervous squeaky vocal syllable 'ba', cartoon voice, dry, no reverb"
-  collector: "A single bright bouncy excited vocal syllable 'pi', cartoon voice, dry, no reverb"
-  baggage: "A single warm round friendly vocal syllable 'bo', cartoon voice, dry, no reverb"
-  monitoring: "A single flat tired monotone vocal syllable 'meh', cartoon voice, dry, no reverb"
+  dba: "A single soft rounded vocal syllable 'ba', slightly nervous but mellow, mid pitch, dry, no reverb"
+  logs: "A single soft rounded vocal syllable 'pa', chatty and warm but mellow, mid pitch, dry, no reverb"
+  metrics: "A single soft rounded vocal syllable 'bo', calm and even, low pitch, dry, no reverb"
+  traces: "A single soft rounded breathy vocal syllable 'ma', shy and gentle, mid pitch, dry, no reverb"
+  collector: "A single soft rounded vocal syllable 'da', bouncy and cheerful but mellow, mid pitch, dry, no reverb"
+  baggage: "A single soft rounded vocal syllable 'bu', friendly and cosy, mid-low pitch, dry, no reverb"
+  monitoring: "A single soft rounded vocal syllable 'do', flat and tired, low pitch, dry, no reverb"

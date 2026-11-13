@@ -12,8 +12,9 @@ const pref = {
 const volume: Record<Channel, number> = {
   music: Number(pref.get('vol.music') ?? 0.5),
   sfx: Number(pref.get('vol.sfx') ?? 0.7),
-  voice: Number(pref.get('vol.voice') ?? 0.6),
+  voice: Number(pref.get('vol.voice') ?? 0.35),
 };
+let muted = pref.get('muted') === '1';
 
 let ctx: AudioContext | undefined;
 const buffers = new Map<string, Promise<AudioBuffer | undefined>>();
@@ -37,16 +38,30 @@ function load(path: string) {
   return buffers.get(path)!;
 }
 
-function play(path: string, gain: number, opts: { rate?: number; offset?: number; duration?: number } = {}) {
-  if (!ctx || gain <= 0) return;
+function play(path: string, gain: number, opts: { rate?: number; offset?: number; duration?: number; lowpass?: number } = {}) {
+  if (!ctx || gain <= 0 || muted) return;
   void load(path).then((buf) => {
     if (!buf || !ctx) return;
     const src = ctx.createBufferSource();
     src.buffer = buf;
     src.playbackRate.value = opts.rate ?? 1;
     const g = ctx.createGain();
-    g.gain.value = gain;
-    src.connect(g).connect(ctx.destination);
+    const t = ctx.currentTime;
+    let node: AudioNode = src;
+    if (opts.lowpass) {
+      // Round off the treble so short voices sound warm rather than squeaky.
+      const f = ctx.createBiquadFilter();
+      f.type = 'lowpass';
+      f.frequency.value = opts.lowpass;
+      node = node.connect(f);
+    }
+    if (opts.duration) {
+      // A quick attack and fade so clipped syllables don't click.
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(gain, t + 0.01);
+      g.gain.linearRampToValueAtTime(0, t + opts.duration);
+    } else g.gain.value = gain;
+    node.connect(g).connect(ctx.destination);
     src.start(0, opts.offset ?? 0, opts.duration);
   });
 }
@@ -88,19 +103,22 @@ export function playMusic(id: string) {
   el.loop = true;
   el.volume = 0;
   current = el;
+  if (muted) return; // starts when sound is switched back on
   el.play().then(() => fade(el, volume.music)).catch(() => {});
 }
 
 // ---------- babble ----------
 interface Babble { every: number; rate: number; duration: number; skip?: number }
+// Soft and sparse: a blip every few letters at or below natural pitch reads as a voice; a blip
+// every other letter at a higher pitch reads as an alarm.
 const BABBLE: Record<string, Babble> = {
-  logs: { every: 2, rate: 1.15, duration: 0.09 },
-  metrics: { every: 4, rate: 0.95, duration: 0.07 },
-  traces: { every: 3, rate: 1.05, duration: 0.1, skip: 0.4 }, // only some of it gets sampled
-  dba: { every: 2, rate: 1.3, duration: 0.07 },
-  collector: { every: 2, rate: 1.2, duration: 0.08 },
-  baggage: { every: 3, rate: 1.0, duration: 0.09 },
-  monitoring: { every: 4, rate: 0.9, duration: 0.1 },
+  dba: { every: 4, rate: 1.0, duration: 0.09 }, // the reference voice
+  logs: { every: 4, rate: 1.0, duration: 0.1 }, // still the chattiest (longest lines)
+  metrics: { every: 6, rate: 0.9, duration: 0.08 },
+  traces: { every: 5, rate: 0.96, duration: 0.11, skip: 0.4 }, // only some of it gets sampled
+  collector: { every: 4, rate: 1.03, duration: 0.09 },
+  baggage: { every: 5, rate: 0.94, duration: 0.1 },
+  monitoring: { every: 6, rate: 0.88, duration: 0.11 },
 };
 const VOICE_OF: Record<string, string> = { stranger: 'collector' };
 
@@ -110,12 +128,22 @@ export function babble(speaker: string, i: number, ch: string) {
   const b = BABBLE[voice];
   if (!b || i % b.every || !/[\p{L}\p{N}]/u.test(ch)) return;
   if (b.skip && Math.random() < b.skip) return;
-  const rate = (speaker === 'stranger' ? 0.8 : b.rate) * (0.92 + Math.random() * 0.16);
-  play(`babble/${voice}`, volume.voice, { rate, offset: 0.02, duration: b.duration });
+  const rate = (speaker === 'stranger' ? 0.72 : b.rate) * (0.95 + Math.random() * 0.1);
+  play(`babble/${voice}`, volume.voice, { rate, offset: 0.02, duration: b.duration, lowpass: 2200 });
 }
 
 // ---------- settings ----------
 export const getVolume = (c: Channel) => volume[c];
+export const isMuted = () => muted;
+/** Master sound switch: silences effects and voices and pauses the music. */
+export function setMuted(on: boolean) {
+  muted = on;
+  pref.set('muted', on ? '1' : '0');
+  if (current) {
+    if (on) current.pause();
+    else void current.play().catch(() => {});
+  }
+}
 export function setVolume(c: Channel, v: number) {
   volume[c] = v;
   pref.set(`vol.${c}`, String(v));

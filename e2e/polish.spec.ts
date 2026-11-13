@@ -29,7 +29,7 @@ test('Escape opens the menu during play', async ({ page }) => {
   await expect(page.locator('#box.waiting')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('#menu')).toBeVisible();
-  await expect(page.locator('#text-size')).toBeVisible();
+  await expect(page.locator('#btn-settings-menu')).toBeVisible();
 });
 
 test('the speaker name tag is never clipped by the dialogue box', async ({ page }) => {
@@ -74,4 +74,21 @@ test('choices never make the dialogue box scroll sideways', async ({ page }) => 
     return { overflowX: getComputedStyle(el).overflowX, scrollLeft: el.scrollLeft, wider: el.scrollWidth > el.clientWidth };
   });
   expect(scroll).toEqual({ overflowX: 'hidden', scrollLeft: 0, wider: false });
+});
+
+test('settings open from the title, and their choices stick', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#btn-settings-title').click();
+  await expect(page.locator('#settings')).toBeVisible();
+  await page.locator('#set-sound').uncheck();
+  await page.locator('#text-speed').selectOption('fast');
+  await page.locator('#set-fx').uncheck();
+  await page.locator('#set-motion').check();
+  await expect(page.locator('html')).toHaveClass(/reduce-motion/);
+  await page.reload();
+  await page.locator('#btn-settings-title').click();
+  await expect(page.locator('#set-sound')).not.toBeChecked();
+  await expect(page.locator('#text-speed')).toHaveValue('fast');
+  await expect(page.locator('#set-fx')).not.toBeChecked();
+  await expect(page.locator('#set-motion')).toBeChecked();
 });
