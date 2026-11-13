@@ -1,0 +1,87 @@
+# The DBA hands over the Query Shell: read-only SQL over your own events.
+# Querying the base table here unlocks the true ending in the finale.
+id: shell
+start: arrive
+bg: registry
+nodes:
+  arrive:
+    text: "The Mesh path curls back to the Registry. The DBA is waiting by the door, holding something wrapped in index cards."
+    next: hi
+  hi:
+    speaker: dba
+    mood: happy
+    text: "You've been on all three dates! I know because Baggage told me. Baggage tells everyone."
+    next: gift
+  gift:
+    speaker: dba
+    mood: blush
+    text: "I made you something. It's a Query Shell. I wrapped it. Badly. Index cards don't really fold."
+    next: ask
+  ask:
+    speaker: dba
+    mood: neutral
+    text: "Before you open it, any questions?"
+    choices:
+      - { id: what, text: "\"What does it do?\"", target: what }
+      - { id: why, text: "\"Why are you giving me this?\"", target: why }
+  what:
+    speaker: dba
+    mood: happy
+    text: "It runs SQL over your own events. It's read-only. You can't break anything. I checked. Four times."
+    next: views
+  why:
+    speaker: dba
+    mood: sad
+    text: "Because everyone keeps telling you who you are from their own slice. You should get to look for yourself."
+    next: rules
+  rules:
+    speaker: dba
+    mood: neutral
+    text: "It's read-only and it only sees your own events. You can't break anything. I checked. Four times."
+    next: views
+  views:
+    speaker: dba
+    mood: neutral
+    text: "Ask it anything. There are views called logs, metrics_agg and traces. Each one is how a pillar sees you."
+    next: views2
+  views2:
+    speaker: dba
+    mood: blush
+    text: "And there's… the table they all come from. I'm not supposed to say its name. Try SHOW TABLES."
+    next: open
+  open:
+    text: "The shell opens. A cursor blinks, waiting for you."
+    action: open_console
+    next: after
+  after:
+    speaker: dba
+    mood: neutral
+    text: "Each pillar only ever sees part of you. Somewhere, you're whole."
+    next: check
+  check:
+    text: ""
+    branches:
+      - { condition: queried_base_table, target: found }
+    next: not_yet
+  found:
+    speaker: dba
+    mood: blush
+    text: "You found it. The wide one. Every column, every moment, nothing sampled or summed. That's you. That's what you actually look like."
+    next: page
+  not_yet:
+    speaker: dba
+    mood: neutral
+    text: "No rush. It's there. It's always been there, under all the views."
+    choices:
+      - { id: again, text: "Open the shell again.", target: open }
+      - { id: done, text: "\"I'm ready to go.\"", target: page }
+  page:
+    speaker: dba
+    mood: sad
+    text: "One more thing. Someone's been paging you since 03:12. Very consistently. Every five minutes."
+    next: page2
+  page2:
+    speaker: dba
+    mood: neutral
+    text: "Monitoring's in the NOC. You two should probably talk. Properly, this time."
+    next: "@monitoring"

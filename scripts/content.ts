@@ -7,7 +7,14 @@ import { validate, type CharacterDef } from '../src/engine/validate.ts';
 import { PRESETS } from '../src/engine/pronouns.ts';
 import type { Scene, SceneNode } from '../src/engine/scene.ts';
 
+export interface Assets {
+  moods: string[];
+  backgrounds: Record<string, string>;
+  cgs: Record<string, string>;
+}
+
 export interface LoadedContent {
+  assets: Assets;
   scenes: Record<string, Scene>;
   queries: Record<string, string>;
   characters: Record<string, CharacterDef>;
@@ -21,14 +28,16 @@ export function loadContent(root = 'content'): { content: LoadedContent; errors:
   const sceneFiles = ls(join(root, 'scenes'), '.yaml');
   const queryFiles = ls(join(root, 'queries'), '.sql');
   const charFile = join(root, 'characters.yaml');
+  const assetFile = join(root, 'assets.yaml');
+  const assets = parse(readFileSync(assetFile, 'utf8')) as Assets;
 
   const scenes: Record<string, Scene> = {};
   for (const f of sceneFiles) {
     try {
-      const raw = parse(readFileSync(f, 'utf8')) as { id: string; start: string; nodes: Record<string, Omit<SceneNode, 'id'>> };
+      const raw = parse(readFileSync(f, 'utf8')) as { id: string; start: string; bg?: string; nodes: Record<string, Omit<SceneNode, 'id'>> };
       if (raw.id !== basename(f, '.yaml')) errors.push(`${f}: id "${raw.id}" must match the file name`);
       const nodes = Object.fromEntries(Object.entries(raw.nodes ?? {}).map(([id, n]) => [id, { ...n, id }]));
-      scenes[raw.id] = { id: raw.id, start: raw.start, nodes };
+      scenes[raw.id] = { id: raw.id, start: raw.start, bg: raw.bg, nodes };
     } catch (e) {
       errors.push(`${f}: ${(e as Error).message}`);
     }
@@ -37,7 +46,10 @@ export function loadContent(root = 'content'): { content: LoadedContent; errors:
   const characters = (parse(readFileSync(charFile, 'utf8')) ?? {}) as Record<string, CharacterDef>;
 
   errors.push(
-    ...validate({ scenes: Object.values(scenes), queries: Object.keys(queries), characters, presets: Object.keys(PRESETS) }),
+    ...validate({
+      scenes: Object.values(scenes), queries: Object.keys(queries), characters, presets: Object.keys(PRESETS),
+      assets: { moods: assets.moods, backgrounds: Object.keys(assets.backgrounds), cgs: Object.keys(assets.cgs) },
+    }),
   );
-  return { content: { scenes, queries, characters }, errors, files: [...sceneFiles, ...queryFiles, charFile] };
+  return { content: { assets, scenes, queries, characters }, errors, files: [...sceneFiles, ...queryFiles, charFile, assetFile] };
 }

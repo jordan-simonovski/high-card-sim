@@ -5,7 +5,7 @@ import type { Scene } from './scene.ts';
 
 const characters = { logs: { name: 'Logs', pronouns: 'she' }, dba: { name: 'The DBA', pronouns: 'they' } };
 const base = (nodes: Scene['nodes'], extra: Partial<Content> = {}): Content => ({
-  scenes: [{ id: 's', start: 'a', nodes }],
+  scenes: [{ id: 'prologue', start: 'a', nodes }],
   queries: ['trusts_you'],
   characters,
   presets: ['she', 'he', 'they'],
@@ -34,7 +34,7 @@ test('graph checks: targets, queries, reachability, speakers, choices', () => {
   const errors = validate(
     base({
       a: { id: 'a', speaker: 'ghost', text: 'hi', next: 'missing' },
-      b: { id: 'b', text: 'orphan' },
+      b: { id: 'b', text: 'orphan', ending: 'The End' },
       c: {
         id: 'c', text: 'pick',
         choices: [
@@ -44,7 +44,7 @@ test('graph checks: targets, queries, reachability, speakers, choices', () => {
       },
     }),
   ).join('\n');
-  for (const want of [/unknown speaker "ghost"/, /target "missing" does not exist/, /s\/b: unreachable/, /unknown query "nope"/, /duplicate choice id "x"/, /has no target/, /has no text/])
+  for (const want of [/unknown speaker "ghost"/, /target "missing" does not exist/, /prologue\/b: unreachable/, /unknown query "nope"/, /duplicate choice id "x"/, /has no target/, /has no text/])
     assert.match(errors, want);
 });
 
@@ -53,18 +53,38 @@ test('player tokens before character creation are rejected', () => {
     base({
       a: { id: 'a', text: 'Hello {name}', next: 'create' },
       create: { id: 'create', text: '', action: 'create_character', next: 'after' },
-      after: { id: 'after', text: '{They} [is|are] indexed.' },
+      after: { id: 'after', text: '{They} [is|are] indexed.', ending: 'Indexed' },
     }),
   );
-  assert.deepEqual(errors, ['s/a: uses player tokens before character creation']);
+  assert.deepEqual(errors, ['prologue/a: uses player tokens before character creation']);
 });
 
 test('a clean scene validates', () => {
   assert.deepEqual(
     validate(base({
       a: { id: 'a', speaker: 'logs', text: '{logs.She} talks.', branches: [{ condition: 'trusts_you', target: 'b' }], next: 'b' },
-      b: { id: 'b', text: 'fin' },
+      b: { id: 'b', text: 'fin', ending: 'Fin' },
     })),
     [],
   );
+});
+
+test('scene jumps, endings, dead ends, show queries, attributes', () => {
+  const content: Content = {
+    ...base({}),
+    scenes: [
+      { id: 'prologue', start: 'a', nodes: {
+        a: { id: 'a', text: 'go', show: 'nope', choices: [
+          { id: 'h', text: 'hub', target: '@hub', attributes: { 'sampling.priority': '1' } },
+          { id: 'g', text: 'ghost', target: '@ghost', attributes: { Bad: '1' } },
+        ] },
+      } },
+      { id: 'hub', start: 'h', nodes: { h: { id: 'h', text: 'stuck' }, e: { id: 'e', text: 'x', ending: '', next: 'h' } } },
+      { id: 'island', start: 'i', nodes: { i: { id: 'i', text: 'i', ending: 'Alone' } } },
+    ],
+  };
+  const errors = validate(content).join('\n');
+  for (const want of [/scene "ghost" does not exist/, /unknown query "nope" in show/, /attribute Bad/, /hub\/h: dead end/, /hub\/e: an ending needs/, /island: scene is unreachable/])
+    assert.match(errors, want);
+  assert.doesNotMatch(errors, /sampling\.priority/);
 });

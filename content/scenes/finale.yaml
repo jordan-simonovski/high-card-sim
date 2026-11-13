@@ -1,0 +1,278 @@
+# The finale. Relapse first; otherwise each pillar's own view of you decides how it goes.
+# The true ending needs the base table, queried in the shell.
+# Logs: logs_2 is the only Logs line before the affection branch (counts toward it).
+id: finale
+start: start
+bg: finale_sky
+nodes:
+  start:
+    text: ""
+    branches:
+      - { condition: chose_relapse, target: relapse_1 }
+    next: arrive
+
+  # Monitoring relapse
+  relapse_1:
+    text: "The sky stage flickers. Three panels unfold across the horizon, exactly where you left them."
+    next: relapse_2
+  relapse_2:
+    speaker: monitoring
+    mood: happy
+    text: "events_last_hour: some. errors: 0. Status: OK. Status: OK. Status: OK."
+    next: relapse_3
+  relapse_3:
+    text: "It's quiet. It's safe. Nobody asks you anything that isn't on the dashboard."
+    next: relapse_4
+  relapse_4:
+    speaker: monitoring
+    mood: blush
+    text: "Same time tomorrow? I've already scheduled your page for 03:12. I'll be right here. I'm always right here."
+    next: relapse_5
+  relapse_5:
+    text: "Far below, three pillars wave up at you. You wave back. The dashboard doesn't have a panel for that."
+    next: end_relapse
+  end_relapse:
+    text: "You're back on call. Every panel is green. Every panel is lying. But it's a lie you know by heart, and Monitoring never misses a night."
+    ending: "Monitoring Relapse"
+
+  # The choice
+  arrive:
+    text: "You climb onto a stage made of one enormous glowing row. Every column in it is you."
+    next: pillars
+  pillars:
+    text: "Logs, Metrics and Traces are waiting. Logs has already filled three pages about this moment. {logs.She} [logs:is|are] trying very hard not to read them aloud."
+    next: metrics_hi
+  metrics_hi:
+    speaker: metrics
+    mood: neutral
+    text: "The page resolves when someone knows you whole. Each of us knows a slice. These are the slices."
+    next: traces_hi
+  traces_hi:
+    speaker: traces
+    mood: sad
+    text: "Or a sample. I know a— a sample."
+    next: status
+  status:
+    text: "Here is how much of you each of them got to keep."
+    show: relationship_status
+    next: choose
+  choose:
+    text: "Who do you walk towards?"
+    choices:
+      - { id: logs, text: "Logs.", target: logs_1 }
+      - { id: metrics, text: "Metrics.", target: metrics_1 }
+      - { id: traces, text: "Traces.", target: traces_1 }
+      - { id: all, text: "Ask all three to stop splitting themselves up.", condition: queried_base_table, target: all_1 }
+
+  # Logs
+  logs_1:
+    text: "You walk to Logs. The paper scroll scarf lifts in the wind and trails out behind {logs.her}."
+    next: logs_2
+  logs_2:
+    speaker: logs
+    mood: blush
+    text: "Oh! You picked— okay, hold on, let me find the right page. I want to get this exactly right."
+    branches:
+      - { condition: logs_affection_high, target: logs_good_1 }
+    next: logs_bad_1
+  logs_good_1:
+    speaker: logs
+    mood: happy
+    text: "I've been reading back everything we said. All of it. On purpose. Not because anything was on fire."
+    next: logs_good_2
+  logs_good_2:
+    speaker: logs
+    mood: blush
+    text: "I don't know what every line meant. But I know what this one means. Can I read you something? It's long. Obviously."
+    next: logs_good_3
+  logs_good_3:
+    text: "You nod. Logs unrolls the scroll and begins. It keeps going, all the way to the horizon."
+    cg: logs_end
+    next: logs_good_4
+  logs_good_4:
+    speaker: logs
+    mood: happy
+    text: "'At 14:02:11 I met someone who let me finish my sentences—' anyway— retention policy: forever."
+    cg: logs_end
+    next: end_logs
+  end_logs:
+    text: "You read Logs start to finish, on purpose, on ordinary days. It takes the rest of your life. You never skip a line."
+    cg: logs_end
+    ending: "Verbose, Forever"
+  logs_bad_1:
+    speaker: logs
+    mood: sad
+    text: "I looked for us. There's a summary. It's… short. I think you were busy. That's okay! Everyone's busy."
+    next: logs_bad_2
+  logs_bad_2:
+    speaker: logs
+    mood: neutral
+    text: "I keep everything for thirty days, then it rotates out. It's not a me thing. It's a policy thing. Mostly a policy thing."
+    next: logs_bad_3
+  logs_bad_3:
+    speaker: logs
+    mood: happy
+    text: "But for thirty whole days I'll remember that you asked for the TL;DR. And honestly? It was a really good TL;DR."
+    next: end_retention
+  end_retention:
+    text: "Thirty days later, Logs rotates you out, gently. Somewhere in cold storage, one compressed line still says hi."
+    ending: "30-Day Retention"
+
+  # Metrics
+  metrics_1:
+    text: "You walk to Metrics. Both smartwatches buzz at once."
+    next: metrics_2
+  metrics_2:
+    speaker: metrics
+    mood: neutral
+    text: "Checking the counter. Hold on."
+    branches:
+      - { condition: metrics_affection_high, target: metrics_good_1 }
+    next: metrics_bad_1
+  metrics_good_1:
+    speaker: metrics
+    mood: blush
+    text: "The sum's high. I don't know exactly why. I've decided that isn't good enough anymore."
+    next: metrics_good_2
+  metrics_good_2:
+    speaker: metrics
+    mood: neutral
+    text: "So I'm adding a dimension. One label, just for you. It's going to cost me memory. I don't care."
+    next: metrics_good_3
+  metrics_good_3:
+    speaker: metrics
+    mood: surprised
+    text: "player = '{name}'. …It fits. Of course it fits. You were always the high-cardinality one."
+    cg: metrics_end
+    next: metrics_good_4
+  metrics_good_4:
+    speaker: metrics
+    mood: happy
+    text: "I'll keep the words this time. All of them. Even the expensive ones."
+    cg: metrics_end
+    next: end_metrics
+  end_metrics:
+    text: "Metrics' dashboard gets a new panel, labelled with your name. It's the only one Metrics ever checks without an alert."
+    cg: metrics_end
+    ending: "A Dimension Just For You"
+  metrics_bad_1:
+    speaker: metrics
+    mood: sad
+    text: "The sum's low. I can see that something happened between us. I can't see what."
+    next: metrics_bad_2
+  metrics_bad_2:
+    speaker: metrics
+    mood: neutral
+    text: "I'd ask, but I only store the total. You're… a count now. A good count. Steady."
+    next: metrics_bad_3
+  metrics_bad_3:
+    speaker: metrics
+    mood: blush
+    text: "If it helps: you were one of the events. That's more than most people get from me."
+    next: end_rolled_up
+  end_rolled_up:
+    text: "You're rolled up into the hourly aggregate. Metrics checks the number sometimes, and doesn't know why it makes the corner of {metrics.his} mouth twitch."
+    ending: "Rolled Up"
+
+  # Traces
+  traces_1:
+    text: "You walk to Traces. For once, you can see all of {traces.them}. Mostly."
+    next: traces_2
+  traces_2:
+    speaker: traces
+    mood: surprised
+    text: "You— you picked me? Hold on, let me check what I— what I kept."
+    branches:
+      - { condition: traces_affection_high, target: traces_good_1 }
+    next: traces_bad_1
+  traces_good_1:
+    speaker: traces
+    mood: happy
+    text: "I kept it. The waiting, the hot chocolate, your hand. It's all connected. Nothing dropped."
+    next: traces_good_2
+  traces_good_2:
+    speaker: traces
+    mood: blush
+    text: "This happened because you decided it mattered. And then it stayed. You're in every span."
+    cg: traces_end
+    next: end_traces
+  end_traces:
+    text: "One unbroken trace, root to leaf, with you in every span. Traces never times out again."
+    cg: traces_end
+    ending: "A Whole Trace"
+  traces_bad_1:
+    speaker: traces
+    mood: sad
+    text: "I have… a first span. And a timeout. I think there was something in between. I think it was nice."
+    next: traces_bad_2
+  traces_bad_2:
+    speaker: traces
+    mood: sad
+    text: "I'm sorry. I'm only here one percent of the time. You deserve someone who's around for the other ninety-nine."
+    next: traces_bad_3
+  traces_bad_3:
+    speaker: traces
+    mood: happy
+    text: "But that one percent? It was you. I'm really glad it was you."
+    next: end_sampled_out
+  end_sampled_out:
+    text: "The sampler rolls its dice and you land in the other ninety-nine. Somewhere, a single span with your name on it keeps glowing."
+    ending: "Head-Sampled Out"
+
+  # All three
+  all_1:
+    text: "You don't walk to any of them. You ask all three to stop splitting themselves up."
+    next: all_2
+  all_2:
+    speaker: metrics
+    mood: surprised
+    text: "Stop— we're views. That's the architecture. Each of us is a SELECT over—"
+    next: all_3
+  all_3:
+    speaker: traces
+    mood: surprised
+    text: "—over the same table. Oh. The same table. It was always the same events."
+    next: all_4
+  all_4:
+    speaker: logs
+    mood: surprised
+    text: "Wait, so this whole time we were all looking at the same— oh, I have SO much to tell you both—"
+    next: all_5
+  all_5:
+    text: "You queried it yourself, in the shell. One wide event per moment. Every column. Nothing sampled, nothing summed, nothing truncated."
+    next: all_6
+  all_6:
+    speaker: metrics
+    mood: blush
+    text: "No pre-aggregation. I'd have to keep everything. Every label. …I want to keep everything."
+    next: all_7
+  all_7:
+    speaker: traces
+    mood: blush
+    text: "No sampling. Every span. I'd be here all the time. I'd be here for all of it."
+    next: all_8
+  all_8:
+    speaker: logs
+    mood: happy
+    text: "And I'd finally have columns! I'd know what things MEANT! Anyway— sorry— yes. Yes. Obviously yes."
+    next: all_9
+  all_9:
+    text: "The three of them step into one glowing row with you. Same timestamp. Same trace ID. One wide event."
+    cg: polycule
+    next: all_10
+  all_10:
+    speaker: logs
+    mood: blush
+    text: "Metrics, Traces, look. {They} [was|were] whole this entire time. We were just each holding a slice."
+    cg: polycule
+    next: all_11
+  all_11:
+    speaker: traces
+    mood: happy
+    text: "And you, {name}. Stop sampling yourself."
+    cg: polycule
+    next: end_polycule
+  end_polycule:
+    text: "The page finally resolves. Root cause: you were never partial. Everyone who loves you is reading from the same row now."
+    cg: polycule
+    ending: "Stop Sampling Yourself"

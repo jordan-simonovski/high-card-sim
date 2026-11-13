@@ -1,0 +1,117 @@
+# Monitoring, the ex. Only has saved queries. Get back together (choice id `relapse`)
+# or let them go kindly; either way, on to the finale.
+id: monitoring
+start: arrive
+bg: noc_room
+nodes:
+  arrive:
+    text: "The NOC is dim and humming. Status lights blink: green, green, green, green, one tired amber."
+    next: hi
+  hi:
+    speaker: monitoring
+    mood: neutral
+    text: "Status: OK. Status: OK. Status— oh. It's you."
+    next: hi2
+  hi2:
+    speaker: monitoring
+    mood: sad
+    text: "You fell through the glass at 03:12. I marked it resolved. I didn't know what else to mark it."
+    next: dash
+  dash:
+    speaker: monitoring
+    mood: neutral
+    text: "I kept your dashboard. Same three panels. You used to like them."
+    show: monitoring_dashboard
+    next: ask
+  ask:
+    speaker: monitoring
+    mood: neutral
+    text: "You can ask me anything. It's on my checklist. Item four: 'let the user ask anything'."
+    choices:
+      - { id: okay, text: "\"Are you okay?\"", target: no_query }
+      - { id: miss, text: "\"Did you ever actually see me?\"", target: no_query2 }
+      - { id: p99, text: "\"What's the checkout p99?\"", target: saved }
+  no_query:
+    speaker: monitoring
+    mood: sad
+    text: "That isn't one of my saved queries."
+    next: sorry
+  no_query2:
+    speaker: monitoring
+    mood: sad
+    text: "That isn't one of my saved queries. …I wish it were."
+    next: sorry
+  saved:
+    speaker: monitoring
+    mood: happy
+    text: "Checkout p99: within threshold. Errors: 0. Status: OK. See? I can answer that one. I'm good at that one."
+    next: sorry
+  sorry:
+    speaker: monitoring
+    mood: sad
+    text: "I could only ever ask you the same three questions. You had so many answers I didn't have panels for."
+    next: plea
+  plea:
+    speaker: monitoring
+    mood: neutral
+    text: "We could go back. Same panels. Same thresholds. I'd page you every night. I'd never miss a thing."
+    next: plea2
+  plea2:
+    speaker: monitoring
+    mood: sad
+    text: "…I'd never miss a thing I already knew to look for."
+    next: choose
+  choose:
+    text: "Monitoring looks at you over the clipboard, pen hovering over a checkbox."
+    choices:
+      - { id: relapse, text: "Get back together. It was safe, at least.", target: relapse_1 }
+      - { id: let_go, text: "Let {monitoring.them} go, kindly.", target: letgo_1 }
+  relapse_1:
+    speaker: monitoring
+    mood: happy
+    text: "Status: OK. Status: OK. I'll set your page for 03:12. Same as always."
+    next: relapse_2
+  relapse_2:
+    text: "Every status light turns green. It's very comforting. It's very, very green."
+    next: "@finale"
+  letgo_1:
+    text: "You start typing a message. It takes a while. You mean every word."
+    next: intercept
+  intercept:
+    speaker: collector
+    mood: happy
+    text: "Ooh! A message! I'll forward that for you~ after I've read it. For your safety!"
+    next: intercept2
+  intercept2:
+    speaker: collector
+    mood: blush
+    text: "…oh. Oh, that's really kind, actually. Batching complete. Delivering!"
+    next: deliver
+  deliver:
+    speaker: collector
+    mood: neutral
+    text: "Monitoring, message for you! It's from {name}. {They} wrote it {themself}. I only read it twice. Okay, four times."
+    next: read
+  read:
+    speaker: monitoring
+    mood: surprised
+    text: "'Thank you for watching over me all those nights. I'm going to go and be known properly now. You can stop paging me.'"
+    next: read2
+  read2:
+    speaker: monitoring
+    mood: sad
+    text: "I don't have a status for this."
+    next: read3
+  read3:
+    speaker: monitoring
+    mood: happy
+    text: "…I'm adding it. As a saved query. So I can look at it whenever I want."
+    next: runbook
+  runbook:
+    speaker: monitoring
+    mood: neutral
+    text: "Runbook note for {name}: {they} [does|do] not need paging anymore. Status: resolved."
+    next: bye
+  bye:
+    text: "The amber light blinks once and turns green. Not lying, this time."
+    next: "@finale"

@@ -29,6 +29,8 @@ export interface EventLog {
   /** Replay the whole log into chDB, then mirror every later append into it. */
   attach(db: Db): Promise<number>;
   exportJsonl(): Promise<string>;
+  /** Replace the whole log (save import, new session). The page reloads afterwards. */
+  replace(events: GameEvent[]): Promise<void>;
 }
 
 const IDB_NAME = 'high-cardinality';
@@ -97,5 +99,17 @@ export async function openLog(): Promise<EventLog> {
         return evs.length;
       }),
     exportJsonl: async () => (await all()).map((e) => JSON.stringify(e)).join('\n'),
+    replace: (events) =>
+      serial(async () => {
+        const tx = idb.transaction(STORE, 'readwrite');
+        const s = tx.objectStore(STORE);
+        s.clear();
+        for (const e of events) s.add(e);
+        await new Promise<void>((resolve, reject) => {
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error);
+        });
+      }),
   };
 }

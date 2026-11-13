@@ -2,6 +2,7 @@
 # Quote every text value: YAML reads a leading { or [ as a mapping or list.
 id: prologue
 start: ceiling
+bg: bedroom_night
 nodes:
   ceiling:
     text: "03:12. Your phone lights up the ceiling."
@@ -20,19 +21,23 @@ nodes:
       - { id: snooze, text: "Snooze it (five minutes, tops)", target: tilt }
   through:
     text: "You tap ACK. Your thumb goes through the glass and keeps going."
+    bg: ingest_void
     next: ingest
   tilt:
     text: "You tap SNOOZE. The pager, offended, pages harder. The room tilts."
     next: ingest
   ingest:
     text: "Somewhere, a collector is spinning up. You are being… ingested."
+    bg: ingest_void
     next: hello
   hello:
     speaker: stranger
+    mood: happy
     text: "Oh! A new span. Hi! Sorry, you're very high cardinality. It's taking a second to index you."
     next: attributes
   attributes:
     speaker: stranger
+    mood: neutral
     text: "Before you're fully ingested I need your span attributes. All of them. Free text, obviously. We're not animals."
     next: create
   create:
@@ -41,10 +46,12 @@ nodes:
     next: welcome
   welcome:
     speaker: stranger
+    mood: happy
     text: "player.name = \"{name}\". Ooh. That one's going to look great in a GROUP BY."
     next: announce
   announce:
     speaker: stranger
+    mood: happy
     text: "EVERYONE! {name} is here! {They} [has|have] been paged into the wrong world and {they} [is|are] extremely high cardinality!"
     next: listening
   listening:
@@ -54,7 +61,11 @@ nodes:
     next: fast
   slow:
     speaker: stranger
+    mood: neutral
     text: "You took your time with that page, {name}. That's okay. Someone is going to notice, though."
+    next: "@registry"
   fast:
     speaker: stranger
+    mood: surprised
     text: "You acked fast, {name}. Someone is going to notice that, too."
+    next: "@registry"

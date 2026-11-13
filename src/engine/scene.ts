@@ -9,6 +9,8 @@ export interface Choice {
   affection_delta?: number;
   /** Named query; the choice is only offered when it is truthy. */
   condition?: string;
+  /** Extra span attributes on the choice event (e.g. sampling.priority: "1" keeps it in Traces' view). */
+  attributes?: Record<string, string>;
 }
 
 export interface Branch {
@@ -26,13 +28,27 @@ export interface SceneNode {
   next?: string;
   /** UI step to run when the node is reached (e.g. 'create_character'), then continue to `next`. */
   action?: string;
+  /** Named query whose result rows are shown as a table under the text. */
+  show?: string;
+  /** Ending title. An ending node is terminal. */
+  ending?: string;
+  /** Speaker expression (content/assets.yaml moods). */
+  mood?: string;
+  /** Background override; otherwise the scene's bg carries on. */
+  bg?: string;
+  /** Full-screen illustration shown with this node. */
+  cg?: string;
 }
 
 export interface Scene {
   id: string;
   start: string;
+  bg?: string;
   nodes: Record<string, SceneNode>;
 }
+
+/** Targets starting with '@' jump to another scene's start node: '@hub'. */
+export const sceneTarget = (target: string): string | undefined => (target.startsWith('@') ? target.slice(1) : undefined);
 
 /** Evaluates a named query to a boolean. */
 export type Conditions = (queryName: string) => Promise<boolean>;
@@ -45,7 +61,7 @@ export function node(scene: Scene, id: string): SceneNode {
 
 /** True when showing or leaving this node needs the query engine. */
 export function needsQueries(n: SceneNode): boolean {
-  return !!n.branches?.length || !!n.choices?.some((c) => c.condition);
+  return !!n.branches?.length || !!n.show || !!n.choices?.some((c) => c.condition);
 }
 
 /** Choices to offer, in authored order. Conditions run sequentially (deterministic). */

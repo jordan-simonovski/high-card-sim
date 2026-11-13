@@ -1,0 +1,69 @@
+# The Service Mesh: the hub. Baggage on the first visit; a date picker after that;
+# once all three dates are done, on to the Query Shell.
+id: mesh
+start: start
+bg: mesh_plaza
+nodes:
+  start:
+    text: ""
+    branches:
+      - { condition: all_dated, target: "@shell" }
+      - { condition: first_mesh_visit, target: arrive }
+    next: back
+  arrive:
+    text: "The Service Mesh is a sunny plaza of sidecar-shaped kiosks. Glowing paths run between them, carrying little packets."
+    next: baggage_hi
+  baggage_hi:
+    speaker: baggage
+    mood: happy
+    text: "Oh, hello! New span! I'll just come along. I always come along."
+    next: baggage_tags
+  baggage_tags:
+    speaker: baggage
+    mood: neutral
+    text: "I'm Baggage. I carry everyone's key=value pairs. Who's dating who, who retried what, who's on call. Context!"
+    next: baggage_shout
+  baggage_shout:
+    speaker: baggage
+    mood: happy
+    text: "EVERYONE! This is {name}! {They} [was|were] NULL for about four seconds. We don't talk about it."
+    next: baggage_ask
+  baggage_ask:
+    speaker: baggage
+    mood: neutral
+    text: "So! Who are you here to see?"
+    choices:
+      - { id: who, text: "\"Who's around?\"", target: tour }
+      - { id: how, text: "\"How do you know about the NULL thing?\"", target: gossip }
+  gossip:
+    speaker: baggage
+    mood: blush
+    text: "Context propagation, love. It was in a header. Everything's in a header if you look."
+    next: tour
+  tour:
+    speaker: baggage
+    mood: neutral
+    text: "Three pillars, three spots. Logs is in the café that never ends. You'll hear {logs.her} before you see {logs.her}."
+    next: tour2
+  tour2:
+    speaker: baggage
+    mood: happy
+    text: "Metrics is at the gym, counting reps. Very fit. Very few words. Traces is… around. One percent of the time."
+    next: glimpse
+  glimpse:
+    text: "A blur in a navy jacket jogs past at exactly 3.0 metres per second. Behind you, something lilac flickers and is gone."
+    next: hub
+  back:
+    text: "You're back in the plaza. Baggage waves from a kiosk, already somehow knowing where you've been."
+    next: baggage_back
+  baggage_back:
+    speaker: baggage
+    mood: happy
+    text: "Back again! I heard how it went. Everyone heard. I may have propagated it."
+    next: hub
+  hub:
+    text: "Where to?"
+    choices:
+      - { id: logs, text: "The Archive Café (Logs)", condition: not_dated_logs, target: "@date_logs" }
+      - { id: metrics, text: "The Dashboard Gym (Metrics)", condition: not_dated_metrics, target: "@date_metrics" }
+      - { id: traces, text: "The Sampling Café (Traces)", condition: not_dated_traces, target: "@date_traces" }

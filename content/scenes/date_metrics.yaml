@@ -1,0 +1,165 @@
+# Date with Metrics. Affection is sum(affection_delta) at his nodes: honesty and consistency
+# count, flattery doesn't. One possible argument (-2) that he can only remember as a number.
+# Range on this date: -2 (careless) to +5 (sincere).
+id: date_metrics
+start: arrive
+bg: dashboard_gym
+nodes:
+  arrive:
+    text: "The Dashboard Gym is all gauges. Even the water fountain has an SLO."
+    next: meet
+  meet:
+    speaker: metrics
+    mood: neutral
+    text: "You're on time. Ninety seconds early, actually. Within tolerance."
+    next: meet2
+  meet2:
+    speaker: metrics
+    mood: neutral
+    text: "I don't do small talk. I do rates. Shall we?"
+    next: c1
+  c1:
+    speaker: metrics
+    mood: neutral
+    text: "Question one. Why are you here?"
+    choices:
+      - { id: honest, text: "\"Honestly? I'm a bit lost, and you seemed like someone who'd know where I am.\"", target: c1_honest, affection_delta: 1 }
+      - { id: flatter, text: "\"To see the most beautiful dashboard in the whole mesh.\"", target: c1_flatter }
+  c1_honest:
+    speaker: metrics
+    mood: blush
+    text: "…Accurate. You're at coordinates zero, zero of a gym. But accurate. Noted."
+    next: warmup
+  c1_flatter:
+    speaker: metrics
+    mood: annoyed
+    text: "Flattery is noise. It doesn't move the counter. …Thank you, though."
+    next: warmup
+  warmup:
+    text: "Metrics hands you a towel. It has a unit printed on it. You don't ask which unit."
+    next: c2
+  c2:
+    speaker: metrics
+    mood: neutral
+    text: "My week: four sessions, zero rest days, p99 heart rate 162. I only keep the summary. It's tidier."
+    choices:
+      - { id: actually, text: "\"And how are you actually doing?\"", target: c2_actually, affection_delta: 1 }
+      - { id: impressive, text: "\"Impressive numbers.\"", target: c2_impressive }
+  c2_actually:
+    speaker: metrics
+    mood: surprised
+    text: "…People ask for my rates. Nobody asks for the value. I'm fine. Seven out of ten. Trending up. As of about now."
+    next: bench
+  c2_impressive:
+    speaker: metrics
+    mood: neutral
+    text: "They are. Thank you."
+    next: bench
+  bench:
+    text: "Metrics lies back on a bench. The bar has tidy tick marks along it, like an axis."
+    next: spot
+  spot:
+    speaker: metrics
+    mood: neutral
+    text: "Spot me? I trust you to the nearest kilogram."
+    next: labels
+  labels:
+    speaker: metrics
+    mood: neutral
+    text: "I used to keep labels, you know. Who, where, why. Every detail about everyone."
+    next: labels2
+  labels2:
+    speaker: metrics
+    mood: sad
+    text: "It got expensive. So I dropped them. Now I keep totals. Very efficient. Very… quiet."
+    next: c3
+  c3:
+    speaker: metrics
+    mood: neutral
+    text: "Anyway. That's the trade-off."
+    choices:
+      - { id: cost, text: "\"That sounds like it cost you something.\"", target: c3_cost, affection_delta: 1 }
+      - { id: cold, text: "\"So you just forget people? That's kind of cold, Metrics.\"", target: fight1, affection_delta: -2 }
+      - { id: shrug, text: "\"Efficient.\"", target: c3_shrug }
+  c3_cost:
+    speaker: metrics
+    mood: blush
+    text: "…It did. Nobody's ever priced that in before. Incrementing."
+    next: view
+  c3_shrug:
+    speaker: metrics
+    mood: neutral
+    text: "It is. Thanks. That's what I keep telling myself."
+    next: view
+  fight1:
+    speaker: metrics
+    mood: annoyed
+    text: "I don't forget them. I keep exactly what matters: how many, how often, how much."
+    next: fight2
+  fight2:
+    speaker: metrics
+    mood: annoyed
+    text: "Do you know what high cardinality costs? I do. I paid it. Don't call it cold."
+    next: fight3
+  fight3:
+    text: "Metrics re-racks the bar harder than necessary. Neither of you says anything for 4.2 minutes. You know it was 4.2 because Metrics says so."
+    next: fight_note
+  fight_note:
+    speaker: metrics
+    mood: sad
+    text: "The counter for the gym scene says -2. I don't know why. The reason wasn't stored."
+    next: fight_note2
+  fight_note2:
+    speaker: metrics
+    mood: sad
+    text: "I'm sorry for whatever it was. I mean that. I just can't tell you what I mean it about."
+    next: view
+  view:
+    speaker: metrics
+    mood: neutral
+    text: "Here. This is everything I keep about you. This is all of you I get to keep."
+    show: metrics_view_of_you
+    next: c4
+  c4:
+    speaker: metrics
+    mood: sad
+    text: "Events per scene. A sum. No words. If you said something lovely to me, it's in there as a 1."
+    choices:
+      - { id: count, text: "\"Then let's make every one of them count.\"", target: c4_count, affection_delta: 1 }
+      - { id: label, text: "\"Could you keep a label? Just one. For me.\"", target: c4_label, affection_delta: 1 }
+      - { id: bleak, text: "\"That's kind of bleak.\"", target: c4_bleak }
+  c4_count:
+    speaker: metrics
+    mood: blush
+    text: "…That's a good rate. I'd like to sustain it."
+    next: c5
+  c4_label:
+    speaker: metrics
+    mood: surprised
+    text: "One label. That's a whole new dimension. I'd have to think about the memory. …I'm thinking about it."
+    next: c5
+  c4_bleak:
+    speaker: metrics
+    mood: sad
+    text: "It's efficient. I used to think those were the same thing."
+    next: c5
+  c5:
+    speaker: metrics
+    mood: neutral
+    text: "Same time next week? I like a consistent series."
+    choices:
+      - { id: same, text: "\"Same time. I'll be there.\"", target: c5_same, affection_delta: 1 }
+      - { id: maybe, text: "\"Maybe. Let's see how it goes.\"", target: c5_maybe }
+  c5_same:
+    speaker: metrics
+    mood: happy
+    text: "Good. I'll set an alert. A nice one. It won't page you, it'll just… mention it."
+    next: out
+  c5_maybe:
+    speaker: metrics
+    mood: neutral
+    text: "Understood. I'll leave a gap in the series. Gaps are fine. I'm used to gaps."
+    next: out
+  out:
+    text: "You leave the gym. Behind you, a small counter ticks over, and Metrics watches it longer than strictly necessary."
+    next: "@mesh"

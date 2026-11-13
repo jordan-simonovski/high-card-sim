@@ -1,10 +1,13 @@
 // Content validator, run at build time. Pure TS: no DOM, no chDB, no fs.
-import type { Scene, SceneNode } from './scene.ts';
+import { sceneTarget, type Scene, type SceneNode } from './scene.ts';
 import { FORMS, TOKEN, formOf, type Form } from './pronouns.ts';
 
 export interface CharacterDef {
   name: string;
   pronouns: string; // preset key
+  color?: string;
+  sprite?: string;
+  silhouette?: boolean;
 }
 
 export interface Content {
@@ -12,9 +15,11 @@ export interface Content {
   queries: string[];
   characters: Record<string, CharacterDef>;
   presets: string[];
+  assets?: { moods: string[]; backgrounds: string[]; cgs: string[] };
 }
 
-export const ACTIONS = ['create_character'] as const;
+export const ACTIONS = ['create_character', 'open_console'] as const;
+export const FIRST_SCENE = 'prologue';
 
 // Hardcoded gendered pronouns are banned in content text: every pronoun must be a token,
 // so the player is never misgendered and NPC pronouns live in one registry.
@@ -54,14 +59,19 @@ export function validate(c: Content): string[] {
   const errors: string[] = [];
   const queries = new Set(c.queries);
   const ids = new Set<string>();
+  const sceneIds = new Set(c.scenes.map((s) => s.id));
+  const sceneEdges = new Map<string, string[]>();
 
   for (const s of c.scenes) {
     const at = (node: string, msg: string) => errors.push(`${s.id}/${node}: ${msg}`);
     if (ids.has(s.id)) errors.push(`duplicate scene id ${s.id}`);
     ids.add(s.id);
     if (!s.nodes[s.start]) errors.push(`${s.id}: start node "${s.start}" does not exist`);
+    if (s.bg && c.assets && !c.assets.backgrounds.includes(s.bg)) errors.push(`${s.id}: unknown bg "${s.bg}"`);
 
-    const targets = (n: SceneNode) => [n.next, ...(n.branches ?? []).map((b) => b.target), ...(n.choices ?? []).map((c) => c.target)].filter((t): t is string => !!t);
+    const allTargets = (n: SceneNode) => [n.next, ...(n.branches ?? []).map((b) => b.target), ...(n.choices ?? []).map((c) => c.target)].filter((t): t is string => !!t);
+    const targets = (n: SceneNode) => allTargets(n).filter((t) => !sceneTarget(t));
+    sceneEdges.set(s.id, Object.values(s.nodes).flatMap((n) => allTargets(n).map(sceneTarget).filter((t): t is string => !!t)));
     const usesPlayer = new Set<string>();
 
     for (const [key, n] of Object.entries(s.nodes)) {
@@ -79,7 +89,22 @@ export function validate(c: Content): string[] {
       }
       for (const q of [...(n.branches ?? []).map((b) => b.condition), ...(n.choices ?? []).map((ch) => ch.condition)])
         if (q && !queries.has(q)) at(key, `unknown query "${q}" (no content/queries/${q}.sql)`);
-      for (const t of targets(n)) if (!s.nodes[t]) at(key, `target "${t}" does not exist`);
+      for (const t of allTargets(n)) {
+        const other = sceneTarget(t);
+        if (other ? !sceneIds.has(other) : !s.nodes[t]) at(key, other ? `scene "${other}" does not exist` : `target "${t}" does not exist`);
+      }
+      if (c.assets) {
+        if (n.mood && !c.assets.moods.includes(n.mood)) at(key, `unknown mood "${n.mood}"`);
+        if (n.mood && !n.speaker) at(key, 'mood without a speaker');
+        if (n.bg && !c.assets.backgrounds.includes(n.bg)) at(key, `unknown bg "${n.bg}"`);
+        if (n.cg && !c.assets.cgs.includes(n.cg)) at(key, `unknown cg "${n.cg}"`);
+      }
+      if (n.show && !queries.has(n.show)) at(key, `unknown query "${n.show}" in show`);
+      if (n.ending !== undefined && (allTargets(n).length || !n.ending.trim())) at(key, 'an ending needs a title and no next/branches/choices');
+      if (n.ending === undefined && !allTargets(n).length) at(key, 'dead end: add next, choices, a scene jump (@scene) or an ending');
+      for (const ch of n.choices ?? [])
+        for (const [k, v] of Object.entries(ch.attributes ?? {}))
+          if (!/^[a-z][a-z0-9_.]*$/.test(k) || typeof v !== 'string') at(key, `choice "${ch.id}": attribute ${k} must be a dotted.lowercase key with a string value`);
       for (const text of textsOf(n)) {
         const r = checkText(text, c.characters);
         for (const e of r.errors) at(key, e);
@@ -107,6 +132,17 @@ export function validate(c: Content): string[] {
       for (const key of walk(true))
         if (usesPlayer.has(key) && s.nodes[key].action !== 'create_character') at(key, 'uses player tokens before character creation');
   }
+
+  if (sceneIds.size && !sceneIds.has(FIRST_SCENE)) errors.push(`missing first scene "${FIRST_SCENE}"`);
+  const reached = new Set<string>();
+  const todo = [FIRST_SCENE];
+  while (todo.length) {
+    const id = todo.pop()!;
+    if (reached.has(id) || !sceneIds.has(id)) continue;
+    reached.add(id);
+    todo.push(...(sceneEdges.get(id) ?? []));
+  }
+  for (const id of sceneIds) if (!reached.has(id)) errors.push(`${id}: scene is unreachable from ${FIRST_SCENE}`);
 
   for (const [id, ch] of Object.entries(c.characters)) {
     if (!c.presets.includes(ch.pronouns)) errors.push(`characters/${id}: unknown pronoun preset "${ch.pronouns}"`);

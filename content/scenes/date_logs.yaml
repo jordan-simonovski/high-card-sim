@@ -1,0 +1,152 @@
+# Date with Logs. Affection is conversation volume: every Logs line shown and every reply
+# picked at a Logs node is a row in the `logs` view. "Tell me more" opens extra lines;
+# "TL;DR" skips them. All-more: 22 rows here. All-TL;DR: 10 rows here.
+id: date_logs
+start: arrive
+bg: archive_cafe
+nodes:
+  arrive:
+    text: "The Archive Café is a library that never ends, with a coffee bar wedged between two shelves of scrolling text."
+    next: spot
+  spot:
+    text: "Logs is already at a table, writing. When you sit down, the ink smudge on {logs.their} cheek crinkles into a smile."
+    next: hi
+  hi:
+    speaker: logs
+    mood: happy
+    text: "You came! At 14:02:11 I wrote 'what if nobody comes' and at 14:02:12 I crossed it out and— anyway— hi!"
+    next: q1
+  q1:
+    speaker: logs
+    mood: neutral
+    text: "Do you want to hear how I found this café? It's a long story. All my stories are long. Sorry. Verbose mode."
+    choices:
+      - { id: more, text: "\"Tell me more. I've got time.\"", target: more1a }
+      - { id: tldr, text: "\"Could I get the TL;DR?\"", target: tldr1 }
+  more1a:
+    speaker: logs
+    mood: happy
+    text: "Okay so at 09:14:03 one Tuesday I was looking for a line about a disk filling up, and I took a wrong turn at the stack traces—"
+    next: more1b
+  more1b:
+    speaker: logs
+    mood: neutral
+    text: "—and there was this little bar, and the barista said 'the usual?' and I said 'I've never been here' and they said 'check your logs'—"
+    next: more1c
+  more1c:
+    speaker: logs
+    mood: blush
+    text: "—and I HAD! Forty-one times! I'd just never searched for it. Anyway. Thank you for letting me finish. People usually don't."
+    next: q2
+  tldr1:
+    speaker: logs
+    mood: sad
+    text: "Oh! Right. Sorry. TL;DR: found it, it's a café. That's… that's the whole thing, really."
+    next: q2
+  q2:
+    speaker: logs
+    mood: neutral
+    text: "Can I show you something? I remember everything anyone says to me. Do you want to hear what you sound like to me?"
+    choices:
+      - { id: more, text: "\"Yes. Read it to me.\"", target: more2a }
+      - { id: tldr, text: "\"Maybe just the highlights?\"", target: tldr2 }
+  more2a:
+    speaker: logs
+    mood: happy
+    text: "Here are the last five things I heard. Verbatim. Timestamps and all."
+    show: logs_recall
+    next: more2b
+  more2b:
+    speaker: logs
+    mood: neutral
+    text: "See? I keep every word. I just can't always tell you what any of it meant. I'm a bit… unstructured."
+    next: more2c
+  more2c:
+    speaker: logs
+    mood: blush
+    text: "But I love reading it back. It's nicer when it's someone I'm on a date with."
+    next: q3
+  tldr2:
+    text: "Logs closes the notebook before you can see the page. Highlights aren't really a thing {logs.she} does. You both study the menu."
+    next: q3
+  q3:
+    speaker: logs
+    mood: sad
+    text: "Can I tell you a secret? Most people only read me when something's on fire."
+    choices:
+      - { id: more, text: "\"That sounds lonely. Tell me about it.\"", target: more3a }
+      - { id: tldr, text: "\"Fair. Fires are important, though.\"", target: tldr3 }
+  more3a:
+    speaker: logs
+    mood: sad
+    text: "They grep me at 3am for ERROR and leave before the coffee's done. Nobody reads the INFO lines. There's so much nice stuff in INFO."
+    next: more3b
+  more3b:
+    speaker: logs
+    mood: neutral
+    text: "Like at 11:20:45 last spring a service said 'connection established' and it sounded SO relieved. Nobody saw it but me."
+    next: more3c
+  more3c:
+    speaker: logs
+    mood: happy
+    text: "Or the retry that finally worked. Or the health check that just says 'ok' every ten seconds, forever, like a little heartbeat."
+    next: more3d
+  more3d:
+    speaker: logs
+    mood: blush
+    text: "Sorry. I'm doing it again. You're just… the first person who's ever asked."
+    next: turn
+  tldr3:
+    speaker: logs
+    mood: sad
+    text: "They are! That's what everyone says, right before they Ctrl+F me for 'ERROR' and leave."
+    next: wrap
+  turn:
+    speaker: logs
+    mood: surprised
+    text: "Wait. I've been talking for— let me check— eleven minutes and forty seconds. Your turn! Tell me something. Anything. I'll write it down."
+    choices:
+      - { id: page, text: "Tell Logs about the 3am page that brought you here.", target: turn_page }
+      - { id: weather, text: "Tell Logs something small: your favourite kind of weather.", target: turn_weather }
+      - { id: listen, text: "\"Honestly? I just like listening to you.\"", target: turn_listen }
+  turn_page:
+    speaker: logs
+    mood: surprised
+    text: "Paged at 03:12 and you got isekai'd? That's the worst incident I've ever heard. I'm writing it in the good notebook."
+    next: turn_end
+  turn_weather:
+    speaker: logs
+    mood: happy
+    text: "That's such an INFO-level thing to tell someone. I love it. I'm going to remember it forever. Literally forever."
+    next: turn_end
+  turn_listen:
+    speaker: logs
+    mood: blush
+    text: "Oh. Nobody's ever said that to me without a stack trace attached. Okay. But next time, you talk and I listen. I'm practising."
+    next: turn_end
+  turn_end:
+    speaker: logs
+    mood: blush
+    text: "You know what's funny? I wrote down every word you said, and I think I actually know what it meant this time."
+    next: wrap
+  wrap:
+    text: "The café lights dim a notch. Somewhere deep in the stacks, a log file rotates."
+    next: close
+  close:
+    text: ""
+    branches:
+      - { condition: logs_affection_high, target: bye_warm }
+    next: bye_soft
+  bye_warm:
+    speaker: logs
+    mood: happy
+    text: "Thank you for reading me on an ordinary day. Nobody does that. Come back? I'll save you a page. Several. A chapter."
+    next: out
+  bye_soft:
+    speaker: logs
+    mood: neutral
+    text: "This was nice! Short, but nice. I'll keep the summary. I'm not great at summaries, but I'll keep it."
+    next: out
+  out:
+    text: "You head back out into the light. Behind you, Logs is still writing."
+    next: "@mesh"

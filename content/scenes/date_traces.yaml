@@ -1,0 +1,122 @@
+# Date with Traces. Traces only sees sampled events: 1% at random, plus anything marked
+# sampling.priority = 1. They don't show up until the moment is marked important.
+# Kept moments on this date: 0-1 (careless) to 5 (sincere).
+id: date_traces
+start: start
+bg: sampling_cafe
+nodes:
+  start:
+    text: ""
+    branches:
+      - { condition: traces_saw_you, target: appear }
+    next: empty
+  empty:
+    text: "The café is quiet. Most of the tables are greyed out, as if they didn't make the sample."
+    next: empty2
+  empty2:
+    text: "Your table has a little card that says TRACES. The chair across from you is empty. Or it isn't, and you're just not being sampled."
+    next: wait
+  wait:
+    text: "What do you do?"
+    choices:
+      - { id: mark, text: "Mark this moment as important.", target: recheck, character: traces, attributes: { sampling.priority: "1" } }
+      - { id: wait, text: "Keep waiting.", target: waiting }
+      - { id: leave, text: "Give up and head back to the mesh.", target: "@mesh" }
+  waiting:
+    text: "You wait. A waiter refills a cup that isn't there. Statistically, Traces catches one moment in a hundred."
+    next: recheck
+  recheck:
+    text: ""
+    branches:
+      - { condition: traces_saw_you, target: appear }
+    next: still
+  still:
+    text: "Still nobody. The empty chair looks apologetic, somehow."
+    next: wait
+  appear:
+    text: "The chair across from you flickers, and then someone is sitting in it, mid-sentence, a few gold threads glowing at {traces.their} fingertips."
+    next: hello
+  hello:
+    speaker: traces
+    mood: surprised
+    text: "—oh! You're— you're here. You were here the whole time, weren't you? I only just—"
+    next: hello2
+  hello2:
+    speaker: traces
+    mood: sad
+    text: "Root span: {name}, waiting. {They} [has|have] been here for— oh no. Ages. I'm so sorry. It's not you. It's my sample rate."
+    next: t1
+  t1:
+    speaker: traces
+    mood: neutral
+    text: "Can I ask— how long were you waiting? I only caught the end. I always only catch the end."
+    choices:
+      - { id: keep, text: "\"Long enough. I'm glad you're here.\" (Keep this moment.)", target: t1_keep, attributes: { sampling.priority: "1" } }
+      - { id: plain, text: "\"Not long. Don't worry about it.\"", target: t1_plain }
+  t1_keep:
+    speaker: traces
+    mood: blush
+    text: "I— I kept that. I actually kept that. It's in my trace. Oh."
+    next: cocoa
+  t1_plain:
+    speaker: traces
+    mood: neutral
+    text: "Okay. I think you said something nice? It's already gone. Sorry. I'm sure it was nice."
+    next: cocoa
+  cocoa:
+    text: "Traces orders two hot chocolates. Yours arrives. The other one gets dropped somewhere between the counter and the table."
+    next: t2
+  t2:
+    speaker: traces
+    mood: neutral
+    text: "I think in cause and effect. This happened because— but I usually lose the 'because'. Can I tell you why I like it here?"
+    choices:
+      - { id: keep, text: "\"Tell me. I'll make sure you keep it.\" (Keep this moment.)", target: t2_keep, attributes: { sampling.priority: "1" } }
+      - { id: plain, text: "\"Sure, go ahead.\"", target: t2_plain }
+  t2_keep:
+    speaker: traces
+    mood: happy
+    text: "This café exists because someone needed somewhere quiet. And I come here because it's the only place I hear the whole sentence."
+    next: t3
+  t2_plain:
+    speaker: traces
+    mood: sad
+    text: "I come here because— …sorry. I lost it. It was a good reason, I think."
+    next: t3
+  t3:
+    speaker: traces
+    mood: sad
+    text: "Mostly I just catch the first span and a timeout. I feel like I'm missing my own—"
+    choices:
+      - { id: keep, text: "\"Then let's keep this one. All of it.\" (Keep this moment.)", target: t3_keep, attributes: { sampling.priority: "1" } }
+      - { id: plain, text: "\"That's just how sampling works, I guess.\"", target: t3_plain }
+  t3_keep:
+    speaker: traces
+    mood: surprised
+    text: "You can— you can do that? Just decide something matters, and it stays?"
+    next: t4
+  t3_plain:
+    speaker: traces
+    mood: sad
+    text: "Yeah. Ninety-nine percent of me agrees with you."
+    next: t4
+  t4:
+    speaker: traces
+    mood: blush
+    text: "Would you— can I hold your hand? The gold threads are just context. They don't bite."
+    choices:
+      - { id: keep, text: "Take {traces.their} hand. (Keep this moment.)", target: t4_keep, attributes: { sampling.priority: "1" } }
+      - { id: plain, text: "\"Maybe next time.\"", target: t4_plain }
+  t4_keep:
+    speaker: traces
+    mood: blush
+    text: "Parent span: you. Child span: me. That's… a really nice trace."
+    next: out
+  t4_plain:
+    speaker: traces
+    mood: neutral
+    text: "Next time. I'll try to be sampled for it."
+    next: out
+  out:
+    text: "When you stand to leave, Traces is still there. Mostly. The edges of {traces.their} coat flicker like a dropped span."
+    next: "@mesh"

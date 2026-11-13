@@ -1,14 +1,15 @@
 # Character registry. NPC pronouns live here and nowhere else: content refers to them
 # with tokens like {logs.she} / [logs:is|are], so changing one line here updates every scene.
-# pronouns: a preset key (she, he, they, xe, ze, it).
-logs: { name: Logs, pronouns: she }
-metrics: { name: Metrics, pronouns: he }
-traces: { name: Traces, pronouns: they }
+# pronouns: a preset key (she, he, they, xe, ze, it). color: name tag and card colour.
+# sprite: which sprite set to show (content/assets.yaml moods); silhouette hides the face.
+logs: { name: Logs, pronouns: she, color: "#ff7eb6", sprite: logs }
+metrics: { name: Metrics, pronouns: he, color: "#5aa9ff", sprite: metrics }
+traces: { name: Traces, pronouns: they, color: "#b69cff", sprite: traces }
 # Not specified in the design yet; they/them until decided.
-monitoring: { name: Monitoring, pronouns: they }
-collector: { name: The Collector, pronouns: they }
-baggage: { name: Baggage, pronouns: they }
-dba: { name: The DBA, pronouns: they }
+monitoring: { name: Monitoring, pronouns: they, color: "#ff6b6b", sprite: monitoring }
+collector: { name: The Collector, pronouns: they, color: "#ffa94d", sprite: collector }
+baggage: { name: Baggage, pronouns: they, color: "#69c27b", sprite: baggage }
+dba: { name: The DBA, pronouns: they, color: "#f2c14e", sprite: dba }
 # Prologue voices.
-pager: { name: pager, pronouns: it }
-stranger: { name: "???", pronouns: they }
+pager: { name: pager, pronouns: it, color: "#ff9ecb" }
+stranger: { name: "???", pronouns: they, color: "#8a7f99", sprite: collector, silhouette: true }

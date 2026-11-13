@@ -1,0 +1,17 @@
+# Art registry: what scenes may reference. The art pipeline renders exactly these.
+moods: [neutral, happy, blush, sad, surprised, annoyed]
+backgrounds:
+  bedroom_night: "Player's bedroom at 3am, lit only by a phone screen"
+  ingest_void: "Falling through a starfield of glowing log lines and span bars"
+  registry: "The Registry Office: a cosy pastel archive of index cards and schema diagrams"
+  mesh_plaza: "The Service Mesh: a sunny plaza of sidecar-shaped kiosks and glowing network paths"
+  archive_cafe: "Logs' favourite spot: a café inside an endless library of scrolling text"
+  dashboard_gym: "Metrics' gym: walls of tidy gauges, counters and line charts"
+  sampling_cafe: "A quiet corner café where most tables are greyed out, as if not sampled"
+  noc_room: "Monitoring's dim network operations room full of red/green status lights"
+  finale_sky: "A sky-high open stage made of one enormous glowing table row"
+cgs:
+  polycule: "Logs, Metrics and Traces holding hands with the player inside one glowing wide event"
+  logs_end: "Logs reading a long love letter aloud, scroll trailing to the horizon"
+  metrics_end: "Metrics adding a new labelled dimension, a gauge with the player's name"
+  traces_end: "Traces connecting a full span tree of glowing threads to the player"

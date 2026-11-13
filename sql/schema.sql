@@ -30,8 +30,9 @@ CREATE MATERIALIZED VIEW metrics_mv TO metrics_agg AS
 SELECT character, scene, count() AS events, sum(affection_delta) AS affection
 FROM events GROUP BY character, scene;
 
--- Traces: head-sampled at 1%.
-CREATE VIEW traces AS SELECT * FROM events WHERE cityHash64(event_id) % 100 = 0;
+-- Traces: head-sampled at 1%, plus anything explicitly marked important (tail sampling).
+CREATE VIEW traces AS SELECT * FROM events
+WHERE cityHash64(event_id) % 100 = 0 OR attributes['sampling.priority'] = '1';
 
 -- Logs: everything, unstructured.
 CREATE VIEW logs AS SELECT ts, character, dialogue_text FROM events;

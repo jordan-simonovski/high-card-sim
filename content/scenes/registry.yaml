@@ -1,0 +1,166 @@
+# The Registry. The DBA greets you with a default value, hotfixes it, panics about free text,
+# and grows. The stranger is revealed as the Collector. Sets the goal, then on to the Mesh.
+id: registry
+start: land
+bg: registry
+nodes:
+  land:
+    text: "You land softly in a drift of index cards. The air smells like toner and fresh coffee."
+    next: office
+  office:
+    text: "Shelves of schema diagrams climb into the dark. Somewhere, a label maker is working very hard."
+    next: greet
+  greet:
+    speaker: dba
+    mood: happy
+    text: "Welcome to the Registry! You must be— hello, NULL!"
+    next: react
+  react:
+    text: "You blink."
+    choices:
+      - { id: correct, text: "\"It's {name}, actually.\"", target: oops }
+      - { id: null_q, text: "\"Did you just call me NULL?\"", target: oops }
+      - { id: wave, text: "Wave back. NULL is fine. Probably.", target: oops }
+  oops:
+    speaker: dba
+    mood: surprised
+    text: "Oh no. Oh no no no. That's the default value. I read the default value. I greeted you with a DEFAULT."
+    next: hotfix
+  hotfix:
+    speaker: dba
+    mood: annoyed
+    text: "Hold on. I'm shipping a hotfix. Right now. In prod. Please don't look."
+    next: deploy
+  deploy:
+    text: "A pencil comes out of the DBA's bun. Something gets scribbled on an index card. A tiny bell rings: hotfix deployed."
+    next: greet2
+  greet2:
+    speaker: dba
+    mood: happy
+    text: "Hello, {name}! Welcome! You were never NULL. That was a bug, and it was mine."
+    next: file
+  file:
+    speaker: dba
+    mood: neutral
+    text: "Let me file your span attributes properly. Name, pronouns, and gender. Let's see…"
+    next: check
+  check:
+    text: ""
+    branches:
+      - { condition: gender_blank, target: blank }
+    next: filled
+  filled:
+    speaker: dba
+    mood: surprised
+    text: "player.gender = '{gender}'. That's free text. I don't have an enum for that. I don't have an enum at ALL."
+    next: panic
+  blank:
+    speaker: dba
+    mood: surprised
+    text: "player.gender is… empty. Not NULL! An empty string. That's a value. You chose it. I respect it. I'm panicking slightly."
+    next: panic
+  panic:
+    speaker: dba
+    mood: annoyed
+    text: "What if someone wants to GROUP BY it? What if someone wants an index? Should I make an enum? Everyone has an enum."
+    next: ask
+  ask:
+    speaker: dba
+    mood: neutral
+    text: "What do you think? Five values? Six, with OTHER?"
+    choices:
+      - { id: why, text: "\"What would the enum be for?\"", target: why }
+      - { id: fit, text: "\"Would everyone fit in it?\"", target: fit }
+      - { id: mine, text: "\"It's mine. Free text is how I wrote it.\"", target: mine }
+  why:
+    speaker: dba
+    mood: neutral
+    text: "Faster queries! Tidy dashboards! Predictable… um. Predictable everything. Predictable for me."
+    next: realise
+  fit:
+    speaker: dba
+    mood: sad
+    text: "I'd have to guess. And some people would end up in OTHER. Nobody wants to be filed under OTHER."
+    next: realise
+  mine:
+    speaker: dba
+    mood: surprised
+    text: "You wrote it. I'd be overwriting it with my own guess. That's— that's exactly what I just did with NULL."
+    next: realise
+  realise:
+    speaker: dba
+    mood: sad
+    text: "It would make the queries fast and the answers wrong. An enum would just be a lie with good indexing."
+    next: grow
+  grow:
+    speaker: dba
+    mood: happy
+    text: "Free text stays. Querying it properly is my job, not yours. Okay. Okay! I feel better. I think I just grew."
+    next: intrude
+  intrude:
+    speaker: stranger
+    mood: happy
+    text: "Did somebody say free text? I LOVE free text! So much to read!"
+    next: sigh
+  sigh:
+    speaker: dba
+    mood: annoyed
+    text: "You could just introduce yourself. You've been ingesting people all day."
+    next: reveal
+  reveal:
+    speaker: collector
+    mood: happy
+    text: "Fine! Hiii! I'm the Collector! Receiver, processor, exporter. Everything you send anyone passes through me first~"
+    next: reveal2
+  reveal2:
+    speaker: collector
+    mood: happy
+    text: "Your messages, your feelings, your little choice events! I batch them, I read them, then I forward them. For your safety!"
+    next: dba_no
+  dba_no:
+    speaker: dba
+    mood: annoyed
+    text: "That is not what 'for your safety' means."
+    next: dba_record
+  dba_record:
+    speaker: dba
+    mood: neutral
+    text: "And for the record: {name} wrote {their} own attributes. Nobody normalises them. Not me. Not you."
+    next: collector_ok
+  collector_ok:
+    speaker: collector
+    mood: blush
+    text: "Understood! Unnormalised. Raw. Pristine. I'll only read them a normal amount."
+    next: question
+  question:
+    speaker: dba
+    mood: neutral
+    text: "Now. You probably have questions."
+    choices:
+      - { id: why_here, text: "\"Why am I here?\"", target: goal }
+      - { id: go_home, text: "\"How do I get home?\"", target: goal }
+  goal:
+    speaker: dba
+    mood: neutral
+    text: "That page that woke you? It won't resolve until someone knows you whole. Not a sample. Not a summary. All of you."
+    next: pillars
+  pillars:
+    speaker: dba
+    mood: neutral
+    text: "Three pillars each hold a piece of you: Logs, Metrics and Traces. None of them sees the whole thing."
+    next: goal2
+  goal2:
+    speaker: dba
+    mood: blush
+    text: "So go and get to know them. On a— well. It's a date. I'm allowed to call it a date. The field is free text."
+    next: collector_bye
+  collector_bye:
+    speaker: collector
+    mood: happy
+    text: "Have fun! I'll be in every conversation! Quietly! Mostly!"
+    next: door
+  door:
+    speaker: dba
+    mood: happy
+    text: "The Service Mesh is through there. Mind the sidecars. And {name}? Good luck."
+    next: "@mesh"
