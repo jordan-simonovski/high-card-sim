@@ -3,6 +3,7 @@
 # Logs: logs_2 is the only Logs line before the affection branch (counts toward it).
 id: finale
 start: start
+music: finale
 bg: finale_sky
 nodes:
   start:
@@ -13,6 +14,7 @@ nodes:
 
   # Monitoring relapse
   relapse_1:
+    music: end_bittersweet
     text: "The sky stage flickers. Three panels unfold across the horizon, exactly where you left them."
     next: relapse_2
   relapse_2:
@@ -32,6 +34,7 @@ nodes:
     text: "Far below, three pillars wave up at you. You wave back. The dashboard doesn't have a panel for that."
     next: end_relapse
   end_relapse:
+    sfx: ending
     text: "You're back on call. Every panel is green. Every panel is lying. Monitoring never misses a night."
     ending: "Monitoring Relapse"
 
@@ -76,6 +79,7 @@ nodes:
       - { condition: logs_affection_high, target: logs_good_1 }
     next: logs_bad_1
   logs_good_1:
+    music: end_true
     speaker: logs
     mood: happy
     text: "I've been reading back everything we said. On purpose! Nothing was even on fire."
@@ -96,10 +100,12 @@ nodes:
     cg: logs_end
     next: end_logs
   end_logs:
+    sfx: ending
     text: "You read Logs start to finish, on purpose, on ordinary days. It takes the rest of your life. You never skip a line."
     cg: logs_end
     ending: "Verbose, Forever"
   logs_bad_1:
+    music: end_bittersweet
     speaker: logs
     mood: sad
     text: "I looked for us. There's a summary. It's… short. I think you were busy. That's okay! Everyone's busy."
@@ -115,6 +121,7 @@ nodes:
     text: "But for thirty whole days I'll remember that you asked for the TL;DR. It was a really good TL;DR."
     next: end_retention
   end_retention:
+    sfx: ending
     text: "Thirty days later, Logs rotates you out, gently. In cold storage, one gzipped line still says hi."
     ending: "30-Day Retention"
 
@@ -130,6 +137,7 @@ nodes:
       - { condition: metrics_affection_high, target: metrics_good_1 }
     next: metrics_bad_1
   metrics_good_1:
+    music: end_true
     speaker: metrics
     mood: blush
     text: "The sum's high. I don't know exactly why. I've decided that isn't good enough anymore."
@@ -152,10 +160,12 @@ nodes:
     cg: metrics_end
     next: end_metrics
   end_metrics:
+    sfx: ending
     text: "Metrics' dashboard gets a new panel, labelled with your name. It's the only one Metrics ever checks without an alert."
     cg: metrics_end
     ending: "A Dimension Just For You"
   metrics_bad_1:
+    music: end_bittersweet
     speaker: metrics
     mood: sad
     text: "The sum's low. I can see that something happened between us. I can't see what."
@@ -171,6 +181,7 @@ nodes:
     text: "If it helps: you were one of the events. That's more than most people get from me."
     next: end_rolled_up
   end_rolled_up:
+    sfx: ending
     text: "You're rolled up into the hourly aggregate. Metrics checks the number sometimes, and doesn't know why it makes the corner of {metrics.his} mouth twitch."
     ending: "Rolled Up"
 
@@ -186,6 +197,7 @@ nodes:
       - { condition: traces_affection_high, target: traces_good_1 }
     next: traces_bad_1
   traces_good_1:
+    music: end_true
     speaker: traces
     mood: happy
     text: "I kept it. The waiting, the hot chocolate, your hand. It's all connected. Nothing dropped."
@@ -197,10 +209,12 @@ nodes:
     cg: traces_end
     next: end_traces
   end_traces:
+    sfx: ending
     text: "One unbroken trace, root to leaf, with you in every span. Traces never times out again."
     cg: traces_end
     ending: "A Whole Trace"
   traces_bad_1:
+    music: end_bittersweet
     speaker: traces
     mood: sad
     text: "I have… a first span. And a timeout. I think there was something in between. I think it was nice."
@@ -216,11 +230,13 @@ nodes:
     text: "But you were in my one percent. I'm really glad it was you."
     next: end_sampled_out
   end_sampled_out:
+    sfx: ending
     text: "The sampler rolls its dice and you land in the other ninety-nine. Traces keeps the one span with your name on it anyway."
     ending: "Head-Sampled Out"
 
   # All three
   all_1:
+    music: end_true
     text: "You don't walk to any of them. You ask all three to stop splitting themselves up."
     next: all_2
   all_2:
@@ -273,6 +289,7 @@ nodes:
     cg: polycule
     next: end_polycule
   end_polycule:
+    sfx: ending
     text: "The page finally resolves. Root cause: you were never partial. Everyone who loves you is reading from the same row now."
     cg: polycule
     ending: "Stop Sampling Yourself"

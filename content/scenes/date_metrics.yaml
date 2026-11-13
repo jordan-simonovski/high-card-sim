@@ -3,6 +3,7 @@
 # Range on this date: -2 (careless) to +5 (sincere).
 id: date_metrics
 start: arrive
+music: metrics
 bg: dashboard_gym
 nodes:
   arrive:
@@ -115,6 +116,7 @@ nodes:
     text: "I'm sorry for whatever it was. I mean that. I just can't tell you what I mean it about."
     next: view
   view:
+    sfx: counter
     speaker: metrics
     mood: neutral
     text: "Here. This is all of you I get to keep."

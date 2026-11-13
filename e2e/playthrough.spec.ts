@@ -1,6 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
+  // Tests read hundreds of lines: skip the typewriter.
+  await page.addInitScript(() => localStorage.setItem('hc.textSpeed', 'instant'));
   if (process.env.SHARE_URL) await page.goto(process.env.SHARE_URL);
 });
 

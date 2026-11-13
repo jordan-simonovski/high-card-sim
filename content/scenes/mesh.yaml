@@ -2,6 +2,7 @@
 # once all three dates are done, on to the Query Shell.
 id: mesh
 start: start
+music: mesh
 bg: mesh_plaza
 nodes:
   start:

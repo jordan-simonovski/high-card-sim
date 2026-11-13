@@ -2,12 +2,14 @@
 # Quote every text value: YAML reads a leading { or [ as a mapping or list.
 id: prologue
 start: ceiling
+music: prologue
 bg: bedroom_night
 nodes:
   ceiling:
     text: "03:12. Your phone lights up the ceiling."
     next: page
   page:
+    sfx: pager
     speaker: pager
     text: "CRITICAL: checkout p99 is… yes. All of it. Everything is on fire."
     next: dash
@@ -20,10 +22,14 @@ nodes:
       - { id: ack, text: "Acknowledge the page", target: through }
       - { id: snooze, text: "Snooze it (five minutes, tops)", target: tilt }
   through:
+    music: ingest
+    sfx: whoosh
     text: "You tap ACK. Your thumb goes through the glass and keeps going."
     bg: ingest_void
     next: ingest
   tilt:
+    music: ingest
+    sfx: whoosh
     text: "You tap SNOOZE. The pager, offended, pages harder. The room tilts."
     next: ingest
   ingest:

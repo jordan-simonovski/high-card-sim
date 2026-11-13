@@ -15,3 +15,43 @@ cgs:
   logs_end: "Logs reading a long love letter aloud, scroll trailing to the horizon"
   metrics_end: "Metrics adding a new labelled dimension, a gauge with the player's name"
   traces_end: "Traces connecting a full span tree of glowing threads to the player"
+
+# Audio. Generated with ElevenLabs by tools/audio/generate.mjs (the key never reaches the game).
+# Scenes pick music with `music:` (scene level, or per node to change mid-scene; "none" for silence)
+# and one-shot effects with `sfx:` on a node. All music is instrumental and loopable.
+music:
+  title: "Bubbly J-pop instrumental for a dating sim title screen, bright synths, chiptune sparkles, bouncy bass, handclaps, cute and exciting, 128 bpm, seamless loop"
+  prologue: "Lo-fi night ambience at 3am, soft clock ticking, a nervous electric piano arpeggio, sparse and quiet, gentle tension, 80 bpm, seamless loop"
+  ingest: "Dreamy falling sensation, reversed piano, shimmering pads, glitchy digital sparkles, weightless and magical, slow build"
+  registry: "Cosy library jazz, pizzicato strings, brushed drums, playful comedic bassoon, a little flustered, warm, 100 bpm, seamless loop"
+  mesh: "Sunny fantasy town theme, ukulele, glockenspiel, handclaps, light synth bass, cheerful and bright, 112 bpm, seamless loop"
+  logs: "Warm acoustic cafe music, rambling piano melody that wanders between keys, soft strings, chatty and affectionate, 92 bpm, seamless loop"
+  metrics: "Minimal synth-pop, precise four-on-the-floor beat, clean arpeggiated synths in strict time, cool and tidy with a warm chord change, 118 bpm, seamless loop"
+  traces: "Dreamy ambient, music box and soft pads over gentle rain, melody phrases that drop out mid-phrase and return, tender and fragile, 70 bpm, seamless loop"
+  monitoring: "Quiet control room drone, distant status beeps, slow melancholy piano repeating the same four chords, wistful, 76 bpm, seamless loop"
+  finale: "Swelling emotional anime ballad instrumental, solo piano growing into full strings, hopeful and heartfelt, 84 bpm"
+  end_true: "Triumphant J-pop anime ending theme instrumental, bright brass and synths, joyful choir pads, celebratory, 132 bpm"
+  end_bittersweet: "Bittersweet solo piano with soft strings, gentle and kind, wistful but not tragic, 72 bpm"
+sfx:
+  advance: { prompt: "Soft bubbly pop, cute UI click, very short, dry", seconds: 0.5 }
+  choice: { prompt: "Sparkly two-note chime, bright and happy, cute game UI confirm sound", seconds: 0.8 }
+  pager: { prompt: "Retro pager vibrating and beeping on a wooden bedside table at night, urgent", seconds: 2.5 }
+  whoosh: { prompt: "Magical whoosh with glittering particles, falling through the air, anime transformation", seconds: 2 }
+  hotfix: { prompt: "Tiny desk bell ding followed by a satisfied rubber stamp thump", seconds: 1.2 }
+  shell_open: { prompt: "Cute retro computer powering on, short CRT hum and a cheerful startup beep", seconds: 1.5 }
+  query: { prompt: "Fast mechanical keyboard typing burst ending in a soft magical sparkle", seconds: 1.2 }
+  affection: { prompt: "Small heart sparkle, twinkly chime, cute and warm, very short", seconds: 0.8 }
+  sampled: { prompt: "Camera shutter that half fires and fizzles out, soft and a little sad", seconds: 1 }
+  page_flip: { prompt: "Quick notebook page flips, papery, light", seconds: 1 }
+  counter: { prompt: "Crisp mechanical tally counter clicking up a few times", seconds: 0.8 }
+  ending: { prompt: "Warm magical sting, sparkling chime resolving to a major chord, game ending", seconds: 3 }
+  error: { prompt: "Gentle cartoon error boop, soft and friendly, not harsh", seconds: 0.6 }
+# One babble syllable per speaking character, played under their text as it types out.
+babble:
+  logs: "A single short cute high-pitched vocal syllable 'bip', playful cartoon voice, dry, no reverb"
+  metrics: "A single short low clipped vocal syllable 'dut', deadpan cartoon voice, dry, no reverb"
+  traces: "A single soft breathy vocal syllable 'mi', gentle airy cartoon voice, dry, no reverb"
+  dba: "A single quick nervous squeaky vocal syllable 'ba', cartoon voice, dry, no reverb"
+  collector: "A single bright bouncy excited vocal syllable 'pi', cartoon voice, dry, no reverb"
+  baggage: "A single warm round friendly vocal syllable 'bo', cartoon voice, dry, no reverb"
+  monitoring: "A single flat tired monotone vocal syllable 'meh', cartoon voice, dry, no reverb"

@@ -15,10 +15,14 @@
       <div id="portrait"><img id="sprite" alt="" hidden /><div id="card" hidden></div></div>
     </div>
 
+    <p id="sr-line" class="sr-only" aria-live="polite"></p>
     <div id="loader" role="status" aria-live="polite">spinning up the collector…</div>
 
     <nav id="toolbar" aria-label="Game controls" hidden>
       <button id="btn-shell" hidden title="Open the Query Shell (Q)">⌘ shell</button>
+      <button id="btn-backlog" title="Everything said so far (L)">logs</button>
+      <button id="btn-auto" aria-pressed="false" title="Auto-advance (A)">auto</button>
+      <button id="btn-skip" aria-pressed="false" title="Skip lines you've already read (S)">skip</button>
       <button id="btn-overlay" aria-pressed="false" title="Show the SQL behind each choice (`)">SQL</button>
       <button id="btn-smaller" title="Smaller text" aria-label="Smaller text">A−</button>
       <button id="btn-bigger" title="Bigger text" aria-label="Bigger text">A+</button>
@@ -35,15 +39,16 @@
         <button id="btn-continue" hidden>continue</button>
         <button id="btn-new">new session</button>
         <label class="file-button">import save<input id="import-title" type="file" accept=".jsonl,.json,.ndjson,application/json" /></label>
+        <button id="btn-endings-title">endings</button>
         <button id="btn-about-title">how it works</button>
       </div>
       <p id="title-note" class="note"></p>
     </section>
 
     <main id="game" hidden>
-      <div id="box" tabindex="0" aria-live="polite">
+      <div id="box" tabindex="0">
         <span id="speaker" hidden></span>
-        <p id="text"></p>
+        <p id="text" aria-hidden="true"></p>
         <div id="result" hidden></div>
         <div id="choices"></div>
       </div>
@@ -82,9 +87,11 @@
       <h1 id="ending-title"></h1>
       <p id="ending-count" class="note"></p>
       <div class="actions">
+        <button id="btn-share">share</button>
         <button id="btn-export-end">export your playthrough</button>
         <button id="btn-again">new session</button>
       </div>
+      <p id="share-note" class="note" aria-live="polite"></p>
       <p class="note">Your save is your event log. Share it, and query someone else's.</p>
     </section>
 
@@ -112,6 +119,19 @@
         <h2 id="menu-title">menu</h2>
         <button class="close" value="close" aria-label="Close">✕</button>
       </header>
+      <div class="settings">
+        <label>music <input id="vol-music" type="range" min="0" max="1" step="0.05" /></label>
+        <label>sound <input id="vol-sfx" type="range" min="0" max="1" step="0.05" /></label>
+        <label>voices <input id="vol-voice" type="range" min="0" max="1" step="0.05" /></label>
+        <label>text speed
+          <select id="text-speed">
+            <option value="slow">slow</option>
+            <option value="normal">normal</option>
+            <option value="fast">fast</option>
+            <option value="instant">instant</option>
+          </select>
+        </label>
+      </div>
       <div class="actions column">
         <button id="btn-export">export save (.jsonl)</button>
         <label class="file-button">import save<input id="import-menu" type="file" accept=".jsonl,.json,.ndjson,application/json" /></label>
@@ -120,7 +140,24 @@
         <button id="btn-about-menu">how it works</button>
         <button id="btn-title">back to title</button>
       </div>
-      <p class="note">Keys: Enter / Space advance · Tab moves between choices · ` toggles the SQL overlay · Q opens the shell.</p>
+      <p class="note">Keys: Enter / Space advance · Tab moves between choices · L logs · A auto · S skip · ` SQL overlay · Q shell · Esc menu.</p>
+    </dialog>
+
+    <dialog id="backlog" aria-labelledby="backlog-title">
+      <header>
+        <h2 id="backlog-title">logs <small>SELECT * FROM logs ORDER BY ts DESC</small></h2>
+        <button class="close" value="close" aria-label="Close">✕</button>
+      </header>
+      <ol id="backlog-list"></ol>
+    </dialog>
+
+    <dialog id="endings" aria-labelledby="endings-title">
+      <header>
+        <h2 id="endings-title">endings</h2>
+        <button class="close" value="close" aria-label="Close">✕</button>
+      </header>
+      <p id="endings-count" class="note"></p>
+      <ul id="endings-list"></ul>
     </dialog>
 
     <dialog id="about" aria-labelledby="about-title">

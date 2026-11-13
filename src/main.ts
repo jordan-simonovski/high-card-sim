@@ -9,6 +9,7 @@ import { resumePoint } from './engine/resume.ts';
 import { createCharacter, playerAttributes, playerFromEvents } from './create.ts';
 import { parseSave } from './saves.ts';
 import { openConsole } from './console.ts';
+import { babble, getVolume, playMusic, setVolume, sfx, unlock } from './audio.ts';
 import content from 'virtual:content';
 
 const { scenes, queries } = content;
@@ -85,8 +86,19 @@ function setOverlay(on: boolean) {
 }
 
 // ---------- stage ----------
+let shownBg = '';
+/** Crossfade to a new background: a new layer fades in over the old one, which is then removed. */
 function setBg(bg?: string) {
-  if (bg) $('#bg').style.backgroundImage = `url(${ART}/bgs/${bg}.webp), radial-gradient(circle at 30% 20%, #ffd6ec, transparent 55%), linear-gradient(#fff0f7, #e9e0ff)`;
+  if (!bg || bg === shownBg) return;
+  shownBg = bg;
+  const host = $('#bg');
+  const layer = document.createElement('div');
+  layer.className = 'layer';
+  layer.style.backgroundImage = `url(${ART}/bgs/${bg}.webp)`;
+  host.appendChild(layer);
+  requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.add('on')));
+  const old = [...host.querySelectorAll('.layer')].slice(0, -1);
+  setTimeout(() => old.forEach((l) => l.remove()), 800);
 }
 
 let shownSprite = '';
@@ -99,6 +111,17 @@ function setPortrait(speaker: string, mood = 'neutral') {
   shownSprite = key;
   const sprite = $<HTMLImageElement>('#sprite');
   const card = $('#card');
+  // Same character, new expression: fade the old face out over the new one instead of a hard cut.
+  const sameCharacter = !sprite.hidden && sprite.dataset.who === def.sprite && sprite.complete && sprite.naturalWidth > 0;
+  if (sameCharacter) {
+    const ghost = sprite.cloneNode() as HTMLImageElement;
+    ghost.removeAttribute('id');
+    ghost.className = `sprite-old ${sprite.className}`;
+    sprite.parentElement!.appendChild(ghost);
+    setTimeout(() => ghost.remove(), 260);
+    sprite.style.animation = 'none';
+  } else sprite.style.animation = '';
+  sprite.dataset.who = def.sprite;
   sprite.classList.toggle('silhouette', !!def.silhouette);
   sprite.hidden = false;
   card.hidden = true;
@@ -125,14 +148,48 @@ function setCg(cg?: string) {
 }
 
 // ---------- dialogue ----------
-function say(speaker: string, text: string) {
+const SPEEDS: Record<string, number> = { slow: 28, normal: 55, fast: 110, instant: Infinity };
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let textSpeed = pref.get('textSpeed') ?? (reducedMotion ? 'instant' : 'normal');
+let typing: { finish(): void } | undefined;
+
+/** Show a line, typing it out with the speaker's babble. Resolves when the whole line is visible. */
+function say(speaker: string, text: string, instant = false): Promise<void> {
   const name = $('#speaker');
   name.textContent = speaker ? content.characters[speaker]?.name ?? speaker : '';
   name.hidden = !speaker;
-  $('#text').textContent = text;
-  $('#text').classList.toggle('narration', !speaker);
+  const el = $('#text');
+  el.classList.toggle('narration', !speaker);
   $('#choices').replaceChildren();
   $('#result').hidden = true;
+  $('#sr-line').textContent = speaker ? `${name.textContent}: ${text}` : text; // screen readers get the whole line at once
+  typing?.finish();
+  const cps = SPEEDS[textSpeed] ?? SPEEDS.normal;
+  if (instant || cps === Infinity) {
+    el.textContent = text;
+    return Promise.resolve();
+  }
+  el.textContent = '';
+  return new Promise((resolve) => {
+    let shown = 0;
+    let raf = 0;
+    const t0 = performance.now();
+    const done = () => {
+      cancelAnimationFrame(raf);
+      el.textContent = text;
+      typing = undefined;
+      resolve();
+    };
+    const tick = () => {
+      const target = Math.min(text.length, Math.floor(((performance.now() - t0) / 1000) * cps));
+      for (; shown < target; shown++) babble(speaker, shown, text[shown]);
+      el.textContent = text.slice(0, shown);
+      if (shown < text.length) raf = requestAnimationFrame(tick);
+      else done();
+    };
+    typing = { finish: done };
+    raf = requestAnimationFrame(tick);
+  });
 }
 
 function table(rows: Row[], max = 50): HTMLElement {
@@ -158,23 +215,54 @@ function table(rows: Row[], max = 50): HTMLElement {
   return wrap;
 }
 
-/** Resolve on click / Enter / Space on the dialogue box. */
-function advance(): Promise<void> {
+let autoMode = false;
+let skipMode = false;
+const seen = new Set<string>(JSON.parse(pref.get('seen') ?? '[]') as string[]);
+function markSeen(key: string) {
+  if (seen.has(key)) return;
+  seen.add(key);
+  pref.set('seen', JSON.stringify([...seen]));
+}
+
+/** Resolve on click / Enter / Space, or by itself in auto mode (reading time) or skip mode (seen lines). */
+function advance(opts: { textLength?: number; seenLine?: boolean } = {}): Promise<void> {
   const box = $('#box');
   box.classList.add('waiting');
   box.focus({ preventScroll: true });
   return new Promise((resolve) => {
-    const done = (e: Event) => {
-      if (e instanceof KeyboardEvent && e.key !== 'Enter' && e.key !== ' ') return;
-      e.preventDefault();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const finish = () => {
+      clearTimeout(timer);
       box.removeEventListener('click', done);
       box.removeEventListener('keydown', done);
       box.classList.remove('waiting');
       resolve();
     };
+    const done = (e: Event) => {
+      if (e instanceof KeyboardEvent && e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      sfx('advance');
+      finish();
+    };
     box.addEventListener('click', done);
     box.addEventListener('keydown', done);
+    if (skipMode && opts.seenLine) timer = setTimeout(finish, 80);
+    else if (autoMode) timer = setTimeout(finish, 1200 + (opts.textLength ?? 0) * 45);
   });
+}
+
+// A click or key on the box while a line is typing finishes the line instead of advancing.
+function wireTypingSkip() {
+  const box = $('#box');
+  const finishTyping = (e: Event) => {
+    if (!typing) return;
+    if (e instanceof KeyboardEvent && e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    typing.finish();
+  };
+  box.addEventListener('click', finishTyping, true);
+  box.addEventListener('keydown', finishTyping, true);
 }
 
 function pick(choices: { id: string; text: string; secret: boolean }[]): Promise<string> {
@@ -186,6 +274,7 @@ function pick(choices: { id: string; text: string; secret: boolean }[]): Promise
       if (c.secret) b.classList.add('secret');
       b.onclick = (e) => {
         e.stopPropagation();
+        sfx('choice');
         resolve(c.id);
       };
       return b;
@@ -219,6 +308,7 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
   let id: string | undefined = startNode ?? scene.start;
   if (!startNode) await log.append({ scene: scene.id, event_type: 'scene_enter', node: scene.start });
   setBg(scene.bg);
+  playMusic(scene.music ?? 'none');
   let skipLog = alreadyShown;
 
   while (id) {
@@ -232,6 +322,8 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
     const fill = (text: string) => render(text, { player, characters, lineKey });
 
     if (n.bg) setBg(n.bg);
+    if (n.music) playMusic(n.music);
+    if (n.sfx) sfx(n.sfx);
     setCg(n.cg);
     if (n.action === 'create_character' && !player) {
       player = await createCharacter(characters);
@@ -240,19 +332,25 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
     if (n.action === 'open_console') await shell();
 
     let logged: Promise<unknown> = Promise.resolve();
+    let typed: Promise<void> = Promise.resolve();
+    let textLength = 0;
+    const seenLine = seen.has(lineKey);
     if (n.text) {
       const text = fill(n.text);
+      textLength = text.length;
       if (n.speaker) setPortrait(n.speaker, n.mood);
       else document.documentElement.style.setProperty('--accent', '#b69cff');
-      say(n.speaker ?? '', text);
+      typed = say(n.speaker ?? '', text, skipMode && seenLine);
       // Don't await before listening for input, or fast clicks get dropped.
       if (!skipLog) logged = log.append({ scene: scene.id, node: n.id, event_type: 'line', character: n.speaker ?? '', dialogue_text: text });
+      markSeen(lineKey);
     }
     skipLog = false;
+    await typed;
     if (n.show) await showQuery(n.show);
 
     if (n.ending) {
-      await advance();
+      await advance({ textLength });
       await logged;
       await log.append({ scene: scene.id, node: n.id, event_type: 'ending', route: n.id, attributes: { 'ending.title': n.ending } });
       return endingScreen(n.ending);
@@ -267,6 +365,7 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
       const choice = await pick(choices.map((c) => ({ id: c.id, text: c.text, secret: mixed && !!c.condition })));
       await logged;
       const c = choices.find((x) => x.id === choice)!;
+      if ((c.affection_delta ?? 0) > 0 || c.attributes?.['sampling.priority'] === '1') sfx('affection');
       await log.append({
         scene: scene.id, node: n.id, event_type: 'choice',
         character: c.character ?? n.speaker ?? '', choice_id: c.id, choice_text: c.text, dialogue_text: c.text,
@@ -275,7 +374,7 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
       });
       next = await nextNode(n, cond, c.id);
     } else {
-      if (n.text) await advance();
+      if (n.text) await advance({ textLength, seenLine });
       await logged;
       next = await nextNode(n, cond);
     }
@@ -287,17 +386,85 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
       clearPortrait();
       setCg(undefined);
       setBg(scene.bg);
+      playMusic(scene.music ?? 'none');
       await log.append({ scene: scene.id, event_type: 'scene_enter', node: scene.start });
     } else id = next;
   }
 }
 
+const ENDINGS = Object.values(scenes).flatMap((s: Scene) =>
+  Object.values(s.nodes).filter((x: SceneNode) => x.ending).map((x: SceneNode) => ({ title: x.ending!, cg: x.cg })),
+);
+// Reached endings survive new sessions (a new session wipes the event log, not the gallery).
+const reachedEndings = () => new Set<string>(JSON.parse(pref.get('endings') ?? '[]') as string[]);
+
 function endingScreen(title: string) {
+  const reached = reachedEndings();
+  reached.add(title);
+  pref.set('endings', JSON.stringify([...reached]));
   $('#game').hidden = true;
+  $('#toolbar').hidden = true;
   $('#ending').hidden = false;
   $('#ending-title').textContent = title;
-  $('#ending-count').textContent = `One of ${ENDING_COUNT} endings. Every new session is a fresh trace.`;
+  $('#ending-count').textContent = `${reached.size} of ${ENDING_COUNT} endings found. Every new session is a fresh trace.`;
+  $('#btn-share').onclick = () => share(title);
   $('#btn-again').focus();
+}
+
+async function share(title: string) {
+  const text = `I got the "${title}" ending in High Cardinality, a dating sim where ClickHouse decides who loves you.`;
+  const url = location.origin;
+  try {
+    if (navigator.share) await navigator.share({ title: 'High Cardinality', text, url });
+    else {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      $('#share-note').textContent = 'Copied to your clipboard.';
+    }
+  } catch {
+    /* the player closed the share sheet */
+  }
+}
+
+function showEndings() {
+  const reached = reachedEndings();
+  $('#endings-count').textContent = `${reached.size} of ${ENDING_COUNT} found`;
+  $('#endings-list').replaceChildren(
+    ...ENDINGS.map((e) => {
+      const li = document.createElement('li');
+      const got = reached.has(e.title);
+      li.classList.toggle('locked', !got);
+      const pic = got && e.cg ? Object.assign(document.createElement('img'), { src: `${ART}/cgs/${e.cg}.webp`, alt: '', loading: 'lazy' }) : Object.assign(document.createElement('div'), { className: 'blank' });
+      const label = Object.assign(document.createElement('span'), { textContent: got ? e.title : '???' });
+      li.append(pic, label);
+      return li;
+    }),
+  );
+  $<HTMLDialogElement>('#endings').showModal();
+}
+
+// ---------- the backlog: literally the Logs view ----------
+async function showBacklog() {
+  type Line = { character: string; dialogue_text: string };
+  let lines: Line[];
+  if (boot.state === 'ready')
+    lines = await (await ready).query<Line>("SELECT character, dialogue_text FROM logs WHERE dialogue_text != '' ORDER BY ts DESC LIMIT 200");
+  else lines = (await log.all()).filter((e) => e.dialogue_text).reverse().slice(0, 200);
+  const choiceTexts = new Set((await log.all()).filter((e) => e.event_type === 'choice').map((e) => e.dialogue_text));
+  $('#backlog-list').replaceChildren(
+    ...lines.map((l) => {
+      const li = document.createElement('li');
+      const def = l.character ? content.characters[l.character] : undefined;
+      const mine = choiceTexts.has(l.dialogue_text);
+      if (def && !mine) {
+        const who = Object.assign(document.createElement('span'), { className: 'who', textContent: def.name });
+        who.style.background = def.color ?? '#b69cff';
+        li.appendChild(who);
+      }
+      li.appendChild(Object.assign(document.createElement('span'), { className: mine ? 'you' : '', textContent: mine ? `you: ${l.dialogue_text}` : l.dialogue_text }));
+      return li;
+    }),
+  );
+  $<HTMLDialogElement>('#backlog').showModal();
 }
 
 // ---------- the Query Shell ----------
@@ -314,11 +481,13 @@ async function shell() {
   if (!found) await log.append({ scene: current.scene, node: current.node, event_type: 'item_found', attributes: { item: 'query_shell' } });
   $('#btn-shell').hidden = false;
   const db = await ready;
+  sfx('shell_open');
   await openConsole({
     hints: SHELL_HINTS,
     table,
     run: async (sql) => {
       try {
+        sfx('query');
         const r = await db.console(sql);
         const base = r.tables.includes('default.events');
         trace('query shell', sql, `${r.rows.length} rows · ${r.tables.join(', ') || 'no tables'}`);
@@ -328,6 +497,7 @@ async function shell() {
         });
         return { rows: r.rows, note: `${r.rows.length} rows · ${Math.round(r.ms)} ms${base ? ' · that’s the whole of you ♥' : ''}` };
       } catch (e) {
+        sfx('error');
         const message = String((e as Error).message ?? e).replace(/^Code: \d+\. DB::Exception: /, '').slice(0, 400);
         await log.append({ scene: current.scene, node: current.node, event_type: 'query_run', attributes: { 'query.text': sql.slice(0, 2000), 'query.error': message } });
         return { error: message };
@@ -398,6 +568,24 @@ function wireChrome() {
   $('#btn-reset-yes').onclick = newSession;
   $('#btn-title').onclick = () => location.reload();
   $('#btn-about-title').onclick = () => void showAbout();
+  $('#btn-endings-title').onclick = showEndings;
+  $('#btn-backlog').onclick = () => void showBacklog();
+  const toggle = (btn: string, on: boolean) => $(btn).setAttribute('aria-pressed', String(on));
+  const setAuto = (on: boolean) => { autoMode = on; toggle('#btn-auto', on); };
+  const setSkip = (on: boolean) => { skipMode = on; toggle('#btn-skip', on); };
+  $('#btn-auto').onclick = () => setAuto(!autoMode);
+  $('#btn-skip').onclick = () => setSkip(!skipMode);
+  for (const c of ['music', 'sfx', 'voice'] as const) {
+    const input = $<HTMLInputElement>(`#vol-${c}`);
+    input.value = String(getVolume(c));
+    input.oninput = () => setVolume(c, Number(input.value));
+  }
+  const speed = $<HTMLSelectElement>('#text-speed');
+  speed.value = textSpeed;
+  speed.onchange = () => { textSpeed = speed.value; pref.set('textSpeed', textSpeed); };
+  wireTypingSkip();
+  // Browsers only allow audio after a gesture: the first click or key anywhere starts it.
+  for (const ev of ['pointerdown', 'keydown']) document.addEventListener(ev, unlock, { capture: true });
   $('#btn-about-menu').onclick = () => void showAbout();
   $('#btn-menu').onclick = () => $<HTMLDialogElement>('#menu').showModal();
   for (const d of document.querySelectorAll<HTMLDialogElement>('dialog'))
@@ -412,6 +600,11 @@ function wireChrome() {
     if (e.key === '`') setOverlay($('#overlay').hidden === true);
     if ((e.key === 'q' || e.key === 'Q') && !$('#btn-shell').hidden) void shell();
     if (e.key === 'Escape' && !$('#toolbar').hidden) $<HTMLDialogElement>('#menu').showModal();
+    if (!$('#toolbar').hidden) {
+      if (e.key === 'l' || e.key === 'L') void showBacklog();
+      if (e.key === 'a' || e.key === 'A') setAuto(!autoMode);
+      if (e.key === 's' || e.key === 'S') setSkip(!skipMode);
+    }
   });
 }
 
@@ -452,6 +645,7 @@ async function main() {
 
   const resumable = !!resumePoint(events, scenes);
   $('#title').hidden = false;
+  playMusic('title');
   $('#btn-continue').hidden = !resumable;
   if (events.some((e) => e.event_type === 'ending')) $('#title-note').textContent = 'You finished a playthrough. A new session starts the story over.';
   $('#btn-continue').onclick = () => start(events);

@@ -2,6 +2,7 @@
 # Querying the base table here unlocks the true ending in the finale.
 id: shell
 start: arrive
+music: registry
 bg: registry
 nodes:
   arrive:

@@ -3,15 +3,17 @@
 # "TL;DR" skips them. All-more: 22 rows here. All-TL;DR: 10 rows here.
 id: date_logs
 start: arrive
+music: logs
 bg: archive_cafe
 nodes:
   arrive:
     text: "The Archive Café is a library that never ends, with a coffee bar wedged between two shelves of scrolling text."
     next: spot
   spot:
-    text: "Logs is already at a table, writing. When you sit down, the ink smudge on {logs.their} cheek crinkles into a smile."
+    text: "Logs is already at a table, writing. When you sit down, {logs.she} smiles without looking up and finishes the sentence first."
     next: hi
   hi:
+    sfx: page_flip
     speaker: logs
     mood: happy
     text: "You came! At 14:02:11 I wrote 'what if nobody comes' and at 14:02:12 I crossed it out and— anyway— hi!"

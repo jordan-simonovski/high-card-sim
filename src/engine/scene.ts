@@ -38,12 +38,17 @@ export interface SceneNode {
   bg?: string;
   /** Full-screen illustration shown with this node. */
   cg?: string;
+  /** Change the music from this node on ("none" for silence). */
+  music?: string;
+  /** One-shot sound effect when the node is shown. */
+  sfx?: string;
 }
 
 export interface Scene {
   id: string;
   start: string;
   bg?: string;
+  music?: string;
   nodes: Record<string, SceneNode>;
 }
 

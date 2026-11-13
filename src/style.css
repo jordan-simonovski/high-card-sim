@@ -180,6 +180,25 @@ dialog h2 { margin: 0; font-size: 20px; }
 dialog h2 small { font: 12px ui-monospace, monospace; color: var(--ink-soft); font-weight: 400; }
 dialog .close { border: 0; background: none; font-size: 22px; line-height: 1; padding: 4px 8px; border-radius: 10px; }
 #menu { width: min(420px, calc(100vw - 32px)); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.settings { display: grid; gap: 10px; margin-bottom: 16px; }
+.settings label { display: grid; grid-template-columns: 6.5em 1fr; align-items: center; gap: 10px; font-weight: 700; }
+.settings input[type='range'] { accent-color: var(--pink); }
+.settings select { font: inherit; padding: 4px 10px; border-radius: 12px; border: 2px solid var(--lilac); background: white; }
+#backlog, #endings { width: min(720px, calc(100vw - 32px)); }
+#backlog-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-height: 68vh; overflow: auto; }
+#backlog-list li { padding: 10px 14px; border-radius: 16px; background: white; border: 2px solid #efe7ff; }
+#backlog-list .who { display: inline-block; margin-right: 8px; padding: 0 10px; border-radius: 999px; color: white; font-weight: 800; font-size: 0.85em; }
+#backlog-list .you { color: var(--ink-soft); font-style: italic; }
+#endings-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+#endings-list li { border-radius: 16px; overflow: hidden; background: white; border: 2px solid var(--lilac); }
+#endings-list li.locked { border-style: dashed; opacity: 0.7; }
+#endings-list img, #endings-list .blank { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: linear-gradient(135deg, #ffd6ec, #d9ccff); }
+#endings-list span { display: block; padding: 8px 10px; font-weight: 800; font-size: 0.9em; }
+#bg .layer { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.7s ease; }
+#bg .layer.on { opacity: 1; }
+.sprite-old { position: absolute; bottom: 0; height: 100%; width: auto; animation: fadeout 0.22s ease forwards; pointer-events: none; }
+@keyframes fadeout { to { opacity: 0; } }
 #about { width: min(640px, calc(100vw - 32px)); }
 .about-body p { margin: 0 0 12px; line-height: 1.55; }
 .about-body a { color: var(--lilac-deep); font-weight: 700; }

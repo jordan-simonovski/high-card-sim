@@ -2,6 +2,7 @@
 # or let them go kindly; either way, on to the finale.
 id: monitoring
 start: arrive
+music: monitoring
 bg: noc_room
 nodes:
   arrive:

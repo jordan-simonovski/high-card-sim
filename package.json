@@ -12,6 +12,7 @@
     "lint:content": "node scripts/lint-content.ts"
   },
   "devDependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.78.0",
     "@playwright/test": "^1.65.0",
     "@types/node": "^26.6.6",
     "typescript": "^7.0.2",

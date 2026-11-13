@@ -3,6 +3,7 @@
 # Kept moments on this date: 0-1 (careless) to 5 (sincere).
 id: date_traces
 start: start
+music: traces
 bg: sampling_cafe
 nodes:
   start:
@@ -11,6 +12,7 @@ nodes:
       - { condition: traces_saw_you, target: appear }
     next: empty
   empty:
+    sfx: sampled
     text: "The café is quiet. Most of the tables are greyed out, as if they didn't make the sample."
     next: empty2
   empty2:
@@ -31,9 +33,11 @@ nodes:
       - { condition: traces_saw_you, target: appear }
     next: still
   still:
+    sfx: sampled
     text: "Still nobody. The empty chair looks apologetic, somehow."
     next: wait
   appear:
+    sfx: affection
     text: "The chair across from you flickers, and then someone is sitting in it, mid-sentence, a few gold threads glowing at {traces.their} fingertips."
     next: hello
   hello:

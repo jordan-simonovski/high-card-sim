@@ -4,6 +4,7 @@
     python3 gen.py candidates sprites 6     # N seeds per character, for picking
     python3 gen.py candidates bgs 3
     python3 gen.py candidates cgs 6
+    python3 gen.py candidates sprites 8 logs   # only some keys (comma-separated)
     python3 gen.py finals picks.json        # expressions + matting for sprites, hires bgs/cgs
     python3 gen.py serve                    # HTTP on :8000, no directory listings
 
@@ -23,12 +24,13 @@ FACE = "/workspace/models/face_yolov8m.pt"
 QUALITY = "masterpiece, high score, great score, absurdres, anime coloring, cel shading, clean lineart, pastel colors, safe"
 NEG = ("lowres, bad anatomy, bad hands, missing fingers, extra digits, fewer digits, extra arms, text, error, cropped, "
        "worst quality, low quality, low score, bad score, average score, jpeg artifacts, signature, watermark, username, "
-       "blurry, child, loli, shota, young, teenager, school uniform, nsfw, cleavage, multiple views")
+       "blurry, child, loli, shota, young, teenager, school uniform, nsfw, cleavage, multiple views, "
+       "head out of frame, cropped head, out of frame, facial mark, ink on face, smudge, dirty face")
 SPRITE = "solo, cowboy shot, standing, looking at viewer, simple background, white background, visual novel sprite"
 SPRITE_NEG = ", 2girls, 2boys, gradient background, outdoors, scenery"
 
 CHARS = {
-    "logs": "1girl, mature female, adult, tall, very long hair, black hair, gradient hair, pink hair tips, wavy hair, amber eyes, freckles, ink on cheek, oversized cardigan, cream cardigan, patterned cardigan, white blouse, long pleated skirt, brown skirt, long scarf, paper scarf, holding notebook, pink hair ribbon",
+    "logs": "1girl, mature female, adult, tall, long hair, black hair, gradient hair, pink hair tips, wavy hair, hair within frame, amber eyes, light freckles, clean face, oversized cardigan, cream cardigan, patterned cardigan, white blouse, long pleated skirt, brown skirt, long scarf, holding notebook, pink hair ribbon",
     "metrics": "1boy, mature male, adult, short hair, silver hair, blue hair, undercut, rectangular glasses, blue eyes, athletic, navy track jacket, striped sleeves, teal accents, smartwatch, wristwatch, lanyard, black pants",
     "traces": "1other, androgynous, adult, short hair, wavy hair, bob cut, lilac hair, purple hair, gradient hair, glowing hair, grey eyes, long coat, white coat, layered coat, glowing embroidery, gold thread, fingerless gloves, string on finger, badges, ethereal",
     "monitoring": "1other, androgynous, adult, short hair, messy hair, dark grey hair, tired eyes, eye bags, headset, lanyard, id card, grey cardigan, polo shirt, holding clipboard, red and green accents, khaki pants",
@@ -64,6 +66,8 @@ CGS = {
     "traces_end": CHARS["traces"] + ", solo, glowing golden threads, reaching out, outstretched hand, sparkles, soft smile, blush, upper body",
 }
 SIZES = {"sprites": (832, 1216), "bgs": (1344, 768), "cgs": (1344, 768)}
+# Wider canvas where hair or coats would otherwise run past the frame.
+SPRITE_SIZE = {"logs": (960, 1216)}
 
 
 def jobs(kind):
@@ -123,15 +127,18 @@ def save_manifest(files):
     json.dump(sorted(set(old) | set(files)), open(path, "w"), indent=1)
 
 
-def candidates(kind, n):
+def candidates(kind, n, only=None):
     os.makedirs(f"{OUT}/cand/{kind}", exist_ok=True)
     os.makedirs(f"{WORK}/{kind}", exist_ok=True)
     files = []
     for key, prompt in jobs(kind).items():
+        if only and key not in only:
+            continue
+        size = SPRITE_SIZE.get(key, SIZES[kind]) if kind == "sprites" else SIZES[kind]
         for seed in range(1000, 1000 + n):
             png = f"{WORK}/{kind}/{key}_{seed}.png"
             if not os.path.exists(png):
-                gen(prompt, neg(kind), seed, SIZES[kind]).save(png)
+                gen(prompt, neg(kind), seed, size).save(png)
             from PIL import Image
             rel = f"cand/{kind}/{key}_{seed}.webp"
             Image.open(png).save(f"{OUT}/{rel}", quality=82)
@@ -232,7 +239,7 @@ if __name__ == "__main__":
     cmd = sys.argv[1]
     os.makedirs(OUT, exist_ok=True)
     if cmd == "candidates":
-        candidates(sys.argv[2], int(sys.argv[3]))
+        candidates(sys.argv[2], int(sys.argv[3]), sys.argv[4].split(",") if len(sys.argv) > 4 else None)
     elif cmd == "finals":
         finals(sys.argv[2])
     elif cmd == "serve":

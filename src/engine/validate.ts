@@ -15,7 +15,7 @@ export interface Content {
   queries: string[];
   characters: Record<string, CharacterDef>;
   presets: string[];
-  assets?: { moods: string[]; backgrounds: string[]; cgs: string[] };
+  assets?: { moods: string[]; backgrounds: string[]; cgs: string[]; music?: string[]; sfx?: string[] };
 }
 
 export const ACTIONS = ['create_character', 'open_console'] as const;
@@ -68,6 +68,7 @@ export function validate(c: Content): string[] {
     ids.add(s.id);
     if (!s.nodes[s.start]) errors.push(`${s.id}: start node "${s.start}" does not exist`);
     if (s.bg && c.assets && !c.assets.backgrounds.includes(s.bg)) errors.push(`${s.id}: unknown bg "${s.bg}"`);
+    if (s.music && s.music !== 'none' && c.assets && !c.assets.music?.includes(s.music)) errors.push(`${s.id}: unknown music "${s.music}"`);
 
     const allTargets = (n: SceneNode) => [n.next, ...(n.branches ?? []).map((b) => b.target), ...(n.choices ?? []).map((c) => c.target)].filter((t): t is string => !!t);
     const targets = (n: SceneNode) => allTargets(n).filter((t) => !sceneTarget(t));
@@ -98,6 +99,8 @@ export function validate(c: Content): string[] {
         if (n.mood && !n.speaker) at(key, 'mood without a speaker');
         if (n.bg && !c.assets.backgrounds.includes(n.bg)) at(key, `unknown bg "${n.bg}"`);
         if (n.cg && !c.assets.cgs.includes(n.cg)) at(key, `unknown cg "${n.cg}"`);
+        if (n.music && n.music !== 'none' && !c.assets.music?.includes(n.music)) at(key, `unknown music "${n.music}"`);
+        if (n.sfx && !c.assets.sfx?.includes(n.sfx)) at(key, `unknown sfx "${n.sfx}"`);
       }
       if (n.show && !queries.has(n.show)) at(key, `unknown query "${n.show}" in show`);
       if (n.ending !== undefined && (allTargets(n).length || !n.ending.trim())) at(key, 'an ending needs a title and no next/branches/choices');

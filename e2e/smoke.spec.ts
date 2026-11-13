@@ -13,6 +13,8 @@ const next = async (page: Page, line: RegExp) => {
 
 // Protected Vercel deployments: visit a _vercel_share link first to get the auth cookie.
 test.beforeEach(async ({ page }) => {
+  // Tests read hundreds of lines: skip the typewriter.
+  await page.addInitScript(() => localStorage.setItem('hc.textSpeed', 'instant'));
   if (process.env.SHARE_URL) await page.goto(process.env.SHARE_URL);
 });
 
