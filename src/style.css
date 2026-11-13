@@ -208,7 +208,7 @@ dialog .close { border: 0; background: none; font-size: 22px; line-height: 1; pa
 
 /* ---------- small screens ---------- */
 @media (max-width: 640px) {
-  #portrait { height: 62vh; bottom: 26vh; }
+  #portrait { height: 80vh; bottom: 0; }
   #card { margin-bottom: 0; width: 150px; font-size: 44px; }
   #game { bottom: 12px; }
   #box { padding: 26px 18px 18px; min-height: 7em; }
