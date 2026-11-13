@@ -1,0 +1,85 @@
+# Act 3 opens: the Sev-1. incident_start writes the Realm's telemetry (20 minutes of spans and
+# log lines) into the events table, so every Query Shell view shows it from here on.
+# Chain: incident → phase_logs → phase_metrics → phase_traces → root_cause → resolution → finale.
+id: incident
+start: alarm
+music: incident
+bg: noc_room
+nodes:
+  alarm:
+    sfx: alarm
+    action: incident_start
+    text: "Every speaker in the NOC goes off at once."
+    next: sev
+  sev:
+    text: "The big screen turns red. SEV-1 DECLARED. Underneath, in smaller letters: CITIZENS NOT FOUND."
+    next: monitoring
+  monitoring:
+    speaker: monitoring
+    mood: surprised
+    text: "Status: OK. Status: OK. Status: …OK?"
+    next: monitoring2
+  monitoring2:
+    speaker: monitoring
+    mood: sad
+    text: "Every check I have is passing. Checkout p99, within threshold. Heartbeat, ok. I don't have a check for people disappearing."
+    next: window
+  window:
+    text: "Through the window, the Mesh goes dark one sector at a time. A kiosk vanishes mid-sale. The customer is left holding out the money."
+    next: dba_in
+  dba_in:
+    text: "The door bangs open. The DBA skids in, shedding pencils."
+    next: dba_1
+  dba_1:
+    speaker: dba
+    mood: surprised
+    text: "{name}! It's the flickers. They're not flickers anymore. Whole sectors are dropping out of the sample, with people in them."
+    next: baggage
+  baggage:
+    speaker: baggage
+    mood: sad
+    text: "Look at my tags. key=, key=, key=. Nobody on the other end of any of them. I've never been this light. I hate it."
+    next: pillars
+  pillars:
+    text: "Then the pillars arrive. Logs has the notebook open. Both of Metrics' watches are flashing red. Traces turns up exactly on time, which scares everyone more than the alarm."
+    next: logs
+  logs:
+    speaker: logs
+    mood: surprised
+    text: "I've been writing so much. So, so much. I don't know which part matters, I never know which part matters, that's not my job, my job is to WRITE IT DOWN—"
+    next: metrics
+  metrics:
+    speaker: metrics
+    mood: annoyed
+    text: "Error rate's vertical. That's all I've got. One number, going up."
+    next: traces
+  traces:
+    speaker: traces
+    mood: sad
+    text: "I keep seeing requests start. I don't see any of them end. Sorry. This is— this is what I always see."
+    next: collector
+  collector:
+    speaker: collector
+    mood: happy
+    text: "Hiii! Is this a bad time to mention the premium tier is having a record day?"
+    next: dba_no
+  dba_no:
+    speaker: dba
+    mood: annoyed
+    text: "Yes."
+    next: dba_2
+  dba_2:
+    speaker: dba
+    mood: neutral
+    text: "This is it. This is your page. Fix it, and the page resolves and the portal opens. Don't fix it, and soon there won't be a Realm left to page you about."
+    next: dba_3
+  dba_3:
+    speaker: dba
+    mood: neutral
+    text: "You've got the Query Shell. They've each got a piece. I've got the pencils. I'll be scribe."
+    next: start
+  start:
+    speaker: logs
+    mood: blush
+    text: "Start with me? Please? It's all written down. It's always all written down. Nobody ever starts with me."
+    next: "@phase_logs"

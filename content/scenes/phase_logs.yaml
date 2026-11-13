@@ -1,0 +1,120 @@
+# Phase 1: read everything. The Logs view holds ~2,000 Realm lines: INFO noise, three distractor
+# WARNs, the ERRORs (the symptom), and dozens of "WARN cardinality limit exceeded, dropping series"
+# from service metrics (attribute subscriber_id), the WARN she mentioned on the date.
+# Wrong answers hint and re-ask; the re-ask always has a way forward (nobody gets stuck).
+# Turning point lands harder with logs_affection_high (she was read on the date, not skimmed).
+id: phase_logs
+start: arrive
+music: incident
+bg: archive_cafe
+nodes:
+  arrive:
+    text: "Logs pulls you across the Mesh at a run, to the Archive Café. The shelves are scrolling so fast the text blurs."
+    next: l1
+  l1:
+    speaker: logs
+    mood: neutral
+    text: "Okay. Everything the Realm wrote in the last twenty minutes is in me. About two thousand lines. Mostly INFO. Mostly lovely, honestly, under the circumstances."
+    next: l2
+  l2:
+    speaker: logs
+    mood: sad
+    text: "Everyone's going to search for ERROR. Everyone always searches for ERROR."
+    next: l3
+  l3:
+    speaker: logs
+    mood: blush
+    text: "You can do that. Or you can read me. Up to you."
+    next: open
+  open:
+    action: open_console:logs
+    text: "The Query Shell opens on Logs' stream. Two thousand lines, and counting."
+    next: ask
+  ask:
+    speaker: logs
+    mood: neutral
+    text: "So? What did you find?"
+    choices:
+      - { id: error, text: "\"ERROR export failed: deadline exceeded. Loads of them.\"", target: hint_error }
+      - { id: slow, text: "\"WARN slow query on registry.citizens (812ms).\"", target: hint_slow }
+      - { id: cardinality, text: "\"WARN cardinality limit exceeded, dropping series. Over and over.\"", target: found }
+      - { id: baggage, text: "\"WARN baggage header exceeds 8KB, truncating.\"", target: hint_baggage }
+  hint_error:
+    speaker: logs
+    mood: sad
+    text: "That's the fire. Everyone finds the fire. I want to know what I was saying before it started."
+    next: ask2
+  hint_slow:
+    speaker: logs
+    mood: neutral
+    text: "Oh, that's just the Registry. It says that every day around now. It's sort of its catchphrase."
+    next: ask2
+  hint_baggage:
+    speaker: logs
+    mood: happy
+    text: "That's Baggage. Baggage has always been a lot. We love Baggage. It's not Baggage."
+    next: ask2
+  ask2:
+    speaker: logs
+    mood: neutral
+    text: "It's a WARN. One I've been writing over and over lately, same words every time. Nobody filters for WARN."
+    choices:
+      - { id: cardinality, text: "\"Cardinality limit exceeded. Dropping series.\"", target: found }
+      - { id: again, text: "Look again.", target: open }
+      - { id: tell, text: "\"I can't find it. Read it to me?\"", target: told }
+  told:
+    speaker: logs
+    mood: sad
+    text: "It's this one. 'WARN cardinality limit exceeded, dropping series.' Dozens of times. I even told someone about it once. In a tangent. Nobody hears the tangents."
+    next: told2
+  told2:
+    speaker: logs
+    mood: blush
+    text: "It's okay. You asked me to read it. Hardly anyone asks."
+    next: source
+  found:
+    speaker: logs
+    mood: surprised
+    text: "That's the one."
+    next: turn
+  turn:
+    text: ""
+    branches:
+      - { condition: logs_affection_high, target: turn_high }
+    next: turn_soft
+  turn_high:
+    music: logs
+    speaker: logs
+    mood: blush
+    text: "You didn't grep me. You read me."
+    next: turn_high2
+  turn_high2:
+    speaker: logs
+    mood: happy
+    text: "Two thousand lines and you went through them like they were— like I was— sorry. Verbose mode. Later. I'm going to be extremely verbose about this later."
+    next: source
+  turn_soft:
+    music: logs
+    speaker: logs
+    mood: surprised
+    text: "You found it. I didn't think you would, honestly. You were in a bit of a hurry, last time."
+    next: turn_soft2
+  turn_soft2:
+    speaker: logs
+    mood: happy
+    text: "But you read me now. That counts. I'm counting it. Well, Metrics counts things. I'm writing it down."
+    next: source
+  source:
+    music: incident
+    speaker: logs
+    mood: neutral
+    text: "Look who wrote it, though. service = metrics. I only keep it. It's been Metrics, all week, dropping things and telling nobody but me."
+    next: source2
+  source2:
+    speaker: logs
+    mood: neutral
+    text: "And every one of them has the same attribute on it: subscriber_id. I don't know what that means. I never know what anything means. But it's the same every time."
+    next: handoff
+  handoff:
+    text: "At the end of the aisle, Metrics is standing very still, reading over your shoulder."
+    next: "@phase_metrics"

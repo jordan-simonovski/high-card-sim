@@ -1,0 +1,154 @@
+# Phase 3: keep the moment that matters. Under head sampling the failing request never shows.
+# keep_trace tail-samples it (every span gets sampling.priority = 1); the second look shows
+# request the-one-that-never-finishes: gateway → checkout/registry → … → collector.batch_processor,
+# status error after 30,000 ms (deadline exceeded).
+# Turning point lands harder with traces_affection_high.
+id: phase_traces
+start: arrive
+music: incident
+bg: sampling_cafe
+nodes:
+  arrive:
+    text: "The Sampling Café is greyer than before. Whole rows of tables are missing, chairs and all."
+    next: t1
+  t1:
+    speaker: traces
+    mood: sad
+    text: "There's a request that keeps dying in the middle. I think I told you? I think it's this. I think it's all of this."
+    next: t2
+  t2:
+    speaker: traces
+    mood: neutral
+    text: "Can you look? I'll— I'll try to be here."
+    next: open1
+  open1:
+    action: open_console:trace
+    text: "The Query Shell opens on Traces' waterfall. Starts, mostly. Gaps where the rest should be."
+    next: after1
+  after1:
+    speaker: traces
+    mood: sad
+    text: "It's not there, is it. It's never there. The sampler decides at the start whether a request is worth keeping, and it never picks that one."
+    next: after2
+  after2:
+    speaker: traces
+    mood: sad
+    text: "By the time it fails, I've already looked away."
+    next: remember
+  remember:
+    text: "You remember a café table, and a chair that stayed empty until you decided the moment mattered."
+    choices:
+      - { id: mark, text: "Mark the failing request as important. Keep it, whatever it costs.", target: keep }
+      - { id: wait, text: "\"Don't decide at the start. Wait for the end, and keep the one that hurts.\"", target: keep }
+  keep:
+    sfx: affection
+    action: keep_trace
+    text: "You mark it. Deep in the Realm, a sampler that has always decided at the start is told, for once, to wait until the end."
+    next: kept_check
+  kept_check:
+    text: ""
+    branches:
+      - { condition: trace_kept, target: kept }
+    next: kept_unsure
+  kept:
+    speaker: traces
+    mood: surprised
+    text: "Oh. Oh, I have it. The whole thing. I can feel it, start to finish. I've never felt the end of anything."
+    next: open2
+  kept_unsure:
+    speaker: traces
+    mood: neutral
+    text: "I— I think it took? Look with me. Please."
+    next: open2
+  open2:
+    action: open_console:trace
+    text: "The waterfall again. This time one request runs all the way down: the-one-that-never-finishes."
+    next: ask
+  ask:
+    speaker: traces
+    mood: neutral
+    text: "Where does it— where does it die?"
+    choices:
+      - { id: gateway, text: "\"gateway.\"", target: hint_gateway }
+      - { id: checkout, text: "\"Somewhere in the middle. checkout?\"", target: hint_middle }
+      - { id: batch, text: "\"collector.batch_processor. Thirty seconds, then deadline exceeded.\"", target: found }
+  hint_gateway:
+    speaker: traces
+    mood: happy
+    text: "That's the root span. That's where it starts. I know where things start. It's the end I've never seen."
+    next: ask2
+  hint_middle:
+    speaker: traces
+    mood: neutral
+    text: "It's fine there. A few milliseconds and on it goes. Look further down. Look for the one that takes forever."
+    next: ask2
+  ask2:
+    speaker: traces
+    mood: neutral
+    text: "The last span. The long one. What's it called?"
+    choices:
+      - { id: batch, text: "\"collector.batch_processor.\"", target: found }
+      - { id: again, text: "Look again.", target: open2 }
+      - { id: tell, text: "\"Read it to me?\"", target: told }
+  told:
+    speaker: traces
+    mood: neutral
+    text: "collector.batch_processor. Thirty thousand milliseconds, then status error. Deadline exceeded. …I can read it. I can actually read the end."
+    next: every_span
+  found:
+    speaker: traces
+    mood: surprised
+    text: "collector.batch_processor. It waits thirty seconds for something and then just… gives up."
+    next: every_span
+  every_span:
+    text: "On every span of the kept trace, root to leaf, the same attribute: sampling.priority = 1. You put that there."
+    next: turn
+  turn:
+    text: ""
+    branches:
+      - { condition: traces_affection_high, target: turn_high }
+    next: turn_soft
+  turn_high:
+    music: traces
+    speaker: traces
+    mood: blush
+    text: "I saw all of it. You were in every span."
+    next: turn_high2
+  turn_high2:
+    speaker: traces
+    mood: happy
+    text: "Start to end, and I didn't drop anything. Is this what it's like for everyone else? All the time?"
+    next: errors
+  turn_soft:
+    music: traces
+    speaker: traces
+    mood: surprised
+    text: "I saw all of it. Start to end. You were— you were in every span. I didn't think you'd stay for the whole thing."
+    next: turn_soft2
+  turn_soft2:
+    speaker: traces
+    mood: blush
+    text: "Most people don't. I don't, usually. Thank you for waiting."
+    next: errors
+  errors:
+    music: incident
+    speaker: traces
+    mood: neutral
+    text: "And it's not only this one. Look. Every error in the Realm, by where it happened."
+    show: incident_errors
+    next: collector
+  collector:
+    speaker: collector
+    mood: surprised
+    text: "Hey! That's my batch processor! Why is everyone looking at my batch processor?"
+    next: collector2
+  collector2:
+    speaker: collector
+    mood: happy
+    text: "It's fine! It's just busy! It's been SO busy. The premium tier's having a record day, I told you~"
+    next: dba
+  dba:
+    speaker: dba
+    mood: neutral
+    text: "Everyone, Registry. Now. I want to look at the base table."
+    next: "@root_cause"

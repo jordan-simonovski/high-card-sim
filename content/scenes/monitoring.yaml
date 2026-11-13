@@ -1,5 +1,5 @@
 # Monitoring, the ex. Only has saved queries. Get back together (choice id `relapse`)
-# or let them go kindly; either way, on to the finale.
+# or let them go kindly; either way, on to the incident.
 id: monitoring
 start: arrive
 music: monitoring
@@ -74,7 +74,7 @@ nodes:
     next: relapse_2
   relapse_2:
     text: "Every status light turns green. It's very comforting. It's very, very green."
-    next: "@finale"
+    next: "@incident"
   letgo_1:
     text: "You start typing a message. It takes a while. You mean every word."
     next: intercept
@@ -125,4 +125,4 @@ nodes:
     next: bye
   bye:
     text: "The amber light blinks once and turns green, and this time it's telling the truth."
-    next: "@finale"
+    next: "@incident"

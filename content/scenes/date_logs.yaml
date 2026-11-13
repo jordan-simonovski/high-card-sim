@@ -1,6 +1,7 @@
 # Date with Logs. Affection is conversation volume: every Logs line shown and every reply
 # picked at a Logs node is a row in the `logs` view. "Tell me more" opens extra lines;
-# "TL;DR" skips them. All-more: 22 rows here. All-TL;DR: 10 rows here.
+# "TL;DR" skips them. All-more: 23 rows here. All-TL;DR: 10 rows here.
+# more3c2 buries the incident clue (the WARN she keeps writing) in a tangent; TL;DR skips it.
 id: date_logs
 start: arrive
 music: logs
@@ -92,6 +93,11 @@ nodes:
     speaker: logs
     mood: happy
     text: "Or the retry that finally worked. Or the health check that just says 'ok' every ten seconds, forever, like a little heartbeat."
+    next: more3c2
+  more3c2:
+    speaker: logs
+    mood: neutral
+    text: "Or the cron job that says 'starting' at midnight like it's nervous. Or this one WARN I keep writing lately, same line, over and over, nobody's noticed, it's fine, WARN is just INFO with anxiety. Or the cache that hits ninety-nine times in a row and never brags."
     next: more3d
   more3d:
     speaker: logs

@@ -150,6 +150,30 @@ nodes:
     speaker: dba
     mood: neutral
     text: "Three pillars each hold a piece of you: Logs, Metrics and Traces. None of them sees the whole thing."
+    next: flicker
+  flicker:
+    sfx: flicker
+    text: "The lights flicker. At the back of the office, a filing clerk blinks out mid-stamp, then blinks back in a second later, still stamping."
+    next: flicker2
+  flicker2:
+    speaker: dba
+    mood: sad
+    text: "That keeps happening. People just… drop out for a second. It's in nobody's dashboard. Every panel says green."
+    next: flicker3
+  flicker3:
+    speaker: dba
+    mood: neutral
+    text: "The page that brought you is probably about this. Something here is broken, and you got paged for it. Sorry. Wrong rota."
+    next: deal
+  deal:
+    speaker: dba
+    mood: neutral
+    text: "So here's the deal. Resolve the incident and the page closes. When the page closes, a portal home opens. That part's in the schema."
+    next: deal2
+  deal2:
+    speaker: dba
+    mood: blush
+    text: "And you can't work an incident with people you don't know."
     next: goal2
   goal2:
     speaker: dba

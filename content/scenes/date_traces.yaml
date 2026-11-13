@@ -90,6 +90,11 @@ nodes:
   t3:
     speaker: traces
     mood: sad
+    text: "There's one request I keep catching the start of. It goes in, and somewhere in the middle it just… dies. I've never once seen it finish."
+    next: t3a
+  t3a:
+    speaker: traces
+    mood: sad
     text: "Mostly I just catch the first span and a timeout. I feel like I'm missing my own—"
     choices:
       - { id: keep, text: "\"Then let's keep this one. All of it.\" (Keep this moment.)", target: t3_keep, attributes: { sampling.priority: "1" } }

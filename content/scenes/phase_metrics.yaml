@@ -1,0 +1,152 @@
+# Phase 2: add the dimension back. The error spike can't be broken down until Metrics adds one
+# label back: tier (free, pro, onlyspans). onlyspans carries almost every error.
+# No affection_delta here on purpose: the finale gates read affection from the dates.
+# Turning point lands harder with metrics_affection_high.
+id: phase_metrics
+start: arrive
+music: incident
+bg: dashboard_gym
+nodes:
+  arrive:
+    text: "Metrics doesn't say a word on the walk to the gym. Every gauge on the wall is pinned hard to the right."
+    next: m1
+  m1:
+    speaker: metrics
+    mood: neutral
+    text: "Yes. That WARN is mine. When something gets too detailed, I drop it. That's the job."
+    next: m2
+  m2:
+    speaker: metrics
+    mood: annoyed
+    text: "Errors have gone vertical. Before you ask: no, I can't tell you whose. I don't keep whose."
+    next: m3
+  m3:
+    speaker: metrics
+    mood: neutral
+    text: "One label would do it. tier. Three values: free, pro, OnlySpans. Cheap, as labels go. I had it once. I dropped it with the rest."
+    next: m4
+  m4:
+    speaker: metrics
+    mood: sad
+    text: "It's not the memory. Okay. It's a bit the memory."
+    next: m5
+  m5:
+    speaker: metrics
+    mood: sad
+    text: "When I kept labels, I kept everyone. Then some of them stopped. I still had their series. Flat lines. Zero, zero, zero. A total never does that to you."
+    next: m6
+  m6:
+    speaker: metrics
+    mood: neutral
+    text: "If I add it back, I'll remember this. Exactly. Whatever it shows."
+    choices:
+      - { id: stay, text: "\"I'm not going anywhere. Add it back. I'll be right here.\"", target: stay, vibe: good }
+      - { id: hand, text: "Put a hand on {metrics.his} shoulder and wait.", target: stay_quiet, vibe: good }
+      - { id: push, text: "\"Metrics, people are disappearing. We need it.\"", target: push }
+  push:
+    speaker: metrics
+    mood: annoyed
+    text: "I know. I can count."
+    next: push2
+  push2:
+    speaker: metrics
+    mood: sad
+    text: "Sorry. Give me a second. …Stay while I do it?"
+    next: stay
+  stay:
+    speaker: metrics
+    mood: blush
+    text: "Okay. Okay. Adding tier. One label. Someone watch the memory."
+    next: add
+  stay_quiet:
+    speaker: metrics
+    mood: blush
+    text: "…That's a constant. Good. I could use a constant right now. Adding tier."
+    next: add
+  add:
+    sfx: counter
+    text: "Somewhere inside Metrics, a dimension comes back. Both smartwatches buzz at once. {metrics.He} doesn't look away from you."
+    next: open
+  open:
+    action: open_console:metrics
+    text: "The Query Shell opens on Metrics' charts. The error spike, split by tier."
+    next: ask
+  ask:
+    speaker: metrics
+    mood: neutral
+    text: "Read it to me. Which tier?"
+    choices:
+      - { id: free, text: "\"free.\"", target: hint_free }
+      - { id: pro, text: "\"pro.\"", target: hint_pro }
+      - { id: onlyspans, text: "\"onlyspans. Almost every error.\"", target: found }
+  hint_free:
+    speaker: metrics
+    mood: neutral
+    text: "free is flat. free is always flat. Free users can't afford to break anything."
+    next: ask2
+  hint_pro:
+    speaker: metrics
+    mood: neutral
+    text: "pro is six subscribers. Six. That's not a spike, that's a book club."
+    next: ask2
+  ask2:
+    speaker: metrics
+    mood: neutral
+    text: "Look for the tall one. One value doing nearly all the work."
+    choices:
+      - { id: onlyspans, text: "\"onlyspans.\"", target: found }
+      - { id: again, text: "Look again.", target: open }
+      - { id: tell, text: "\"I can't read it. You tell me.\"", target: told }
+  told:
+    speaker: metrics
+    mood: neutral
+    text: "onlyspans. Nearly all of it. I'll say it slower next time. There won't be a next time. Probably."
+    next: turn
+  found:
+    speaker: metrics
+    mood: surprised
+    text: "onlyspans. Nearly every error in the Realm."
+    next: turn
+  turn:
+    text: ""
+    branches:
+      - { condition: metrics_affection_high, target: turn_high }
+    next: turn_soft
+  turn_high:
+    music: metrics
+    speaker: metrics
+    mood: blush
+    text: "I'm going to remember this now. Exactly. This number, this label, you standing there not leaving."
+    next: turn_high2
+  turn_high2:
+    speaker: metrics
+    mood: happy
+    text: "Cardinality's up by one. I'm not dropping it."
+    next: clue
+  turn_soft:
+    music: metrics
+    speaker: metrics
+    mood: neutral
+    text: "I'm going to remember this now. Exactly. I wasn't sure I'd want to."
+    next: turn_soft2
+  turn_soft2:
+    speaker: metrics
+    mood: blush
+    text: "It's fine. It's better than fine. Don't tell anyone. I'll deny it to two decimal places."
+    next: clue
+  clue:
+    music: incident
+    speaker: metrics
+    mood: neutral
+    text: "OnlySpans. That's the Collector's premium tier. Every span, unsampled, uncut."
+    next: clue2
+  clue2:
+    speaker: metrics
+    mood: annoyed
+    text: "The errors end somewhere, though. I know that they happen, not where. For where, you'd need—"
+    next: handoff
+  handoff:
+    speaker: traces
+    mood: sad
+    text: "—me. Um. Hi. I've been here a while, actually. Nobody was sampling me."
+    next: "@phase_traces"

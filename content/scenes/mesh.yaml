@@ -60,6 +60,11 @@ nodes:
     speaker: baggage
     mood: happy
     text: "Premium tier includes the baggage. That's me. I'm the baggage. I get a cut of every request."
+    next: baggage_flicker
+  baggage_flicker:
+    speaker: baggage
+    mood: sad
+    text: "Bit quieter than usual round here, mind. People keep flickering. Half my tags point at people who aren't there anymore."
     next: glimpse
   glimpse:
     text: "A blur in a navy jacket jogs past at exactly 3.0 metres per second. Behind you, something lilac flickers and is gone."

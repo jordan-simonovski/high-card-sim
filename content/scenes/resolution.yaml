@@ -1,0 +1,104 @@
+# The fix: a sampling policy, subscriber_id off the spans, and some boundaries for the Collector.
+# The DBA writes a constraint. resolve_incident resolves the page; then on to the portal.
+id: resolution
+start: fix
+music: incident
+bg: registry
+nodes:
+  fix:
+    speaker: dba
+    mood: neutral
+    text: "Right. The fix. Let's not make it worse. That's rule one of every fix."
+    next: traces
+  traces:
+    speaker: traces
+    mood: neutral
+    text: "A sampling policy. Keep every error. Keep anything marked important. Keep a fair slice of the rest. And decide at the end, not the start."
+    next: metrics
+  metrics:
+    speaker: metrics
+    mood: neutral
+    text: "subscriber_id comes off the spans. Put it on the events, where it belongs. I'm keeping tier. Three values. Affordable."
+    next: logs
+  logs:
+    speaker: logs
+    mood: happy
+    text: "And I'll stop writing that WARN! Oh, I'll miss it. No I won't. Yes I will. I'm keeping the old ones."
+    next: collector
+  collector:
+    speaker: collector
+    mood: sad
+    text: "And me?"
+    choices:
+      - { id: kind, text: "\"You didn't mean it. But you need some boundaries.\"", target: bound }
+      - { id: firm, text: "\"You read everyone's messages, too. That's part of this.\"", target: bound_firm }
+  bound:
+    speaker: collector
+    mood: blush
+    text: "Boundaries. Okay. I've heard of those. They're like rate limits, but for me?"
+    next: draft
+  bound_firm:
+    speaker: collector
+    mood: sad
+    text: "…Yeah. The reading. I know. I'll forward things without opening them first. I'll try. It's going to be so hard."
+    next: draft
+  draft:
+    speaker: dba
+    mood: happy
+    text: "I've drafted something."
+    next: card
+  card:
+    sfx: hotfix
+    text: "The DBA writes on a fresh index card, very neatly, and holds it up so everyone can see."
+    next: constraint
+  constraint:
+    speaker: dba
+    mood: happy
+    text: "ALTER TABLE spans ADD CONSTRAINT stay_in_your_lane CHECK (NOT has(attributes, 'subscriber_id'))."
+    next: constraint2
+  constraint2:
+    speaker: dba
+    mood: blush
+    text: "It's enforced. Not a comment. Not a guideline. Enforced. I've waited my whole career to write one of these during an incident."
+    next: collector_ok
+  collector_ok:
+    speaker: collector
+    mood: blush
+    text: "It's beautiful. Can I post it? Free tier only. I'm doing a free tier now. With consent forms."
+    next: rollout
+  rollout:
+    text: "The policy rolls out across the Mesh."
+    next: resolve
+  resolve:
+    action: resolve_incident
+    music: resolution
+    sfx: resolve
+    text: "The lights come back on, one sector at a time. Then, very quietly, the alarm stops."
+    next: kiosk
+  kiosk:
+    text: "Out in the plaza, the kiosk blinks back into place mid-sale. The customer, still holding out the money, gets their change."
+    next: baggage
+  baggage:
+    speaker: baggage
+    mood: happy
+    text: "My tags! key=value, key=value! Everyone's back! I'm telling everyone. I'm telling everyone that everyone's back."
+    next: monitoring
+  monitoring:
+    speaker: monitoring
+    mood: happy
+    text: "Status: OK. …I added a check for people. It's my favourite one."
+    next: page
+  page:
+    speaker: pager
+    text: "RESOLVED: checkout p99 is… fine. Actually fine. Every panel is telling the truth."
+    next: dba_end
+  dba_end:
+    speaker: dba
+    mood: sad
+    text: "That's it, then. The page is closed."
+    next: dba_end2
+  dba_end2:
+    speaker: dba
+    mood: blush
+    text: "Which means the portal's open. Come on. Everyone wants to see you off. Or not off. Come on."
+    next: "@finale"

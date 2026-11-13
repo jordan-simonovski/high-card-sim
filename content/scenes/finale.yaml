@@ -1,6 +1,7 @@
-# The finale. Relapse first; otherwise each pillar's own view of you decides how it goes.
-# The true ending needs the base table, queried in the shell.
-# Logs: logs_2 is the only Logs line before the affection branch (counts toward it).
+# Act 4: the portal. The page has resolved and the portal home is open. Relapse first; otherwise
+# stay for one pillar (their affection decides: good ending, or they gently send you home),
+# stay for all three (all_turned: the true ending), or go home (bittersweet).
+# Logs: logs_affection_high only counts lines from before the incident, so finale lines don't move it.
 id: finale
 start: start
 music: finale
@@ -15,7 +16,7 @@ nodes:
   # Monitoring relapse
   relapse_1:
     music: end_bittersweet
-    text: "The sky stage flickers. Three panels unfold across the horizon, exactly where you left them."
+    text: "The portal opens at the top of the stage. Monitoring is already standing in it, headset on, holding it open for you."
     next: relapse_2
   relapse_2:
     speaker: monitoring
@@ -23,7 +24,7 @@ nodes:
     text: "events_last_hour: some. errors: 0. Status: OK. Status: OK. Status: OK."
     next: relapse_3
   relapse_3:
-    text: "It's quiet and safe, and nobody asks you anything that isn't on the dashboard."
+    text: "It's quiet and safe on the other side, and nobody asks you anything that isn't on the dashboard."
     next: relapse_4
   relapse_4:
     speaker: monitoring
@@ -31,34 +32,47 @@ nodes:
     text: "Same time tomorrow? I've already scheduled your page for 03:12. I'll be right here. I'm always right here."
     next: relapse_5
   relapse_5:
-    text: "Far below, three pillars wave up at you. You wave back. The dashboard doesn't have a panel for that."
+    text: "Behind you, three pillars wave. You wave back. The dashboard doesn't have a panel for that."
     next: end_relapse
   end_relapse:
     sfx: ending
     text: "You're back on call. Every panel is green. Every panel is lying. Monitoring never misses a night."
     ending: "Monitoring Relapse"
 
-  # The choice
+  # The portal
   arrive:
-    text: "You climb onto a stage made of one enormous glowing row. Every column in it is you."
+    text: "The Registry's ceiling folds back like a card drawer. Above it is a stage made of one enormous glowing row. Every column in it is you."
+    next: portal
+  portal:
+    text: "At the far end, the air opens into a portal. Through it: your bedroom, 03:12, your phone face-down on the duvet, not buzzing."
+    next: dba_1
+  dba_1:
+    speaker: dba
+    mood: sad
+    text: "That's yours. The page closed, so the portal opened. I told you it was in the schema."
+    next: dba_2
+  dba_2:
+    speaker: dba
+    mood: neutral
+    text: "You can go back to your on-call rotation now. If you want. Going home is a nullable column. I made it nullable on purpose this time."
     next: pillars
   pillars:
-    text: "Logs, Metrics and Traces are waiting. Logs has already filled three pages about this moment. {logs.She} [logs:is|are] trying very hard not to read them aloud."
+    text: "Logs, Metrics and Traces are waiting by the portal. Logs has already filled three pages about this moment. {logs.She} [logs:is|are] trying very hard not to read them aloud."
     next: metrics_hi
   metrics_hi:
     speaker: metrics
     mood: neutral
-    text: "The page resolves when someone knows you whole. Each of us knows a slice. These are the slices."
+    text: "Nobody's paging you. You could just go. Statistically, most people would."
     next: traces_hi
   traces_hi:
     speaker: traces
     mood: sad
-    text: "Or a sample. I know a— a sample."
+    text: "Or you could— no. Sorry. I'm only saying it because I'm sampled right now, and I might not be later."
     next: live
   live:
     speaker: collector
     mood: happy
-    text: "Don't mind me! I'm streaming this to the premium tier. Forty thousand subscribers, all unsampled. No pressure~"
+    text: "Don't mind me! I'm streaming this to the free tier. With consent! Everyone signed the DBA's form~"
     next: live2
   live2:
     speaker: collector
@@ -73,16 +87,17 @@ nodes:
     show: relationship_status
     next: choose
   choose:
-    text: "Who do you walk towards?"
+    text: "The portal hums. Three people pretend very hard not to be holding their breath."
     choices:
-      - { id: logs, text: "Logs.", target: logs_1 }
-      - { id: metrics, text: "Metrics.", target: metrics_1 }
-      - { id: traces, text: "Traces.", target: traces_1 }
-      - { id: all, text: "Ask all three to stop splitting themselves up.", condition: queried_base_table, target: all_1 }
+      - { id: logs, text: "Stay, for Logs.", target: logs_1 }
+      - { id: metrics, text: "Stay, for Metrics.", target: metrics_1 }
+      - { id: traces, text: "Stay, for Traces.", target: traces_1 }
+      - { id: all, text: "Stay, for all three of you.", condition: all_turned, target: all_1 }
+      - { id: home, text: "Go home.", target: home_1 }
 
   # Logs
   logs_1:
-    text: "You walk to Logs. The paper scroll scarf lifts in the wind and trails out behind {logs.her}."
+    text: "You walk past the portal, to Logs. The long scarf lifts in the wind and trails out behind {logs.her}."
     next: logs_2
   logs_2:
     speaker: logs
@@ -93,9 +108,12 @@ nodes:
     next: logs_bad_1
   logs_good_1:
     music: end_true
+    text: "You tell {logs.her} to put you on the rota here. Permanently."
+    next: logs_good_1b
+  logs_good_1b:
     speaker: logs
     mood: happy
-    text: "I've been reading back everything we said. On purpose! Nothing was even on fire."
+    text: "I've been reading back everything we said. On purpose! Even the bits during the fire. Especially the INFO."
     next: logs_good_2
   logs_good_2:
     speaker: logs
@@ -126,7 +144,7 @@ nodes:
   logs_bad_2:
     speaker: logs
     mood: neutral
-    text: "I keep everything for thirty days, then it rotates out. It's not a me thing. It's a policy thing. Mostly a policy thing."
+    text: "I think you should go home. I keep everything for thirty days, then it rotates out. It's not a me thing. It's a policy thing. Mostly a policy thing."
     next: logs_bad_3
   logs_bad_3:
     speaker: logs
@@ -135,12 +153,12 @@ nodes:
     next: end_retention
   end_retention:
     sfx: ending
-    text: "Thirty days later, Logs rotates you out, gently. In cold storage, one gzipped line still says hi."
+    text: "Logs walks you to the portal and lets go of your hand first. Thirty days later, {logs.she} rotates you out, gently. In cold storage, one gzipped line still says hi."
     ending: "30-Day Retention"
 
   # Metrics
   metrics_1:
-    text: "You walk to Metrics. Both smartwatches buzz at once."
+    text: "You walk past the portal, to Metrics. Both smartwatches buzz at once."
     next: metrics_2
   metrics_2:
     speaker: metrics
@@ -158,7 +176,10 @@ nodes:
   metrics_good_2:
     speaker: metrics
     mood: neutral
-    text: "So I'm adding a dimension. One label, just for you. It's going to cost me memory. I don't care."
+    text: "I added tier back for the incident and it didn't kill me. So, one more label. Just for you. It's going to cost me memory. I don't care."
+    next: metrics_good_2b
+  metrics_good_2b:
+    text: "You tell {metrics.him} to put you on the rota here. Permanently. {metrics.He} writes it down to the second."
     next: metrics_good_3
   metrics_good_3:
     speaker: metrics
@@ -186,7 +207,7 @@ nodes:
   metrics_bad_2:
     speaker: metrics
     mood: neutral
-    text: "I'd ask, but I only store the total. You're… a count now. A good count. Steady."
+    text: "I'd ask, but I only store the total. You're… a count now. A good count. Steady. Go home. Counts travel fine."
     next: metrics_bad_3
   metrics_bad_3:
     speaker: metrics
@@ -195,12 +216,12 @@ nodes:
     next: end_rolled_up
   end_rolled_up:
     sfx: ending
-    text: "You're rolled up into the hourly aggregate. Metrics checks the number sometimes, and doesn't know why it makes the corner of {metrics.his} mouth twitch."
+    text: "You step through the portal and get rolled up into the hourly aggregate. Metrics checks the number sometimes, and doesn't know why it makes the corner of {metrics.his} mouth twitch."
     ending: "Rolled Up"
 
   # Traces
   traces_1:
-    text: "You walk to Traces. For once, you can see all of {traces.them}. Mostly."
+    text: "You walk past the portal, to Traces. For once, you can see all of {traces.them}. Mostly."
     next: traces_2
   traces_2:
     speaker: traces
@@ -213,7 +234,10 @@ nodes:
     music: end_true
     speaker: traces
     mood: happy
-    text: "I kept it. The waiting, the hot chocolate, your hand. It's all connected. Nothing dropped."
+    text: "I kept it. The waiting, the hot chocolate, your hand, the request that never finished. It's all connected. Nothing dropped."
+    next: traces_good_1b
+  traces_good_1b:
+    text: "You tell {traces.them} to put you on the rota here. Permanently. Traces marks it important before you've finished the sentence."
     next: traces_good_2
   traces_good_2:
     speaker: traces
@@ -235,7 +259,7 @@ nodes:
   traces_bad_2:
     speaker: traces
     mood: sad
-    text: "I'm sorry. I'm only here one percent of the time. You deserve someone who's around for the other ninety-nine."
+    text: "I'm sorry. I'm only here one percent of the time. You should go home, to someone who's around for the other ninety-nine."
     next: traces_bad_3
   traces_bad_3:
     speaker: traces
@@ -244,13 +268,13 @@ nodes:
     next: end_sampled_out
   end_sampled_out:
     sfx: ending
-    text: "The sampler rolls its dice and you land in the other ninety-nine. Traces keeps the one span with your name on it anyway."
+    text: "You step through the portal. The sampler rolls its dice and you land in the other ninety-nine. Traces keeps the one span with your name on it anyway."
     ending: "Head-Sampled Out"
 
   # All three
   all_1:
     music: end_true
-    text: "You don't walk to any of them. You ask all three to stop splitting themselves up."
+    text: "You don't walk to the portal, or to any one of them. You ask all three to stop splitting themselves up."
     next: all_2
   all_2:
     speaker: metrics
@@ -268,7 +292,7 @@ nodes:
     text: "Wait, so this whole time we were all looking at the same— oh, I have SO much to tell you both—"
     next: all_5
   all_5:
-    text: "You queried it yourself, in the shell: one wide event per moment, with every column still on it."
+    text: "You found the root cause in it together: one wide event per moment, every column still on it."
     next: all_6
   all_6:
     speaker: metrics
@@ -303,6 +327,45 @@ nodes:
     next: end_polycule
   end_polycule:
     sfx: ending
-    text: "The page finally resolves. Root cause: you were never partial. Everyone who loves you is reading from the same row now."
+    text: "Behind you, the portal closes on its own, politely. Root cause: you were never partial. Everyone who loves you is reading from the same row now."
     cg: polycule
     ending: "Stop Sampling Yourself"
+
+  # Go home
+  home_1:
+    music: end_bittersweet
+    text: "You look at the three of them for a long time. Then you look at the portal."
+    next: home_2
+  home_2:
+    speaker: logs
+    mood: sad
+    text: "That's okay! That's— I'll write it down. I'll write all of it down. Go, quickly, before I start."
+    next: home_3
+  home_3:
+    speaker: metrics
+    mood: blush
+    text: "I'm keeping a label for you anyway. It'll just be a constant."
+    next: home_4
+  home_4:
+    speaker: traces
+    mood: happy
+    text: "Go on. I'm sampled right now. I get to see you leave. That's more than I usually get."
+    next: home_5
+  home_5:
+    text: "You step through. It's like falling, in reverse."
+    next: home_6
+  home_6:
+    bg: bedroom_night
+    text: "03:12. Your bedroom. The phone on the duvet says RESOLVED."
+    next: home_7
+  home_7:
+    text: "No new pages. The house is so quiet you can hear the fridge."
+    next: home_8
+  home_8:
+    sfx: affection
+    text: "Then one notification. No message. Just a trace ID."
+    next: end_home
+  end_home:
+    sfx: ending
+    text: "You don't need to look it up. You've seen it before, root to leaf, with you in every span. You leave the phone face-up for the rest of the night."
+    ending: "Resolved at 03:12"

@@ -73,6 +73,11 @@ nodes:
     speaker: metrics
     mood: sad
     text: "It got expensive. So I dropped them. Now I keep totals. Very efficient. Very… quiet."
+    next: labels3
+  labels3:
+    speaker: metrics
+    mood: neutral
+    text: "It's fine. One counter bugs me. Errors. It's been climbing all week and I can't break it down. I don't have the labels for that anymore."
     next: c3
   c3:
     speaker: metrics

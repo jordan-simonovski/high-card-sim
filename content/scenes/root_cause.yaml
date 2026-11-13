@@ -1,0 +1,113 @@
+# The wide event. The three clues only add up in the base table: GROUP BY tier shows onlyspans
+# with nearly all the errors and a different subscriber_id on almost every span (show: root_cause).
+# The Collector's OnlySpans tier stamped a unique subscriber_id on every span; the cardinality
+# explosion is what's sampling citizens out of existence. The Collector is mortified, not a villain.
+id: root_cause
+start: arrive
+music: incident
+bg: registry
+nodes:
+  arrive:
+    text: "Back at the Registry, the DBA has cleared the big table. Index cards everywhere, and everyone crowded round."
+    next: recap
+  recap:
+    speaker: dba
+    mood: neutral
+    text: "Okay. What we've got. Logs: Metrics is dropping series over subscriber_id. Metrics: nearly every error is OnlySpans. Traces: the requests die in the Collector's batch processor, waiting."
+    next: recap2
+  recap2:
+    speaker: dba
+    mood: blush
+    text: "Each of them saw one piece. None of the pieces is the answer. The answer is in the table they all come from."
+    next: recap3
+  recap3:
+    speaker: dba
+    mood: happy
+    text: "events. The wide one. Nobody's sampled it, summed it or cut it short. Go on. GROUP BY tier, and count the distinct subscriber_ids."
+    next: open
+  open:
+    action: open_console
+    text: "The Query Shell opens on the base table. Every column, every event, nothing dropped."
+    next: mine
+  mine:
+    speaker: dba
+    mood: neutral
+    text: "Here's mine, in case yours had a typo. Mine never has typos. Mine had one once."
+    show: root_cause
+    next: ask
+  ask:
+    speaker: dba
+    mood: neutral
+    text: "So. What's sampling people out of existence?"
+    choices:
+      - { id: labels, text: "\"Metrics dropped too many labels.\"", target: hint_labels }
+      - { id: batch, text: "\"The batch processor is too slow.\"", target: hint_batch }
+      - { id: onlyspans, text: "\"OnlySpans puts a unique subscriber_id on every span. The cardinality's blowing everything up.\"", target: found }
+  hint_labels:
+    speaker: metrics
+    mood: annoyed
+    text: "I dropped them because of this. Not the other way round. Look at the last column."
+    next: ask2
+  hint_batch:
+    speaker: traces
+    mood: neutral
+    text: "That's where it dies. Not why it dies. Why is it so— so full?"
+    next: ask2
+  ask2:
+    speaker: dba
+    mood: neutral
+    text: "Look at distinct_subscriber_ids. Which tier has a different one on nearly every span?"
+    choices:
+      - { id: onlyspans, text: "\"onlyspans. Every span gets its own subscriber_id.\"", target: found }
+      - { id: again, text: "Run it again.", target: open }
+      - { id: tell, text: "\"Walk me through it?\"", target: told }
+  told:
+    speaker: dba
+    mood: happy
+    text: "Gladly. I love this part. free and pro have a handful of subscriber_ids between them. onlyspans has a brand-new one on nearly every span."
+    next: explain
+  found:
+    speaker: dba
+    mood: happy
+    text: "Yes! Exactly that. I'm going to put it on an index card and frame it."
+    next: explain
+  explain:
+    speaker: dba
+    mood: neutral
+    text: "Every new value is a new series for Metrics, a new line for Logs, another span for the Collector to batch. It never stops growing. So everything downstream starts dropping things to cope."
+    next: explain2
+  explain2:
+    speaker: dba
+    mood: sad
+    text: "Series first. Then spans. Then people. The sampler can't tell the difference anymore. That's the flickering."
+    next: col1
+  col1:
+    speaker: collector
+    mood: surprised
+    text: "Wait. Wait wait wait. subscriber_id? That's mine. I put that on there."
+    next: col2
+  col2:
+    speaker: collector
+    mood: sad
+    text: "On every span! So my subscribers could find their spans! It was a FEATURE. It was in the PITCH DECK."
+    next: col3
+  col3:
+    speaker: collector
+    mood: blush
+    text: "I did this? I sampled people out of existence with a loyalty programme?"
+    next: logs
+  logs:
+    speaker: logs
+    mood: neutral
+    text: "To be fair, it was a very popular loyalty programme. I logged every signup. There were so many signups."
+    next: col4
+  col4:
+    speaker: collector
+    mood: sad
+    text: "I just wanted everyone to get everything. Unsampled, uncut. Nobody ever told me no."
+    next: dba_no
+  dba_no:
+    speaker: dba
+    mood: neutral
+    text: "Well. Somebody's about to."
+    next: "@resolution"
