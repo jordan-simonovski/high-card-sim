@@ -32,6 +32,8 @@ music:
   finale: "Swelling emotional anime ballad instrumental, solo piano growing into full strings, hopeful and heartfelt, 84 bpm"
   end_true: "Triumphant J-pop anime ending theme instrumental, bright brass and synths, joyful choir pads, celebratory, 132 bpm"
   end_bittersweet: "Bittersweet solo piano with soft strings, gentle and kind, wistful but not tragic, 72 bpm"
+  incident: "Tense but cute electronic incident theme, ticking hi-hats, pulsing synth bass, urgent arpeggios, a bright determined melody underneath, 124 bpm, seamless loop"
+  resolution: "Warm relieved synth-pop with soft piano, the tension finally releasing into something tender and hopeful, 96 bpm, seamless loop"
 sfx:
   advance: { prompt: "Soft bubbly pop, cute UI click, very short, dry", seconds: 0.5 }
   choice: { prompt: "Sparkly two-note chime, bright and happy, cute game UI confirm sound", seconds: 0.8 }
@@ -46,6 +48,9 @@ sfx:
   counter: { prompt: "Crisp mechanical tally counter clicking up a few times", seconds: 0.8 }
   ending: { prompt: "Warm magical sting, sparkling chime resolving to a major chord, game ending", seconds: 3 }
   error: { prompt: "Gentle cartoon error boop, soft and friendly, not harsh", seconds: 0.6 }
+  alarm: { prompt: "Cute but urgent incident siren, two-tone electronic alarm, short loopable burst, not harsh", seconds: 2.5 }
+  flicker: { prompt: "Digital glitch flicker, a light humming out and back, small static crackle", seconds: 1 }
+  resolve: { prompt: "Warm resolving chime, a soft rising major arpeggio with sparkles, relief", seconds: 2.5 }
 # One babble syllable per speaking character, played under their text as it types out.
 # All built on the DBA's recipe (the one that tested easiest to listen to): a short, soft, rounded
 # plosive syllable. Characters differ by vowel, pitch and pacing (pitch/pacing in src/audio.ts).

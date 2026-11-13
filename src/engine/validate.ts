@@ -18,7 +18,13 @@ export interface Content {
   assets?: { moods: string[]; backgrounds: string[]; cgs: string[]; music?: string[]; sfx?: string[] };
 }
 
-export const ACTIONS = ['create_character', 'open_console'] as const;
+export const ACTIONS = [
+  'create_character',
+  'open_console', 'open_console:logs', 'open_console:trace', 'open_console:metrics',
+  'incident_start', // inserts the Realm's incident telemetry and sounds the alarm
+  'keep_trace', // tail-samples the failing request: its whole path becomes visible to Traces
+  'resolve_incident', // the page resolves; the alarm stops
+] as const;
 export const FIRST_SCENE = 'prologue';
 
 // Hardcoded gendered pronouns are banned in content text: NPC pronouns live in one registry
