@@ -16,7 +16,6 @@ async function playToEnding(page: Page, opts: { queryBaseTable: boolean; prefer:
     if (await page.locator('#ending').isVisible()) return (await page.locator('#ending-title').textContent()) ?? '';
     if (await page.locator('#create').isVisible()) {
       await page.fill('[name=name]', 'Kit');
-      await page.locator('label', { hasText: 'they/them' }).click();
       await page.locator('#create button[type=submit]').click();
       continue;
     }

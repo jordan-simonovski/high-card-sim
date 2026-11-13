@@ -29,17 +29,31 @@ function spawn(el: HTMLElement, ms: number) {
   setTimeout(() => el.remove(), ms);
 }
 
-/** Big lettered sound effect next to the character's head. */
-export function sfxText(text: string, opts: { color: string; side?: 1 | -1; tilt?: number; size?: number; className?: string }) {
+let activeText: HTMLElement | undefined;
+
+/**
+ * Big lettered sound effect beside the character's head, never over the face: choice reactions
+ * sit to the right, mood flourishes to the left, and on narrow screens both go above the head.
+ * Only one is on screen at a time; a new one replaces the last.
+ */
+export function sfxText(text: string, opts: { color: string; side: 1 | -1; tilt?: number; size?: number; className?: string }) {
   if (!enabled()) return;
+  activeText?.remove();
   const a = anchor();
-  const side = opts.side ?? (Math.random() < 0.5 ? -1 : 1);
   const el = Object.assign(document.createElement('span'), { className: `onomato ${opts.className ?? ''}`, textContent: text });
-  el.style.left = `${Math.min(innerWidth - 80, Math.max(80, a.x + side * Math.min(a.w * 0.45, 220)))}px`;
-  el.style.top = `${Math.max(70, a.y - 20)}px`;
+  const gap = a.w * 0.3 + 90; // clear of the face (roughly the middle third of the sprite)
+  let x = a.x + opts.side * gap;
+  let y = a.y - 10;
+  if (x < 90 || x > innerWidth - 90) {
+    x = a.x; // narrow screens: above the head instead
+    y = a.y - 110;
+  }
+  el.style.left = `${x}px`;
+  el.style.top = `${Math.max(80, y)}px`;
   el.style.setProperty('--c', opts.color);
-  el.style.setProperty('--tilt', `${opts.tilt ?? side * 10}deg`);
+  el.style.setProperty('--tilt', `${opts.tilt ?? opts.side * 10}deg`);
   el.style.fontSize = `${opts.size ?? 54}px`;
+  activeText = el;
   spawn(el, 1700);
 }
 
@@ -50,7 +64,9 @@ export function particles(kind: 'heart' | 'drop' | 'spark', count: number, color
   for (let i = 0; i < count; i++) {
     const p = Object.assign(document.createElement('i'), { className: `particle ${kind}` });
     const set = (k: string, v: string) => p.style.setProperty(k, v);
-    p.style.left = `${a.x + (Math.random() - 0.5) * a.w * 0.9}px`;
+    // Out to the sides, not over the face.
+    const side = i % 2 ? 1 : -1;
+    p.style.left = `${a.x + side * a.w * (0.18 + Math.random() * 0.3)}px`;
     p.style.top = `${a.y + Math.random() * 120 + (kind === 'drop' ? -40 : 60)}px`;
     set('--c', color);
     set('--s', `${(kind === 'drop' ? 10 : 14) + Math.random() * 14}px`);
@@ -90,16 +106,16 @@ const GOOD = ['DOKI!', 'DOKI DOKI', 'KYUN!'];
 const buzz = (pattern: number | number[]) => { try { navigator.vibrate?.(pattern); } catch { /* unsupported */ } };
 export function goodChoice(color: string) {
   buzz(12);
-  sfxText(GOOD[Math.floor(Math.random() * GOOD.length)], { color, size: 58 });
+  sfxText(GOOD[Math.floor(Math.random() * GOOD.length)], { color, size: 58, side: 1 });
   particles('heart', 9, color);
 }
 export function badChoice() {
   buzz([30, 40, 30]);
-  sfxText('GAAN…', { color: '#5b6b9a', size: 52, className: 'heavy' });
+  sfxText('GAAN…', { color: '#5b6b9a', size: 52, className: 'heavy', side: 1 });
   particles('drop', 7, '#7fb2ff');
 }
 export function keptMoment(color: string) {
-  sfxText('KIRA!', { color, size: 46 });
+  sfxText('KIRA!', { color, size: 46, side: 1 });
   particles('spark', 8, '#ffd76e');
 }
 
@@ -109,10 +125,10 @@ export function moodChange(speaker: string, mood: string | undefined, color: str
   const key = `${speaker}:${mood ?? 'neutral'}`;
   if (key === lastMood) return;
   lastMood = key;
-  if (mood === 'blush') { sfxText('KYUN', { color, size: 44 }); particles('heart', 4, color); }
-  else if (mood === 'surprised') sfxText('!?', { color: '#3a1d4a', size: 64, className: 'heavy' });
+  if (mood === 'blush') { sfxText('KYUN', { color, size: 44, side: -1 }); particles('heart', 4, color); }
+  else if (mood === 'surprised') sfxText('!?', { color: '#3a1d4a', size: 64, className: 'heavy', side: -1 });
   else if (mood === 'annoyed') vein();
-  else if (mood === 'sad') { sfxText('zuun…', { color: '#5b6b9a', size: 40, className: 'heavy' }); gloom(); }
+  else if (mood === 'sad') { sfxText('zuun…', { color: '#5b6b9a', size: 40, className: 'heavy', side: -1 }); gloom(); }
 }
 export function resetMood() {
   lastMood = '';

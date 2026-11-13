@@ -71,28 +71,7 @@
       </div>
       <form id="create" hidden novalidate>
         <h2>span attributes</h2>
-        <label>player.name <input name="name" maxlength="40" autocomplete="off" required /></label>
-        <label>player.gender <input name="gender" maxlength="60" autocomplete="off" placeholder="anything you like, or leave it blank" /></label>
-        <fieldset class="chips">
-          <legend>player.pronouns <small>pick as many as you use</small></legend>
-          <label><input type="checkbox" name="pronouns" value="they" /> they/them</label>
-          <label><input type="checkbox" name="pronouns" value="she" /> she/her</label>
-          <label><input type="checkbox" name="pronouns" value="he" /> he/him</label>
-          <label><input type="checkbox" name="pronouns" value="xe" /> xe/xem</label>
-          <label><input type="checkbox" name="pronouns" value="ze" /> ze/hir</label>
-          <label><input type="checkbox" name="pronouns" value="it" /> it/its</label>
-          <label><input type="checkbox" name="pronouns" value="custom" /> custom…</label>
-          <label><input type="checkbox" name="pronouns" value="name" /> just my name</label>
-        </fieldset>
-        <fieldset id="custom" hidden>
-          <legend>custom pronouns</legend>
-          <label>subject <input name="c_they" maxlength="24" placeholder="fae" /></label>
-          <label>object <input name="c_them" maxlength="24" placeholder="faer" /></label>
-          <label>possessive <input name="c_their" maxlength="24" placeholder="faer" /></label>
-          <label>possessive pronoun <input name="c_theirs" maxlength="24" placeholder="faers" /></label>
-          <label>reflexive <input name="c_themself" maxlength="24" placeholder="faeself" /></label>
-          <label class="inline"><input type="checkbox" name="c_plural" /> uses plural verbs (“they are”)</label>
-        </fieldset>
+        <label>player.name <input name="name" maxlength="40" autocomplete="off" required placeholder="anything you like" /></label>
         <p id="preview" aria-live="polite"></p>
         <p id="create-error" role="alert"></p>
         <button type="submit">emit span ♥</button>

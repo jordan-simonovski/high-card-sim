@@ -58,7 +58,7 @@ nodes:
   announce:
     speaker: stranger
     mood: happy
-    text: "EVERYONE! {name} is here! {They} [has|have] been paged into the wrong world and {they} [is|are] extremely high cardinality!"
+    text: "EVERYONE! {name} is here! Paged into the wrong world and extremely high cardinality!"
     next: listening
   listening:
     text: ""

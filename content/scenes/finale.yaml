@@ -292,7 +292,7 @@ nodes:
   all_10:
     speaker: logs
     mood: blush
-    text: "Metrics, Traces, look. {They} [was|were] whole this entire time. We each just kept the part we were built for."
+    text: "Metrics, Traces, look. {name} was whole this entire time. We each just kept the part we were built for."
     cg: polycule
     next: all_11
   all_11:

@@ -62,12 +62,10 @@ function react(c: { character?: string; affection_delta?: number; attributes?: R
     el = Object.assign(document.createElement('span'), { className: 'react' });
     el.append(Object.assign(document.createElement('span'), { className: 'bar' }), document.createTextNode('kept'));
     el.style.setProperty('--accent', content.characters.traces?.color ?? '#b69cff');
-    sfx('affection');
   } else if (who === 'metrics' && delta !== 0) {
     el = Object.assign(document.createElement('span'), { className: `react ${delta < 0 ? 'down' : ''}`, textContent: `${delta > 0 ? '+' : '−'}${Math.abs(delta)}` });
     el.style.setProperty('--accent', content.characters.metrics?.color ?? '#5aa9ff');
-    sfx(delta > 0 ? 'counter' : 'error');
-  } else if (delta > 0) sfx('affection');
+  }
   if (!el) return;
   el.setAttribute('aria-hidden', 'true');
   $('#box').appendChild(el);
@@ -76,12 +74,22 @@ function react(c: { character?: string; affection_delta?: number; attributes?: R
 
 /** Manga flourish for how a choice landed: hearts for a good call, a crushed "GAAN…" for a bad one. */
 function flourish(c: { character?: string; affection_delta?: number; attributes?: Record<string, string>; vibe?: 'good' | 'bad' }, speaker?: string) {
-  const color = content.characters[c.character ?? speaker ?? '']?.color ?? '#ff7eb6';
-  if (c.attributes?.['sampling.priority'] === '1') return keptMoment(content.characters.traces?.color ?? color);
+  const who = c.character ?? speaker ?? '';
+  const color = content.characters[who]?.color ?? '#ff7eb6';
+  // Exactly one sound per choice, picked by how it landed.
+  if (c.attributes?.['sampling.priority'] === '1') {
+    sfx('affection');
+    return keptMoment(content.characters.traces?.color ?? color);
+  }
   const delta = c.affection_delta ?? 0;
   const vibe = c.vibe ?? (delta > 0 ? 'good' : delta < 0 ? 'bad' : undefined);
-  if (vibe === 'good') goodChoice(color);
-  else if (vibe === 'bad') badChoice();
+  if (vibe === 'good') {
+    sfx(who === 'metrics' ? 'counter' : 'affection');
+    goodChoice(color);
+  } else if (vibe === 'bad') {
+    sfx('sampled');
+    badChoice();
+  } else sfx('choice');
 }
 
 /** Endings earn one celebration: hearts in the colours of the route. */
@@ -319,7 +327,6 @@ function pick(choices: { id: string; text: string; secret: boolean }[]): Promise
       if (c.secret) b.classList.add('secret');
       b.onclick = (e) => {
         e.stopPropagation();
-        sfx('choice');
         resolve(c.id);
       };
       return b;
@@ -364,7 +371,7 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
       await ready;
     }
     const lineKey = `${scene.id}/${n.id}`;
-    const fill = (text: string) => render(text, { player, characters, lineKey });
+    const fill = (text: string) => render(text, { player, characters });
 
     if (n.bg) setBg(n.bg);
     if (n.music) playMusic(n.music);

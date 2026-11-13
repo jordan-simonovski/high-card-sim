@@ -48,7 +48,7 @@ nodes:
   hello2:
     speaker: traces
     mood: sad
-    text: "Root span: {name}, waiting. {They} [has|have] been here for— oh no. Ages. I'm so sorry. It's not you. It's my sample rate."
+    text: "Root span: {name}, waiting since… oh no. Ages. I'm so sorry. It's not you. It's my sample rate."
     next: t1
   t1:
     speaker: traces

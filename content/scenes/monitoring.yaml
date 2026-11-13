@@ -96,7 +96,7 @@ nodes:
   deliver:
     speaker: collector
     mood: neutral
-    text: "Monitoring, message for you! It's from {name}. {They} wrote it {themself}. I only read it twice. Okay, four times."
+    text: "Monitoring, message for you! It's from {name}. Handwritten, personally. I only read it twice. Okay, four times."
     next: read
   read:
     speaker: monitoring
@@ -116,7 +116,7 @@ nodes:
   runbook:
     speaker: monitoring
     mood: neutral
-    text: "Runbook note for {name}: {they} [does|do] not need paging anymore. Status: resolved."
+    text: "Runbook note for {name}: no further paging required. Status: resolved."
     next: unsub
   unsub:
     speaker: monitoring

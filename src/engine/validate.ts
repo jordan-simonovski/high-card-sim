@@ -1,6 +1,6 @@
 // Content validator, run at build time. Pure TS: no DOM, no chDB, no fs.
 import { sceneTarget, type Scene, type SceneNode } from './scene.ts';
-import { FORMS, TOKEN, formOf, type Form } from './pronouns.ts';
+import { TOKEN, formOf } from './pronouns.ts';
 
 export interface CharacterDef {
   name: string;
@@ -21,37 +21,35 @@ export interface Content {
 export const ACTIONS = ['create_character', 'open_console'] as const;
 export const FIRST_SCENE = 'prologue';
 
-// Hardcoded gendered pronouns are banned in content text: every pronoun must be a token,
-// so the player is never misgendered and NPC pronouns live in one registry.
+// Hardcoded gendered pronouns are banned in content text: NPC pronouns live in one registry
+// and are referenced by token, and the player is only ever "you" or {name}.
 const HARDCODED = /\b(he|she|him|her|his|hers|himself|herself)\b/i;
-// "{they}'re" renders "she're" for some players; write "{they} [is|are]".
-const CONTRACTION = /\{(?:[A-Za-z_]+\.)?(?:they|them|their|she|he)\}['’](?:re|ve|s)\b/i;
+// "{logs.she}'s" can't agree for every NPC set; write "{logs.she} [logs:is|are]".
+const CONTRACTION = /\{[A-Za-z_]+\.(?:they|them|their|she|he)\}['’](?:re|ve|s)\b/i;
 
 function textsOf(n: SceneNode): string[] {
   return [n.text, ...(n.choices ?? []).map((c) => c.text)].filter((t) => typeof t === 'string');
 }
 
-/** Problems with a single content string. `usesPlayer` reports whether it needs the player. */
+/** Problems with a single content string. `usesPlayer` reports whether it needs the player ({name}). */
 export function checkText(text: string, characters: Record<string, CharacterDef>): { errors: string[]; usesPlayer: boolean } {
   const errors: string[] = [];
   let usesPlayer = false;
   for (const m of text.matchAll(TOKEN)) {
     const [whole, a, b, who, sing] = m;
     if (sing !== undefined) {
-      if (who) {
-        if (!characters[who]) errors.push(`unknown character in ${whole}`);
-      } else usesPlayer = true;
+      if (!who) errors.push(`${whole}: verb agreement needs a character, like [logs:is|are] (the player is always "you")`);
+      else if (!characters[who]) errors.push(`unknown character in ${whole}`);
     } else if (b !== undefined) {
       if (!characters[a]) errors.push(`unknown character in ${whole}`);
       if (!formOf(b)) errors.push(`unknown pronoun form in ${whole}`);
-    } else if (a === 'name' || a === 'gender' || FORMS.includes(a.toLowerCase() as Form)) {
-      usesPlayer = true;
-    } else errors.push(`unknown token ${whole} (player forms: {they} {them} {their} {theirs} {themself})`);
+    } else if (a === 'name') usesPlayer = true;
+    else errors.push(`unknown token ${whole} (the player has no pronouns: say "you" or use {name})`);
   }
   const bare = text.replace(TOKEN, ' ');
   const hard = bare.match(HARDCODED);
-  if (hard) errors.push(`hardcoded pronoun "${hard[0]}": use a token like {they} or {logs.she}`);
-  if (CONTRACTION.test(text)) errors.push(`pronoun token with a contraction: write "{they} [is|are]" instead`);
+  if (hard) errors.push(`hardcoded pronoun "${hard[0]}": use an NPC token like {logs.she}, or "you" for the player`);
+  if (CONTRACTION.test(text)) errors.push(`pronoun token with a contraction: write "{logs.she} [logs:is|are]" instead`);
   return { errors, usesPlayer };
 }
 

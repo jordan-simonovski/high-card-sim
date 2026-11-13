@@ -12,20 +12,22 @@ const base = (nodes: Scene['nodes'], extra: Partial<Content> = {}): Content => (
   ...extra,
 });
 
-test('hardcoded player pronouns fail; tokens and NPC tokens pass', () => {
+test('hardcoded pronouns fail; NPC tokens and {name} pass', () => {
   assert.match(checkText('She smiles at you.', characters).errors[0], /hardcoded pronoun "She"/);
   assert.match(checkText('Tell him the pager is his.', characters).errors[0], /hardcoded pronoun "him"/);
-  assert.deepEqual(checkText('{logs.She} smiles. {They} [is|are] here, {name}.', characters).errors, []);
+  assert.deepEqual(checkText('{logs.She} smiles. [logs:Is|Are] that you, {name}?', characters).errors, []);
   // Words that merely contain pronouns are fine.
   assert.deepEqual(checkText('The shell where the theme is, there and here.', characters).errors, []);
 });
 
 test('token errors: unknown tokens, characters, forms, contractions', () => {
   const errs = (t: string) => checkText(t, characters).errors.join('\n');
-  assert.match(errs('{she} waves'), /unknown token \{she\}/);
+  assert.match(errs('{she} waves'), /the player has no pronouns/);
+  assert.match(errs('{They} [is|are] here'), /the player has no pronouns/);
+  assert.match(errs('[is|are]'), /verb agreement needs a character/);
   assert.match(errs('{ghost.they}'), /unknown character/);
   assert.match(errs('{logs.zz}'), /unknown pronoun form/);
-  assert.match(errs("{they}'re late"), /contraction/);
+  assert.match(errs("{logs.she}'s late"), /contraction/);
   assert.match(errs('[ghost:is|are]'), /unknown character/);
   assert.equal(checkText("{name}'s pager", characters).errors.length, 0);
 });
@@ -53,7 +55,7 @@ test('player tokens before character creation are rejected', () => {
     base({
       a: { id: 'a', text: 'Hello {name}', next: 'create' },
       create: { id: 'create', text: '', action: 'create_character', next: 'after' },
-      after: { id: 'after', text: '{They} [is|are] indexed.', ending: 'Indexed' },
+      after: { id: 'after', text: '{name} is indexed.', ending: 'Indexed' },
     }),
   );
   assert.deepEqual(errors, ['prologue/a: uses player tokens before character creation']);

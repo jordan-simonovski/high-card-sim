@@ -44,32 +44,22 @@ nodes:
   file:
     speaker: dba
     mood: neutral
-    text: "Let me file your span attributes properly. Name, pronouns, and gender. Let's see…"
-    next: check
-  check:
-    text: ""
-    branches:
-      - { condition: gender_blank, target: blank }
+    text: "Let me file your span attributes properly. player.name. Let's see…"
     next: filled
   filled:
     speaker: dba
     mood: surprised
-    text: "player.gender = '{gender}'. That's free text. I don't have an enum for that. I don't have an enum at ALL."
-    next: panic
-  blank:
-    speaker: dba
-    mood: surprised
-    text: "player.gender is… empty. Not NULL! An empty string. That's a value. You chose it. I respect it. I'm panicking slightly."
+    text: "player.name = '{name}'. Free text. Any length, any characters. Emoji, even. I don't have a VARCHAR for that. I don't have a VARCHAR at ALL."
     next: panic
   panic:
     speaker: dba
     mood: annoyed
-    text: "What if someone wants to GROUP BY it? What if someone wants an index? Should I make an enum? Everyone has an enum."
+    text: "What if someone wants to GROUP BY it? What if it won't fit in a fixed width? Should I make an enum of approved names? Everyone has an enum."
     next: ask
   ask:
     speaker: dba
     mood: neutral
-    text: "What do you think? Five values? Six, with OTHER?"
+    text: "What do you think? Fifty approved names? Fifty-one, with OTHER?"
     choices:
       - { id: why, text: "\"What would the enum be for?\"", target: why }
       - { id: fit, text: "\"Would everyone fit in it?\"", target: fit }
@@ -127,7 +117,7 @@ nodes:
   dba_record:
     speaker: dba
     mood: neutral
-    text: "And for the record: {name} wrote {their} own attributes. Nobody normalises them. That includes you."
+    text: "And for the record: {name} wrote that name. Nobody normalises it. That includes you."
     next: collector_ok
   collector_ok:
     speaker: collector

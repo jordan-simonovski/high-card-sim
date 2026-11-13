@@ -27,7 +27,7 @@ nodes:
   baggage_shout:
     speaker: baggage
     mood: happy
-    text: "EVERYONE! This is {name}! {They} [was|were] NULL for about four seconds. We don't talk about it."
+    text: "EVERYONE! This is {name}! Was NULL for about four seconds. We don't talk about it."
     next: baggage_ask
   baggage_ask:
     speaker: baggage

@@ -20,7 +20,6 @@ test.beforeEach(async ({ page }) => {
 
 // Hostile on purpose: quotes, backslash, a template token, emoji. Must render literally.
 const NAME = `Ada "{they}" O'Brien\\`;
-const GENDER = 'nonbinary 🌈';
 
 test('prologue, character creation, SQL branch, reload replays the event log', async ({ page }) => {
   await page.goto('/');
@@ -32,26 +31,20 @@ test('prologue, character creation, SQL branch, reload replays the event log', a
   await page.locator('[data-choice="ack"]').click(); // instantly: avg hesitation < 3 s
   for (const line of [/through the glass/, /ingested/, /high cardinality/, /span attributes/]) await next(page, line);
 
-  // Character creation: free text name and gender, multiple pronoun sets.
+  // Character creation: a free-text name (the player has no pronouns; they're always "you").
   const form = page.locator('#create');
   await expect(form).toBeVisible();
   await form.locator('button[type=submit]').click();
   await expect(page.locator('#create-error')).toContainText('player.name is required');
   await form.locator('[name=name]').fill(NAME);
-  await form.locator('[name=gender]').fill(GENDER);
-  // Clicked in this order on purpose: saved as she/they, not on-screen order.
-  await form.locator('label', { hasText: 'she/her' }).click();
-  await form.locator('label', { hasText: 'they/them' }).click();
   await expect(page.locator('#preview')).toContainText(NAME);
-  await expect(page.locator('#preview')).not.toContainText('She are');
+  await expect(page.locator('#create [name=gender], #create [name=pronouns]')).toHaveCount(0);
   await form.locator('button[type=submit]').click();
   await expect(form).toBeHidden();
 
-  // Player tokens render from state; agreement follows whichever set the line uses.
+  // {name} renders from state, literally, however hostile it is.
   await next(page, new RegExp(`player\\.name = "${NAME.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
-  await say(page, /EVERYONE!/);
-  await expect(page.locator('#text')).toHaveText(/(She has been paged .* she is)|(They have been paged .* they are)/);
-  await next(page, /EVERYONE!/);
+  await next(page, new RegExp(`EVERYONE! ${NAME.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} is here!`));
   // `listening` branches on content/queries/hesitated.sql, so this proves SQL-driven flow.
   await say(page, /acked fast/);
 
@@ -62,12 +55,12 @@ test('prologue, character creation, SQL branch, reload replays the event log', a
     const h = (window as any).__hc as Hc;
     const [r] = await h.query('SELECT count() AS c FROM events');
     const [p] = await h.query(
-      "SELECT attributes['player.name'] AS name, attributes['player.gender'] AS gender, attributes['player.pronouns'] AS pronouns FROM events WHERE event_type = 'character_created'",
+      "SELECT attributes['player.name'] AS name, mapContains(attributes, 'player.gender') OR mapContains(attributes, 'player.pronouns') AS has_pronouns FROM events WHERE event_type = 'character_created'",
     );
     return { chdb: Number(r.c), idb: (await h.log.all()).length, player: p };
   });
   expect(counts.chdb).toBe(counts.idb);
-  expect(counts.player).toEqual({ name: NAME, gender: GENDER, pronouns: 'she/they' });
+  expect(counts.player).toEqual({ name: NAME, has_pronouns: 0 });
 
   // Player strings go through params, never concatenation.
   const nasty = ["x'; DROP TABLE events; --\\", 'two\nlines\tand a tab', '\\N', "''", 'they/them 🏳️‍⚧️', '{v:String}'];
