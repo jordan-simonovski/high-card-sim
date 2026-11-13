@@ -10,6 +10,8 @@ import { createCharacter, playerAttributes, playerFromEvents } from './create.ts
 import { parseSave } from './saves.ts';
 import { openConsole } from './console.ts';
 import { babble, getVolume, playMusic, setVolume, sfx, unlock } from './audio.ts';
+import * as fx from './fx.ts';
+const { badChoice, goodChoice, keptMoment, moodChange, resetMood } = fx;
 import content from 'virtual:content';
 
 const { scenes, queries } = content;
@@ -20,7 +22,9 @@ const ART = '/art';
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
 const boot = { state: 'starting' as string, replayed: 0, error: '' };
 const hooks = { boot } as Record<string, unknown>;
+
 (window as unknown as { __hc: typeof hooks }).__hc = hooks;
+hooks.fx = fx; // for e2e and screenshots
 
 let player: Player | undefined;
 let log: EventLog;
@@ -32,14 +36,8 @@ const pref = {
   get: (k: string) => { try { return localStorage.getItem(`hc.${k}`); } catch { return null; } },
   set: (k: string, v: string) => { try { localStorage.setItem(`hc.${k}`, v); } catch { /* private mode */ } },
 };
-const SCALES = [0.9, 1, 1.15, 1.3, 1.5];
 let scale = Number(pref.get('scale') ?? 1);
 const applyScale = () => document.documentElement.style.setProperty('--scale', String(scale));
-const stepScale = (d: number) => {
-  scale = SCALES[Math.min(SCALES.length - 1, Math.max(0, SCALES.indexOf(scale) + d))] ?? 1;
-  pref.set('scale', String(scale));
-  applyScale();
-};
 
 // ---------- unsupported ----------
 const WHY: Record<Unsupported, string> = {
@@ -61,6 +59,57 @@ function unsupported(reason: Unsupported) {
 function showLoader(p: BootProgress) {
   const pct = Math.min(99, Math.floor((p.loaded / p.total) * 100));
   $('#loader').textContent = `spinning up the collector… ${pct}%`;
+}
+
+/** A pillar noticing you, in its own data language: Metrics ticks a counter, Traces keeps a span. */
+function react(c: { character?: string; affection_delta?: number; attributes?: Record<string, string> }, speaker?: string) {
+  const who = c.character ?? speaker ?? '';
+  const delta = c.affection_delta ?? 0;
+  let el: HTMLElement | undefined;
+  if (c.attributes?.['sampling.priority'] === '1') {
+    el = Object.assign(document.createElement('span'), { className: 'react' });
+    el.append(Object.assign(document.createElement('span'), { className: 'bar' }), document.createTextNode('kept'));
+    el.style.setProperty('--accent', content.characters.traces?.color ?? '#b69cff');
+    sfx('affection');
+  } else if (who === 'metrics' && delta !== 0) {
+    el = Object.assign(document.createElement('span'), { className: `react ${delta < 0 ? 'down' : ''}`, textContent: `${delta > 0 ? '+' : '−'}${Math.abs(delta)}` });
+    el.style.setProperty('--accent', content.characters.metrics?.color ?? '#5aa9ff');
+    sfx(delta > 0 ? 'counter' : 'error');
+  } else if (delta > 0) sfx('affection');
+  if (!el) return;
+  el.setAttribute('aria-hidden', 'true');
+  $('#box').appendChild(el);
+  setTimeout(() => el!.remove(), 1700);
+}
+
+/** Manga flourish for how a choice landed: hearts for a good call, a crushed "GAAN…" for a bad one. */
+function flourish(c: { character?: string; affection_delta?: number; attributes?: Record<string, string>; vibe?: 'good' | 'bad' }, speaker?: string) {
+  const color = content.characters[c.character ?? speaker ?? '']?.color ?? '#ff7eb6';
+  if (c.attributes?.['sampling.priority'] === '1') return keptMoment(content.characters.traces?.color ?? color);
+  const delta = c.affection_delta ?? 0;
+  const vibe = c.vibe ?? (delta > 0 ? 'good' : delta < 0 ? 'bad' : undefined);
+  if (vibe === 'good') goodChoice(color);
+  else if (vibe === 'bad') badChoice();
+}
+
+/** Endings earn one celebration: hearts in the colours of the route. */
+function burst(colors: string[]) {
+  const host = Object.assign(document.createElement('div'), { className: 'burst' });
+  host.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < 26; i++) {
+    const h = document.createElement('i');
+    const set = (k: string, v: string) => h.style.setProperty(k, v);
+    h.style.left = `${Math.random() * 100}%`;
+    set('--c', colors[i % colors.length]);
+    set('--s', `${14 + Math.random() * 22}px`);
+    set('--x', `${(Math.random() - 0.5) * 30}vw`);
+    set('--r', `${(Math.random() - 0.5) * 120}deg`);
+    set('--d', `${2.2 + Math.random() * 1.6}s`);
+    set('--delay', `${Math.random() * 0.6}s`);
+    host.appendChild(h);
+  }
+  document.body.appendChild(host);
+  setTimeout(() => host.remove(), 4800);
 }
 
 // ---------- SQL overlay: the generated SQL behind each choice ----------
@@ -338,8 +387,10 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
     if (n.text) {
       const text = fill(n.text);
       textLength = text.length;
-      if (n.speaker) setPortrait(n.speaker, n.mood);
-      else document.documentElement.style.setProperty('--accent', '#b69cff');
+      if (n.speaker) {
+        setPortrait(n.speaker, n.mood);
+        if (!(skipMode && seenLine)) moodChange(n.speaker, n.mood, content.characters[n.speaker]?.color ?? '#ff7eb6');
+      } else document.documentElement.style.setProperty('--accent', '#b69cff');
       typed = say(n.speaker ?? '', text, skipMode && seenLine);
       // Don't await before listening for input, or fast clicks get dropped.
       if (!skipLog) logged = log.append({ scene: scene.id, node: n.id, event_type: 'line', character: n.speaker ?? '', dialogue_text: text });
@@ -365,7 +416,8 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
       const choice = await pick(choices.map((c) => ({ id: c.id, text: c.text, secret: mixed && !!c.condition })));
       await logged;
       const c = choices.find((x) => x.id === choice)!;
-      if ((c.affection_delta ?? 0) > 0 || c.attributes?.['sampling.priority'] === '1') sfx('affection');
+      react(c, n.speaker);
+      flourish(c, n.speaker);
       await log.append({
         scene: scene.id, node: n.id, event_type: 'choice',
         character: c.character ?? n.speaker ?? '', choice_id: c.id, choice_text: c.text, dialogue_text: c.text,
@@ -384,6 +436,7 @@ async function play(sceneId: string, startNode?: string, alreadyShown = false) {
       scene = scenes[other];
       id = scene.start;
       clearPortrait();
+      resetMood();
       setCg(undefined);
       setBg(scene.bg);
       playMusic(scene.music ?? 'none');
@@ -409,6 +462,10 @@ function endingScreen(title: string) {
   $('#ending-count').textContent = `${reached.size} of ${ENDING_COUNT} endings found. Every new session is a fresh trace.`;
   $('#btn-share').onclick = () => share(title);
   $('#btn-again').focus();
+  // Only the good endings celebrate (they're the ones with an illustration), in that route's colours.
+  const cg = ENDINGS.find((e) => e.title === title)?.cg;
+  const ROUTE: Record<string, string[]> = { polycule: ['logs', 'metrics', 'traces'], logs_end: ['logs'], metrics_end: ['metrics'], traces_end: ['traces'] };
+  if (cg && ROUTE[cg]) burst(ROUTE[cg].map((k) => content.characters[k]?.color ?? '#ff7eb6'));
 }
 
 async function share(title: string) {
@@ -592,14 +649,16 @@ function wireChrome() {
     d.querySelector('.close')?.addEventListener('click', () => d.close());
   $('#btn-shell').onclick = () => void shell();
   $('#btn-overlay').onclick = () => setOverlay($('#overlay').hidden === true);
-  $('#btn-smaller').onclick = () => stepScale(-1);
-  $('#btn-bigger').onclick = () => stepScale(1);
+  const size = $<HTMLSelectElement>('#text-size');
+  size.value = String(scale);
+  size.onchange = () => { scale = Number(size.value); pref.set('scale', String(scale)); applyScale(); };
   setOverlay(pref.get('overlay') === '1');
   document.addEventListener('keydown', (e) => {
     if ((e.target as HTMLElement).closest('input, textarea, dialog')) return;
     if (e.key === '`') setOverlay($('#overlay').hidden === true);
     if ((e.key === 'q' || e.key === 'Q') && !$('#btn-shell').hidden) void shell();
-    if (e.key === 'Escape' && !$('#toolbar').hidden) $<HTMLDialogElement>('#menu').showModal();
+    // Open on the next tick: Chrome treats the same Escape press as "close the top modal".
+    if (e.key === 'Escape' && !$('#toolbar').hidden) setTimeout(() => $<HTMLDialogElement>('#menu').showModal());
     if (!$('#toolbar').hidden) {
       if (e.key === 'l' || e.key === 'L') void showBacklog();
       if (e.key === 'a' || e.key === 'A') setAuto(!autoMode);
@@ -608,8 +667,31 @@ function wireChrome() {
   });
 }
 
+/** Wrap each title letter for the drop-in; the heading keeps one readable label. */
+function prepareTitle() {
+  const h1 = document.querySelector<HTMLElement>('.logo h1');
+  if (!h1 || h1.dataset.ready) return;
+  h1.dataset.ready = '1';
+  const words = [...h1.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent!.trim());
+  h1.setAttribute('aria-label', words.filter(Boolean).join(' '));
+  let i = 0;
+  const wrap = (node: Node) => {
+    if (node.nodeType !== Node.TEXT_NODE) return;
+    const frag = document.createDocumentFragment();
+    for (const ch of node.textContent ?? '') {
+      const span = Object.assign(document.createElement('span'), { className: 'ch', textContent: ch });
+      span.setAttribute('aria-hidden', 'true');
+      span.style.setProperty('--i', String(i++));
+      frag.appendChild(span);
+    }
+    node.parentNode!.replaceChild(frag, node);
+  };
+  [...h1.childNodes].forEach(wrap);
+}
+
 async function main() {
   applyScale();
+  prepareTitle();
   const support = clientSupport();
   if (!support.ok) return unsupported(support.reason);
 
@@ -618,7 +700,7 @@ async function main() {
   ready = openDb(showLoader).then(async (db) => {
     boot.replayed = await log.attach(db);
     boot.state = 'ready';
-    $('#loader').textContent = 'collector online';
+    $('#loader').textContent = boot.replayed ? `collector online · ${boot.replayed} events replayed` : 'collector online';
     $('#loader').classList.add('ok');
     setTimeout(() => $('#loader').classList.add('gone'), 3000);
     hooks.query = db.query;

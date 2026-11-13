@@ -87,6 +87,7 @@ export function validate(c: Content): string[] {
         choiceIds.add(ch.id);
         if (!ch.target) at(key, `choice "${ch.id}" has no target`);
         if (!ch.text?.trim()) at(key, `choice "${ch.id}" has no text`);
+        if (ch.vibe !== undefined && ch.vibe !== 'good' && ch.vibe !== 'bad') at(key, `choice "${ch.id}": vibe must be good or bad`);
       }
       for (const q of [...(n.branches ?? []).map((b) => b.condition), ...(n.choices ?? []).map((ch) => ch.condition)])
         if (q && !queries.has(q)) at(key, `unknown query "${q}" (no content/queries/${q}.sql)`);

@@ -21,10 +21,10 @@ nodes:
   q1:
     speaker: logs
     mood: neutral
-    text: "Do you want to hear how I found this café? It's a long story. All my stories are long. Sorry. Verbose mode."
+    text: "Do you want to hear how I found this café? It's long. They're all long. Nobody's complained about the length, they just… leave. Sorry. Verbose mode."
     choices:
-      - { id: more, text: "\"Tell me more. I've got time.\"", target: more1a }
-      - { id: tldr, text: "\"Could I get the TL;DR?\"", target: tldr1 }
+      - { id: more, text: "\"Tell me more. I've got time.\"", target: more1a, vibe: good }
+      - { id: tldr, text: "\"Could I get the TL;DR?\"", target: tldr1, vibe: bad }
   more1a:
     speaker: logs
     mood: happy
@@ -48,10 +48,10 @@ nodes:
   q2:
     speaker: logs
     mood: neutral
-    text: "Can I show you something? I remember everything anyone says to me. Do you want to hear what you sound like to me?"
+    text: "Can I show you something? I don't let just anyone see my raw logs. Do you want to hear what you sound like to me?"
     choices:
-      - { id: more, text: "\"Yes. Read it to me.\"", target: more2a }
-      - { id: tldr, text: "\"Maybe just the highlights?\"", target: tldr2 }
+      - { id: more, text: "\"Yes. Read it to me.\"", target: more2a, vibe: good }
+      - { id: tldr, text: "\"Maybe just the highlights?\"", target: tldr2, vibe: bad }
   more2a:
     speaker: logs
     mood: happy
@@ -76,12 +76,12 @@ nodes:
     mood: sad
     text: "Can I tell you a secret? Most people only read me when something's on fire."
     choices:
-      - { id: more, text: "\"That sounds lonely. Tell me about it.\"", target: more3a }
-      - { id: tldr, text: "\"Fair. Fires are important, though.\"", target: tldr3 }
+      - { id: more, text: "\"That sounds lonely. Tell me about it.\"", target: more3a, vibe: good }
+      - { id: tldr, text: "\"Fair. Fires are important, though.\"", target: tldr3, vibe: bad }
   more3a:
     speaker: logs
     mood: sad
-    text: "They grep me at 3am for ERROR and leave before the coffee's done. Nobody reads the INFO lines. There's so much nice stuff in INFO."
+    text: "They grep me at 3am for ERROR and they're gone before breakfast. Nobody stays for the INFO lines. There's so much nice stuff in INFO."
     next: more3b
   more3b:
     speaker: logs
@@ -106,11 +106,11 @@ nodes:
   turn:
     speaker: logs
     mood: surprised
-    text: "Wait. I've been talking for— let me check— eleven minutes and forty seconds. Your turn! Tell me something. Anything. I'll write it down."
+    text: "Wait. I've been going for— let me check— eleven minutes and forty seconds without a break. Your turn! Tell me something. I'll write it down."
     choices:
       - { id: page, text: "Tell Logs about the 3am page that brought you here.", target: turn_page }
       - { id: weather, text: "Tell Logs something small: your favourite kind of weather.", target: turn_weather }
-      - { id: listen, text: "\"Honestly? I just like listening to you.\"", target: turn_listen }
+      - { id: listen, text: "\"Honestly? I just like listening to you.\"", target: turn_listen, vibe: good }
   turn_page:
     speaker: logs
     mood: surprised

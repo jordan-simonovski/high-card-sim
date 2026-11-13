@@ -65,8 +65,8 @@ nodes:
   choose:
     text: "Monitoring looks at you over the clipboard, pen hovering over a checkbox."
     choices:
-      - { id: relapse, text: "Get back together. It was safe, at least.", target: relapse_1 }
-      - { id: let_go, text: "Let {monitoring.them} go, kindly.", target: letgo_1 }
+      - { id: relapse, text: "Get back together. It was safe, at least.", target: relapse_1, vibe: bad }
+      - { id: let_go, text: "Let {monitoring.them} go, kindly.", target: letgo_1, vibe: good }
   relapse_1:
     speaker: monitoring
     mood: happy
@@ -87,6 +87,11 @@ nodes:
     speaker: collector
     mood: blush
     text: "…oh. Oh, that's really kind, actually. Batching complete. Delivering!"
+    next: top_sub
+  top_sub:
+    speaker: collector
+    mood: happy
+    text: "Don't feel too bad for Monitoring, by the way! Monitoring's my top OnlySpans subscriber. Renews every five minutes. Only ever opens the same three spans."
     next: deliver
   deliver:
     speaker: collector
@@ -112,6 +117,11 @@ nodes:
     speaker: monitoring
     mood: neutral
     text: "Runbook note for {name}: {they} [does|do] not need paging anymore. Status: resolved."
+    next: unsub
+  unsub:
+    speaker: monitoring
+    mood: neutral
+    text: "Runbook note two: cancel OnlySpans subscription. …Downgrade to the free tier. One change at a time."
     next: bye
   bye:
     text: "The amber light blinks once and turns green, and this time it's telling the truth."

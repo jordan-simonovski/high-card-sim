@@ -11,6 +11,8 @@ export interface Choice {
   condition?: string;
   /** Extra span attributes on the choice event (e.g. sampling.priority: "1" keeps it in Traces' view). */
   attributes?: Record<string, string>;
+  /** Visual feedback only: a good or bad call in the moment (affection deltas imply it otherwise). */
+  vibe?: 'good' | 'bad';
 }
 
 export interface Branch {

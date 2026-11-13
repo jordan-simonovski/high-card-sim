@@ -17,7 +17,7 @@ nodes:
   meet2:
     speaker: metrics
     mood: neutral
-    text: "I don't do small talk. I do rates. Shall we?"
+    text: "I don't do small talk. I don't do small anything. Shall we?"
     next: c1
   c1:
     speaker: metrics
@@ -42,7 +42,7 @@ nodes:
   c2:
     speaker: metrics
     mood: neutral
-    text: "My week: four sessions, zero rest days, p99 heart rate 162. I only keep the summary. It's tidier."
+    text: "My week: four sessions, zero rest days, p99 heart rate 162. I'm very high-throughput. I only keep the summary."
     choices:
       - { id: actually, text: "\"And how are you actually doing?\"", target: c2_actually, affection_delta: 1 }
       - { id: impressive, text: "\"Impressive numbers.\"", target: c2_impressive }
@@ -54,7 +54,7 @@ nodes:
   c2_impressive:
     speaker: metrics
     mood: neutral
-    text: "They are. Thank you."
+    text: "They are. Above the median, if you were wondering. I measured."
     next: bench
   bench:
     text: "Metrics lies back on a bench. The bar has tidy tick marks along it, like an axis."
@@ -62,7 +62,7 @@ nodes:
   spot:
     speaker: metrics
     mood: neutral
-    text: "Spot me? I trust you to the nearest kilogram."
+    text: "Spot me? I can handle a heavy load. I trust you to the nearest kilogram."
     next: labels
   labels:
     speaker: metrics

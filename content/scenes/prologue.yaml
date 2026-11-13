@@ -39,12 +39,12 @@ nodes:
   hello:
     speaker: stranger
     mood: happy
-    text: "Oh! A new span. Hi! Sorry, you're very high cardinality. It's taking a second to index you."
+    text: "Oh! A new span. Hi! Wow, you're very high cardinality. Give me a second, I've never had to index one this big."
     next: attributes
   attributes:
     speaker: stranger
     mood: neutral
-    text: "Before you're fully ingested I need your span attributes. All of them. Free text, obviously. We're not animals."
+    text: "Before I take you all the way in, I need your span attributes. All of them. Free text, obviously. We're not animals."
     next: create
   create:
     text: ""
@@ -73,5 +73,5 @@ nodes:
   fast:
     speaker: stranger
     mood: surprised
-    text: "You acked fast, {name}. Someone is going to notice that, too."
+    text: "You acked fast, {name}. Eager! Someone is going to notice that, too."
     next: "@registry"

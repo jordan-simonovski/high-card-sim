@@ -53,7 +53,7 @@ nodes:
   t1:
     speaker: traces
     mood: neutral
-    text: "Can I ask— how long were you waiting? I only caught the end. I always only catch the end."
+    text: "Can I ask— how long were you waiting? I only caught the end. I always only catch the end. It's a bit embarrassing, honestly."
     choices:
       - { id: keep, text: "\"Long enough. I'm glad you're here.\" (Keep this moment.)", target: t1_keep, attributes: { sampling.priority: "1" } }
       - { id: plain, text: "\"Not long. Don't worry about it.\"", target: t1_plain }
@@ -107,14 +107,14 @@ nodes:
   t4:
     speaker: traces
     mood: blush
-    text: "Would you— can I hold your hand? The gold threads are just context. They don't bite."
+    text: "Would you— can I hold your hand? I'm not usually sampled this long. The gold threads are just context. They don't bite."
     choices:
       - { id: keep, text: "Take {traces.their} hand. (Keep this moment.)", target: t4_keep, attributes: { sampling.priority: "1" } }
       - { id: plain, text: "\"Maybe next time.\"", target: t4_plain }
   t4_keep:
     speaker: traces
     mood: blush
-    text: "Parent span: you. Child span: me. That's… a really nice trace."
+    text: "Parent span: you. Child span: me. And they're— oh. They're nested. I've never been nested before."
     next: out
   t4_plain:
     speaker: traces

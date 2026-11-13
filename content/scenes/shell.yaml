@@ -12,6 +12,11 @@ nodes:
     speaker: dba
     mood: happy
     text: "You've been on all three dates! I know because Baggage told me. Baggage tells everyone."
+    next: trial
+  trial:
+    speaker: dba
+    mood: blush
+    text: "The Collector also posted a recap. Not that I watched it. I don't subscribe. I'm on a free trial. For auditing."
     next: gift
   gift:
     speaker: dba
@@ -48,7 +53,7 @@ nodes:
   views2:
     speaker: dba
     mood: blush
-    text: "And there's… the table they all come from. I'm not supposed to say its name. Try SHOW TABLES."
+    text: "And there's… the table they all come from. It's very wide. I'm not supposed to say its name. Try SHOW TABLES."
     next: open
   open:
     text: "The shell opens. A cursor blinks, waiting for you."

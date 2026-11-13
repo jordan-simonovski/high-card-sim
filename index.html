@@ -6,7 +6,7 @@
     <meta name="description" content="High Cardinality, or: I Acked a Page at 3 A.M. and Woke Up in an Observability Stack Where the Three Pillars Want to Date Me (but One of Them Only Shows Up to 1% of Our Dates). A queer-friendly isekai dating sim. Stop sampling yourself." />
     <meta name="theme-color" content="#ff7eb6" />
     <title>High Cardinality</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💗</text></svg>" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23d63384' d='M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.1 0 3.6 1.2 5.2 3 1.6-1.8 3.1-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z'/></svg>" />
   </head>
   <body>
     <div id="stage" aria-hidden="true">
@@ -19,13 +19,11 @@
     <div id="loader" role="status" aria-live="polite">spinning up the collector…</div>
 
     <nav id="toolbar" aria-label="Game controls" hidden>
-      <button id="btn-shell" hidden title="Open the Query Shell (Q)">⌘ shell</button>
+      <button id="btn-shell" hidden title="Open the Query Shell (Q)">shell</button>
       <button id="btn-backlog" title="Everything said so far (L)">logs</button>
       <button id="btn-auto" aria-pressed="false" title="Auto-advance (A)">auto</button>
       <button id="btn-skip" aria-pressed="false" title="Skip lines you've already read (S)">skip</button>
       <button id="btn-overlay" aria-pressed="false" title="Show the SQL behind each choice (`)">SQL</button>
-      <button id="btn-smaller" title="Smaller text" aria-label="Smaller text">A−</button>
-      <button id="btn-bigger" title="Bigger text" aria-label="Bigger text">A+</button>
       <button id="btn-menu" title="Menu (Esc)">menu</button>
     </nav>
 
@@ -46,7 +44,8 @@
     </section>
 
     <main id="game" hidden>
-      <div id="box" tabindex="0">
+      <div id="box" tabindex="0" aria-describedby="box-hint">
+        <span id="box-hint" class="sr-only">Press Enter or Space to continue.</span>
         <span id="speaker" hidden></span>
         <p id="text" aria-hidden="true"></p>
         <div id="result" hidden></div>
@@ -83,7 +82,6 @@
     </main>
 
     <section id="ending" hidden>
-      <p class="kicker">ending reached</p>
       <h1 id="ending-title"></h1>
       <p id="ending-count" class="note"></p>
       <div class="actions">
@@ -103,7 +101,7 @@
     <dialog id="console" aria-labelledby="console-title">
       <header>
         <h2 id="console-title">Query Shell <small>read-only · your events · 3 s limit</small></h2>
-        <button class="close" value="close" aria-label="Close">✕</button>
+        <button class="close" value="close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </header>
       <div class="hints" id="hints"></div>
       <textarea id="sql" spellcheck="false" rows="4" aria-label="SQL query">SHOW TABLES</textarea>
@@ -117,12 +115,21 @@
     <dialog id="menu" aria-labelledby="menu-title">
       <header>
         <h2 id="menu-title">menu</h2>
-        <button class="close" value="close" aria-label="Close">✕</button>
+        <button class="close" value="close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </header>
       <div class="settings">
         <label>music <input id="vol-music" type="range" min="0" max="1" step="0.05" /></label>
         <label>sound <input id="vol-sfx" type="range" min="0" max="1" step="0.05" /></label>
         <label>voices <input id="vol-voice" type="range" min="0" max="1" step="0.05" /></label>
+        <label>text size
+          <select id="text-size">
+            <option value="0.9">small</option>
+            <option value="1">normal</option>
+            <option value="1.15">large</option>
+            <option value="1.3">larger</option>
+            <option value="1.5">largest</option>
+          </select>
+        </label>
         <label>text speed
           <select id="text-speed">
             <option value="slow">slow</option>
@@ -140,13 +147,13 @@
         <button id="btn-about-menu">how it works</button>
         <button id="btn-title">back to title</button>
       </div>
-      <p class="note">Keys: Enter / Space advance · Tab moves between choices · L logs · A auto · S skip · ` SQL overlay · Q shell · Esc menu.</p>
+      <p class="note">Keys: Enter or Space to advance, Tab between choices, L for logs, A for auto, S for skip, ` for the SQL overlay, Q for the shell, Esc for this menu.</p>
     </dialog>
 
     <dialog id="backlog" aria-labelledby="backlog-title">
       <header>
         <h2 id="backlog-title">logs <small>SELECT * FROM logs ORDER BY ts DESC</small></h2>
-        <button class="close" value="close" aria-label="Close">✕</button>
+        <button class="close" value="close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </header>
       <ol id="backlog-list"></ol>
     </dialog>
@@ -154,7 +161,7 @@
     <dialog id="endings" aria-labelledby="endings-title">
       <header>
         <h2 id="endings-title">endings</h2>
-        <button class="close" value="close" aria-label="Close">✕</button>
+        <button class="close" value="close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </header>
       <p id="endings-count" class="note"></p>
       <ul id="endings-list"></ul>
@@ -163,7 +170,7 @@
     <dialog id="about" aria-labelledby="about-title">
       <header>
         <h2 id="about-title">What's running in this tab</h2>
-        <button class="close" value="close" aria-label="Close">✕</button>
+        <button class="close" value="close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </header>
       <div class="about-body">
         <p>This game runs a real ClickHouse database inside your browser. It's <a href="https://github.com/chdb-io/chdb" target="_blank" rel="noopener">chDB</a>, compiled to WebAssembly and running in a Web Worker. There's no game server and no account, and nothing you type leaves this tab.</p>

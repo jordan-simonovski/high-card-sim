@@ -22,7 +22,7 @@ nodes:
   baggage_tags:
     speaker: baggage
     mood: neutral
-    text: "I'm Baggage. I carry everyone's key=value pairs. Who's dating who, who retried what, who's on call. Context!"
+    text: "I'm Baggage. I carry everyone's key=value pairs. Who's dating who, who retried what, who left whose namespace at 4am. Context!"
     next: baggage_shout
   baggage_shout:
     speaker: baggage
@@ -50,6 +50,16 @@ nodes:
     speaker: baggage
     mood: happy
     text: "Metrics is at the gym, counting reps out loud. It's the most you'll hear from {metrics.him} all day. Traces is… around. One percent of the time."
+    next: baggage_spans
+  baggage_spans:
+    speaker: baggage
+    mood: blush
+    text: "Oh, and the Collector's OnlySpans? Half the mesh subscribes. Nobody admits it, but it's right there in their headers."
+    next: baggage_spans2
+  baggage_spans2:
+    speaker: baggage
+    mood: happy
+    text: "Premium tier includes the baggage. That's me. I'm the baggage. I get a cut of every request."
     next: glimpse
   glimpse:
     text: "A blur in a navy jacket jogs past at exactly 3.0 metres per second. Behind you, something lilac flickers and is gone."
@@ -60,7 +70,7 @@ nodes:
   baggage_back:
     speaker: baggage
     mood: happy
-    text: "Back again! I heard how it went. Everyone heard. I may have propagated it."
+    text: "Back again! I heard how it went. Everyone heard. Well, everyone on the premium tier. I may have propagated it."
     next: hub
   hub:
     text: "Where to?"

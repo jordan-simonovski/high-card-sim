@@ -54,6 +54,19 @@ nodes:
     speaker: traces
     mood: sad
     text: "Or a sample. I know a— a sample."
+    next: live
+  live:
+    speaker: collector
+    mood: happy
+    text: "Don't mind me! I'm streaming this to the premium tier. Forty thousand subscribers, all unsampled. No pressure~"
+    next: live2
+  live2:
+    speaker: collector
+    mood: blush
+    text: "And a big hello to my newest annual subscriber, the DBA! Upgraded from the free trial this morning. Strictly for auditing~"
+    next: live3
+  live3:
+    text: "Metrics glances at the viewer count and fixes {metrics.his} hair. Traces, camera-shy, drops out of frame and back in."
     next: status
   status:
     text: "Here is how much of you each of them got to keep."

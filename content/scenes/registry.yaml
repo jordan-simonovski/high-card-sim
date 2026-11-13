@@ -133,6 +133,16 @@ nodes:
     speaker: collector
     mood: blush
     text: "Understood! Raw and unnormalised, just how I like them. I'll only read them a normal amount~"
+    next: onlyspans
+  onlyspans:
+    speaker: collector
+    mood: happy
+    text: "Oh! And if you ever want more of me, I run an OnlySpans. Every span, unsampled, uncut. Premium tier includes the baggage~"
+    next: onlyspans_dba
+  onlyspans_dba:
+    speaker: dba
+    mood: blush
+    text: "Please don't run promotions in the Registry. I'd have to add a column for it, and I am not adding that column."
     next: question
   question:
     speaker: dba
@@ -159,7 +169,7 @@ nodes:
   collector_bye:
     speaker: collector
     mood: happy
-    text: "Have fun! I'll be in every conversation! Quietly! Mostly!"
+    text: "Have fun! Whatever happens on a date stays between you, your date and the exporter. And me. And my subscribers~"
     next: door
   door:
     speaker: dba

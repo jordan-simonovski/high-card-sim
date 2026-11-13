@@ -21,3 +21,13 @@ test('typewriter finishes on click without skipping the line; backlog shows what
   await expect(page.locator('#backlog')).toBeVisible();
   await expect(page.locator('#backlog-list li').first()).toBeVisible();
 });
+
+test('Escape opens the menu during play', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('hc.textSpeed', 'instant'));
+  await page.goto('/');
+  await page.locator('#btn-new').click();
+  await expect(page.locator('#box.waiting')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#menu')).toBeVisible();
+  await expect(page.locator('#text-size')).toBeVisible();
+});

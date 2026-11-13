@@ -12,4 +12,4 @@ baggage: { name: Baggage, pronouns: they, color: "#69c27b", sprite: baggage }
 dba: { name: The DBA, pronouns: they, color: "#f2c14e", sprite: dba }
 # Prologue voices.
 pager: { name: pager, pronouns: it, color: "#ff9ecb" }
-stranger: { name: "???", pronouns: they, color: "#8a7f99", sprite: collector, silhouette: true }
+stranger: { name: "???", pronouns: they, color: "#c4bad4", sprite: collector, silhouette: true }
