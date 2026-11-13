@@ -166,7 +166,8 @@ button, label, select, input, #box, summary { touch-action: manipulation; -webki
   box-shadow: var(--gloss), var(--lift);
 }
 /* The box itself never clips (the name tag and reactions sit above its edge); its contents scroll. */
-.box-scroll { max-height: 46dvh; overflow-y: auto; overscroll-behavior: contain; }
+/* overflow-y: auto would make x auto too, so lock x; the padding gives hover slides and focus rings room. */
+.box-scroll { max-height: 46dvh; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 6px 10px; margin: -6px -10px; }
 #text { margin: 0; white-space: pre-wrap; max-width: 70ch; }
 #text.narration { font-style: italic; color: var(--ink-soft); }
 #choices { display: grid; gap: 10px; margin-top: 16px; }

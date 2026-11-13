@@ -56,3 +56,22 @@ test('tapping through the story does not select text', async ({ page }) => {
   await page.locator('#text').dblclick();
   expect(await page.evaluate(() => getSelection()?.toString() ?? '')).toBe('');
 });
+
+test('choices never make the dialogue box scroll sideways', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('hc.textSpeed', 'instant'));
+  await page.goto('/');
+  await page.locator('#btn-new').click();
+  for (let i = 0; i < 3; i++) {
+    await expect(page.locator('#box.waiting')).toBeVisible();
+    await page.keyboard.press('Enter');
+  }
+  const choice = page.locator('#choices button').first();
+  await choice.hover(); // hover slides the choice right
+  await choice.focus(); // and focus adds a ring
+  await page.waitForTimeout(300);
+  const scroll = await page.evaluate(() => {
+    const el = document.querySelector('.box-scroll')!;
+    return { overflowX: getComputedStyle(el).overflowX, scrollLeft: el.scrollLeft, wider: el.scrollWidth > el.clientWidth };
+  });
+  expect(scroll).toEqual({ overflowX: 'hidden', scrollLeft: 0, wider: false });
+});
