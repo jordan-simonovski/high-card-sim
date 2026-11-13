@@ -11,6 +11,11 @@ const next = async (page: Page, line: RegExp) => {
   await page.keyboard.press('Enter');
 };
 
+// Protected Vercel deployments: visit a _vercel_share link first to get the auth cookie.
+test.beforeEach(async ({ page }) => {
+  if (process.env.SHARE_URL) await page.goto(process.env.SHARE_URL);
+});
+
 // Hostile on purpose: quotes, backslash, a template token, emoji. Must render literally.
 const NAME = `Ada "{they}" O'Brien\\`;
 const GENDER = 'nonbinary 🌈';
