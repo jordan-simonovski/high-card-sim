@@ -95,7 +95,7 @@ nodes:
   c3_cost:
     speaker: metrics
     mood: blush
-    text: "…It did. Nobody's ever priced that in before. Incrementing."
+    text: "…It did. That's the first time it's been priced in. Incrementing."
     next: view
   c3_shrug:
     speaker: metrics

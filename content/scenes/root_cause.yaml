@@ -50,12 +50,12 @@ nodes:
   hint_labels:
     speaker: metrics
     mood: annoyed
-    text: "That's how people went missing. Me, coping. It isn't why there was so much to cope with. Look at the last column."
+    text: "People went missing because of me, coping. Something gave me that much to cope with. Look at the last column."
     next: ask2
   hint_batch:
     speaker: traces
     mood: neutral
-    text: "That's where it dies. Not why it dies. Why is it so— so full?"
+    text: "It dies there, yes. Why is it so— so full?"
     next: ask2
   ask2:
     speaker: dba
@@ -93,7 +93,7 @@ nodes:
   explain3:
     speaker: dba
     mood: blush
-    text: "High cardinality was never the problem, {name}. You'd know. The problem is putting it somewhere that can't hold it."
+    text: "You're the highest-cardinality thing in this building, {name}, and my table holds you fine. Metrics was never built to. Nobody should have asked {metrics.him} to."
     next: because
   because:
     speaker: logs

@@ -60,7 +60,7 @@ nodes:
   ask2:
     speaker: logs
     mood: neutral
-    text: "It's a WARN. One I've been writing over and over lately, same words every time. Nobody filters for WARN. Nobody looks at what repeats."
+    text: "It's a WARN. One I've been writing over and over lately, same words every time. Try filtering for WARN. Or look at what repeats."
     choices:
       - { id: cardinality, text: "\"Cardinality limit exceeded. Dropping series.\"", target: found }
       - { id: again, text: "Look again.", target: open }
@@ -68,12 +68,12 @@ nodes:
   told:
     speaker: logs
     mood: sad
-    text: "It's this one. 'WARN cardinality limit exceeded, dropping series.' Dozens of times. I even told someone about it once. In a tangent. Nobody hears the tangents."
+    text: "It's this one. 'WARN cardinality limit exceeded, dropping series.' Dozens of times. I even told someone about it once. In a tangent."
     next: told2
   told2:
     speaker: logs
     mood: blush
-    text: "It's okay. You asked me to read it. Hardly anyone asks."
+    text: "It's okay. You asked me to read it. I like being asked."
     next: source
   found:
     speaker: logs
@@ -173,5 +173,5 @@ nodes:
   name3:
     speaker: logs
     mood: sad
-    text: "I can't lose it. That's sort of my whole problem."
+    text: "I can't lose it. I've tried."
     next: "@phase_metrics"

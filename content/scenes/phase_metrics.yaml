@@ -15,7 +15,7 @@ nodes:
   m1:
     speaker: metrics
     mood: neutral
-    text: "Yes. That WARN is mine. When something gets too detailed, I drop it. That's the job. I never asked what I was dropping."
+    text: "Yes. That WARN is mine. When something gets too detailed, I drop it. I never asked what I was dropping."
     next: m2
   m2:
     speaker: metrics
@@ -71,7 +71,7 @@ nodes:
     next: add
   add:
     sfx: counter
-    text: "Somewhere inside Metrics, a dimension comes back. Both smartwatches buzz at once. {metrics.He} doesn't look away from you."
+    text: "A dimension comes back. Both smartwatches buzz at once. {metrics.He} doesn't look away from you."
     next: open
   open:
     action: open_console:metrics
@@ -119,7 +119,7 @@ nodes:
   flat2:
     speaker: metrics
     mood: sad
-    text: "Those aren't errors stopping. Those are people stopping. Going to zero while I watch. This is the thing. This is exactly the thing I dropped my labels to never see again."
+    text: "That's people stopping. Going to zero while I watch. This is the thing. This is exactly the thing I dropped my labels to never see again."
     next: flat3
   flat3:
     speaker: metrics
@@ -137,7 +137,7 @@ nodes:
   flat_fault:
     speaker: metrics
     mood: neutral
-    text: "It's my mechanism. Fault is a label. I'm taking that one back as well."
+    text: "It's my mechanism. If I'm taking labels back, I'm taking that one too."
     next: turn
   flat_stop:
     speaker: metrics

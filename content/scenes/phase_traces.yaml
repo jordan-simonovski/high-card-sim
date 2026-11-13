@@ -59,7 +59,7 @@ nodes:
   keep:
     sfx: affection
     action: keep_trace
-    text: "You mark it. Deep in the Realm, a sampler that has always decided at the start is told, for once, to wait until the end."
+    text: "You mark it. The sampler has always decided at the start. This time it's told to wait until the end."
     next: kept_check
   kept_check:
     text: ""
@@ -94,7 +94,7 @@ nodes:
   hint_gateway:
     speaker: traces
     mood: happy
-    text: "That's the root span. That's where it starts. I know where things start. It's the end I've never seen."
+    text: "That's the root span. That's where it starts. I know where things start. Look for where it ends."
     next: ask2
   hint_middle:
     speaker: traces

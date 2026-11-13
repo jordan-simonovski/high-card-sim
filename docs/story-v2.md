@@ -122,7 +122,7 @@ manga flourishes, and the music cues (the incident gets its own track and sounds
   keeps one series per label combination, and the Collector was passing `subscriber_id` to him as
   a label. He hit his limit and dropped series; the batch processor timed out waiting on him and
   shed its queue: spans, then citizens. The fix keeps `subscriber_id` on the wide event and bans
-  `_id` labels. "High cardinality was never the problem."
+  `_id` labels. The table holds the player, the highest-cardinality thing in the building, fine.
 - **Wide event deltas.** The root-cause step is a view, not a typed query: a heatmap of span durations,
   box the slow band, and each attribute is compared inside the box against the rest. Unlocked by
   the DBA when the wide event becomes the lead.

@@ -135,7 +135,7 @@ nodes:
   turn_listen:
     speaker: logs
     mood: blush
-    text: "Oh. Nobody's ever said that to me without a stack trace attached. Okay. But next time, you talk and I listen. I'm practising."
+    text: "Oh. That usually comes with a stack trace attached. Okay. But next time, you talk and I listen. I'm practising."
     next: turn_end
   turn_end:
     speaker: logs
@@ -153,7 +153,7 @@ nodes:
   bye_warm:
     speaker: logs
     mood: happy
-    text: "Thank you for reading me on an ordinary day. Nobody does that. Come back? I'll save you a page. Several. A chapter."
+    text: "Thank you for reading me on an ordinary day. Come back? I'll save you a page. Several. A chapter."
     next: out
   bye_soft:
     speaker: logs

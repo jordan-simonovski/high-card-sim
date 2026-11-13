@@ -360,7 +360,7 @@ nodes:
   all_6b:
     speaker: logs
     mood: happy
-    text: "Then you get the names back. Every one I kept for you. Starting with Pim."
+    text: "Then you get the names back. Every one I kept for you. Three a minute, two years: that one's Pim."
     next: all_7
   all_7:
     speaker: traces
@@ -379,7 +379,7 @@ nodes:
   all_10:
     speaker: logs
     mood: blush
-    text: "Metrics, Traces, look. {name} was whole this entire time. We each just kept the part we were built for."
+    text: "Metrics, Traces, look. It's all of {name}. We each just kept the part we were built for."
     cg: polycule
     next: all_11
   all_11:
@@ -390,7 +390,7 @@ nodes:
     next: end_polycule
   end_polycule:
     sfx: ending
-    text: "Behind you, the portal closes on its own, politely. Root cause: you were never partial. Everyone who loves you is reading from the same row now."
+    text: "Behind you, the portal closes on its own, politely. Everyone who loves you is reading from the same row now."
     cg: polycule
     ending: "Stop Sampling Yourself"
 

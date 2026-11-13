@@ -53,7 +53,7 @@ nodes:
   ql_defend:
     speaker: logs
     mood: neutral
-    text: "It was. It always is. That's the whole trouble with me."
+    text: "It was. It always is."
     next: ql_end
   ql_read:
     speaker: logs
