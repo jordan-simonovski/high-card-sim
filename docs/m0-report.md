@@ -2,7 +2,7 @@
 
 Date: 2026-11-13. Package: `chdb-wasm@0.4.0` (pinned). Machine: Apple Silicon Mac.
 Browsers: Playwright Chromium 158 (headless shell) and Playwright Firefox.
-Reproduce: `npm install && npm run spike` (writes `spike-results/*.json`).
+Reproduce: check out commit `de10f93` and run `npm install && npm run spike` (writes `spike-results/*.json`). The spike page was removed in M1.
 Boot stress test: `PROBE=persist BOOTS=20 HANG_MS=15000 npx playwright test boot-loop`.
 
 ## Verdict: GO, with three changes to the plan
@@ -131,10 +131,12 @@ Options:
 3. Host on the main thread everywhere. One code path, but it breaks the "chDB runs in a worker" rule and risks UI jank.
 4. **File an upstream issue on chdb-io/chdb-core** with the `boot-loop` spec as the repro. This is worth doing whichever option we pick.
 
+The Firefox spike against Vercel production failed twice for this same reason. Each spike test boots three times, so it only passes when all three boots avoid a hang, about 27% of the time.
+
 ## Browser support
 
 - `selectBundle()` reports `supported: false` with reasons when Memory64 is missing. That's the hook for the unsupported-client screen.
-- Not tested on real Safari: M1 adds a Playwright WebKit check.
+- Real device, iOS Safari 27.0.1 (iOS 18.7), tested by the user: `crossOriginIsolated: true`, and `selectBundle` reported `Memory64 unsupported`, a clean refusal with no crash. That's the hook for the unsupported-client screen.
 
 ## Vercel
 
